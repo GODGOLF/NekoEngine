@@ -1,0 +1,32 @@
+#pragma once
+
+#ifndef _MODEL_MANAGER_H_
+#define _MODEL_MANAGER_H_
+
+#include "ObjSceneInF.h"
+#include "DXInF.h"
+#include "D3DModelInF.h"
+#include <vector>
+#include <map>
+#include <fbxsdk.h>
+
+class ObjManager : public ObjScene
+{
+public:
+	ObjManager();
+	virtual ~ObjManager();
+	bool AddObj(char* file, ModelInF* pModelObj) override;
+	bool AddObj(ModelInF* pModelObj) override;
+	bool RemoveObj(ModelInF* pModelObj) override;
+	HRESULT Initial(DXInF* pDevice);
+	void Destroy() override;
+private:
+	DXInF * p_device;
+	std::vector<ModelInF*> m_modelDataList;
+	std::map<char*, D3DModelInF*> m_modelObjectList;
+	FbxManager* p_fbxManager;
+};
+
+
+#endif // !_MODEL_MANAGER_H_
+
