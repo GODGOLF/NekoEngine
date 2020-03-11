@@ -10,13 +10,13 @@ ObjManager::~ObjManager()
 {
 	Destroy();
 }
-bool ObjManager::AddObj(char* file, ModelInF* pModelObj)
+bool ObjManager::AddObj(char* file, ModelInF** pModelObj)
 {
 	D3DModelInF* model = new D3D11Model();
 	D3D11ModelParameterInitial* parameter = new D3D11ModelParameterInitial();
 	parameter->device = (D3D11Class*)p_device;
 	parameter->fbxManager = p_fbxManager;
-	model->initial(file, parameter);
+	model->Initial(file, parameter);
 	//add obj in the map list
 	m_modelObjectList[file] = model;
 	delete parameter;
@@ -34,17 +34,41 @@ bool ObjManager::RemoveObj(ModelInF* pModelObj)
 }
 HRESULT ObjManager::Initial(DXInF* pDevice)
 {
+	//The first thing to do is to create the FBX Manager which is the object allocator for almost all the classes in the SDK
 	p_fbxManager = FbxManager::Create();
-	if (p_fbxManager == NULL) {
+	if (p_fbxManager == NULL) 
+	{
 		return S_FALSE;
 	}
+	//Create an IOSettings object. This object holds all import/export settings.
+	FbxIOSettings* ios = FbxIOSettings::Create(p_fbxManager, IOSROOT);
+	if (ios == NULL)
+	{
+		return S_FALSE;
+	}
+	p_fbxManager->SetIOSettings(ios);
+
+	//save engine's pointer 
 	p_device = pDevice;
 	return S_OK;
 }
 void ObjManager::Destroy()
 {
+	for (auto &i : m_modelObjectList)
+	{
+		delete i.second;
+	}
+
 	if (p_fbxManager)
 	{
 		p_fbxManager->Destroy();
 	}
+}
+std::vector<ModelInF*>* ObjManager::GetModelDataList()
+{
+	return &m_modelDataList;
+}
+std::map<char*, D3DModelInF*>* ObjManager::GetModelObjectList()
+{
+	return &m_modelObjectList;
 }

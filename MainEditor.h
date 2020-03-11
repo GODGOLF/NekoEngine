@@ -28,6 +28,7 @@ private:
 	NekoEngine m_engine;
 	ObjScene* m_objScene;
 
+	Camera m_mainCamera;
 };
 #endif // !D3D_SYSTEM
 

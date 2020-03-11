@@ -4,6 +4,7 @@
 #include "RenderInF.h"
 #include <vector>
 #include "ObjSceneInF.h"
+#include "Camera.h"
 class DXInF;
 
 class NekoEngine
@@ -14,6 +15,7 @@ public:
 		unsigned int width, 
 		unsigned int height,
 		ObjScene** pObjScene);
+	void OnRender(Camera* camera);
 	void OnDestroy();
 private:
 	DXInF* p_directXDevice;

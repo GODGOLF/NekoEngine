@@ -33,13 +33,12 @@ public:
 	bool LoadFBX(FbxManager* pFBXManager, char* file);
 	std::vector<FBXModelData>* GetModelList();
 	std::vector<Joint>* GetJoint();
-private:
 	bool m_haveAnimation;
 	FbxTime m_start;
 	FbxTime m_stop;
 	FbxTime m_frameTime;
 	FbxTime m_timeCount;
-
+private:
 	std::vector<FBXModelData> m_modelList;
 	std::vector<Joint> m_skeleton;
 

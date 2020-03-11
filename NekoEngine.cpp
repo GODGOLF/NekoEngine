@@ -43,3 +43,9 @@ void NekoEngine::OnDestroy()
 		delete p_renderThread[i];
 	}
 }
+void NekoEngine::OnRender(Camera* camera)
+{
+	D3D11Class* device = (D3D11Class*)p_directXDevice;
+	device->BeginDraw(); 
+	device->EndDraw();
+}

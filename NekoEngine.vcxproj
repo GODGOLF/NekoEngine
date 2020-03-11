@@ -131,6 +131,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraPerspective.h" />
     <ClInclude Include="D3D11Class.h" />
+    <ClInclude Include="D3D11DefferRenderThread.h" />
     <ClInclude Include="D3D11Model.h" />
     <ClInclude Include="D3DModelInF.h" />
     <ClInclude Include="DXInclude.h" />

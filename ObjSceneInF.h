@@ -13,7 +13,7 @@ class ObjScene
 public:
 	ObjScene() {};
 	virtual ~ObjScene() {};
-	virtual bool AddObj(char* file, ModelInF* pModelObj)=0;
+	virtual bool AddObj(char* file, ModelInF** pModelObj)=0;
 	virtual bool AddObj(ModelInF* pModelObj) = 0;
 	virtual bool RemoveObj(ModelInF* pModelObj) = 0;
 	virtual void Destroy() = 0;

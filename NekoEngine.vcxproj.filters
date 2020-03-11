@@ -96,6 +96,9 @@
     <ClInclude Include="TextureLoader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="D3D11DefferRenderThread.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WindowApplication.cpp">

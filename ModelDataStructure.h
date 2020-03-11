@@ -10,14 +10,15 @@ struct Material
 	DirectX::XMFLOAT4 diffuseColor;
 	DirectX::XMFLOAT4 specularColor;
 	DirectX::XMFLOAT3 texIndentify;
-	char* diffuseTexture;
-	char* normalTexture;
+	char diffuseTexture[256];
+	char normalTexture[256];
 	float shiness;
 };
 struct MaterialInfo {
+	char name[256];
 	Material mat;
 	int id;
-	int start;
+	int startIndex;
 	int count;
 };
 struct Vertex

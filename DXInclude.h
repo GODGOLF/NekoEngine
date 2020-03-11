@@ -8,7 +8,6 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
-#include <string>
 #include <wrl.h>
 #include <shellapi.h>
 #include <vector>

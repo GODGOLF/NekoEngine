@@ -16,6 +16,11 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 		m_engine.OnDestroy();
 		return S_FALSE;
 	}
+
+	//test
+	ModelInF* model = NULL;
+	char a[] = "Data/Models/SuspCableHolder.fbx";
+	m_objScene->AddObj(&a[0], &model);
 	return S_OK;
 }
 void MainEditor::OnUpdate() 
@@ -26,9 +31,7 @@ void MainEditor::OnUpdate()
 }
 void MainEditor::OnRender(HWND hWnd)
 {
-
-	
-
+	m_engine.OnRender(&m_mainCamera);
 }
 void MainEditor::OnDestroy() {
 

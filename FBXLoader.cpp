@@ -47,6 +47,7 @@ bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file)
 	FbxArray<FbxString*> AnimStackNameArray;
 
 	lScene->FillAnimStackNameArray(AnimStackNameArray);
+	//check whether has animation or not 
 	if (AnimStackNameArray.Size() >0) {
 		m_haveAnimation = true;
 		FbxAnimStack *AnimationStack = lScene->FindMember<FbxAnimStack>(AnimStackNameArray[AnimStackNumber]->Buffer());
@@ -306,16 +307,17 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 		vertex.normal = tempNormal[i];
 		vertex.tangent = DirectX::XMFLOAT4(0, 0, 0, 1);
 		vertex.tex = tempUV[i];
-		vertex.bones.x = tempVertex[model->index[i]].bone[0].bone;
-		vertex.bones.y = tempVertex[model->index[i]].bone[1].bone;
-		vertex.bones.z = tempVertex[model->index[i]].bone[2].bone;
-		vertex.bones.w = tempVertex[model->index[i]].bone[3].bone;
+		if (tempVertex[model->index[i]].bone.size() >0) {
+			vertex.bones.x = tempVertex[model->index[i]].bone[0].bone;
+			vertex.bones.y = tempVertex[model->index[i]].bone[1].bone;
+			vertex.bones.z = tempVertex[model->index[i]].bone[2].bone;
+			vertex.bones.w = tempVertex[model->index[i]].bone[3].bone;
 
-		vertex.width.x = tempVertex[model->index[i]].bone[0].width;
-		vertex.width.y = tempVertex[model->index[i]].bone[1].width;
-		vertex.width.z = tempVertex[model->index[i]].bone[2].width;
-		vertex.width.w = tempVertex[model->index[i]].bone[3].width;
-
+			vertex.width.x = tempVertex[model->index[i]].bone[0].width;
+			vertex.width.y = tempVertex[model->index[i]].bone[1].width;
+			vertex.width.z = tempVertex[model->index[i]].bone[2].width;
+			vertex.width.w = tempVertex[model->index[i]].bone[3].width;
+		}
 		model->vertrics.push_back(vertex);
 
 		tempIndex.push_back(i);
@@ -343,7 +345,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 					//GetBaseTextureMap(lMaterial, pMeshUser);
 
 					LoadMaterial(lMaterial, model, idCount, fileName.c_str());
-					model->material.back().start = 0;
+					model->material.back().startIndex = 0;
 					model->material.back().count = (unsigned int)tempIndex.size();
 				}
 			}
@@ -375,7 +377,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 								polyCount += (lPolygonSize >3) ? 6 : 3;
 								if (prevfile.compare("") == 0) {
 									//don't do any thing
-									model->material[idCount].start = 0;
+									model->material[idCount].startIndex = 0;
 
 								}
 								else if (i == lPolygonCount - 1) {
@@ -384,7 +386,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 								else if (fileName.compare(prevfile) != 0) {
 									idCount++;
 									model->material[idCount - 1].count = polyCount;
-									model->material[idCount].start = i;
+									model->material[idCount].startIndex = i;
 									polyCount = 0;
 								}
 
@@ -409,7 +411,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser, int &id,const char* file)
 {
 	FbxProperty lProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
-
+	strcpy_s(modelUser->material.back().name, sizeof(modelUser->material.back().name), material->GetName());
 	if (lProperty.IsValid())
 	{
 		int lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
