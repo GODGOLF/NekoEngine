@@ -3,8 +3,8 @@
 #include <string>
 namespace DirectXHelper
 {
-	inline void InverseMatrix(DirectX::XMMATRIX Input, DirectX::XMMATRIX &output);
-	inline DirectX::XMVECTOR XMConvertToQuaternion(DirectX::XMFLOAT3 axis, float angle);
+	void InverseMatrix(DirectX::XMMATRIX Input, DirectX::XMMATRIX &output);
+	DirectX::XMVECTOR XMConvertToQuaternion(DirectX::XMFLOAT3 axis, float angle);
 	template< typename Base, typename T>
 	bool instanceof(const T* ptr) {
 		return dynamic_cast<const Base*>(ptr) != nullptr;

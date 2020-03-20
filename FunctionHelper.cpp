@@ -1,12 +1,12 @@
 #include "FunctionHelper.h"
 
-inline void DirectXHelper::InverseMatrix(DirectX::XMMATRIX Input, DirectX::XMMATRIX &output)
+void DirectXHelper::InverseMatrix(DirectX::XMMATRIX Input, DirectX::XMMATRIX &output)
 {
 	DirectX::XMMATRIX A = Input;
 	DirectX::XMVECTOR det = XMMatrixDeterminant(A);
 	output = XMMatrixInverse(&det, A);
 }
-inline DirectX::XMVECTOR DirectXHelper::XMConvertToQuaternion(DirectX::XMFLOAT3 axis, float angle) {
+DirectX::XMVECTOR DirectXHelper::XMConvertToQuaternion(DirectX::XMFLOAT3 axis, float angle) {
 	DirectX::XMVECTOR aV = XMLoadFloat3(&axis);
 	return DirectX::XMQuaternionRotationAxis(aV, angle);
 }
@@ -23,8 +23,7 @@ std::string DirectXHelper::ConvertWstringToString(std::wstring text)
 	std::string str;
 	size_t convertedChars = 0;
 	size_t  sizeInBytes = ((text.size() + 1) * 2);
-	char *ch = (char *)malloc(sizeInBytes);
-	wcstombs_s(&convertedChars, ch, sizeInBytes,text.c_str(), sizeInBytes);
-	str.append(ch);
+	str.resize((text.size() + 1) * 2);
+	wcstombs_s(&convertedChars, &str[0], sizeInBytes, text.c_str(), sizeInBytes);
 	return str;
 }

@@ -5,18 +5,16 @@ class Camera
 {
 public:
 	Camera();
-	~Camera();
+	virtual ~Camera();
 
-	DirectX::XMMATRIX GetView();
-	DirectX::XMMATRIX GetProjection();
-	DirectX::XMVECTOR GetPosition();
-	float GetNearValue();
-	float GetFarValue();
-	DirectX::XMVECTOR GetWorldRight();
-	DirectX::XMVECTOR GetWorldUp();
-	DirectX::XMVECTOR GetWorldAhead();
-	float GetFOV();
-	float GetAspectRadio();
+	DirectX::XMMATRIX GetView()			const;
+	DirectX::XMMATRIX GetProjection()	const;
+	DirectX::XMVECTOR GetPosition()		const;
+	float GetNearValue()				const;
+	float GetFarValue()					const;
+	DirectX::XMVECTOR GetWorldRight()	const;
+	DirectX::XMVECTOR GetWorldUp()		const;
+	DirectX::XMVECTOR GetWorldAhead()	const;
 
 protected:
 	DirectX::XMMATRIX m_view;
@@ -24,8 +22,7 @@ protected:
 	DirectX::XMVECTOR m_camPos;
 	float m_nearValue;
 	float m_farValue;
-	float m_aspectRadio;
-	float m_FOV;
+	
 
 };
 #endif // !_CAMERA_H_

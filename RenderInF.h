@@ -11,7 +11,7 @@ public:
 	RenderInF() {};
 	virtual ~RenderInF() {};
 
-	virtual HRESULT Initial(DXInF* pDevice) = 0;
+	virtual HRESULT Initial(DXInF* pDevice, Parameter* pParameter = nullptr) = 0;
 
 	virtual void Render(DXInF* pDevice,Parameter* pParameter = nullptr) = 0;
 

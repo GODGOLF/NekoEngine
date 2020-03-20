@@ -15,28 +15,28 @@ Camera::~Camera()
 
 }
 
-DirectX::XMMATRIX Camera::GetView()
+DirectX::XMMATRIX Camera::GetView() const
 {
 	return m_view;
 }
-DirectX::XMMATRIX Camera::GetProjection()
+DirectX::XMMATRIX Camera::GetProjection() const
 {
 	return m_projection;
 }
-DirectX::XMVECTOR Camera::GetPosition()
+DirectX::XMVECTOR Camera::GetPosition() const
 {
 	return m_camPos;
 }
 
-float Camera::GetNearValue()
+float Camera::GetNearValue() const
 {
 	return m_nearValue;
 }
-float Camera::GetFarValue()
+float Camera::GetFarValue() const
 {
 	return m_farValue;
 }
-inline DirectX::XMVECTOR Camera::GetWorldRight()
+inline DirectX::XMVECTOR Camera::GetWorldRight() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;
@@ -44,7 +44,7 @@ inline DirectX::XMVECTOR Camera::GetWorldRight()
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._11));
 }
-inline DirectX::XMVECTOR Camera::GetWorldUp()
+inline DirectX::XMVECTOR Camera::GetWorldUp() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;
@@ -52,17 +52,11 @@ inline DirectX::XMVECTOR Camera::GetWorldUp()
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._21));
 }
-inline DirectX::XMVECTOR Camera::GetWorldAhead()
+inline DirectX::XMVECTOR Camera::GetWorldAhead() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;
 	DirectXHelper::InverseMatrix(m_view, mCameraWorld);
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._31));
-}
-float Camera::GetFOV() {
-	return m_FOV;
-}
-float Camera::GetAspectRadio() {
-	return m_aspectRadio;
 }

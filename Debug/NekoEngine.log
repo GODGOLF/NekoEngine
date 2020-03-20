@@ -1,6 +1,2 @@
-﻿  ObjManager.cpp
-  NekoEngine.cpp
-  FBXLoader.cpp
-  D3D11Model.cpp
-  コードを生成中...
+﻿  FBXLoader.cpp
   NekoEngine.vcxproj -> D:\directx\NekoEngine\NekoEngine\Debug\NekoEngine.exe

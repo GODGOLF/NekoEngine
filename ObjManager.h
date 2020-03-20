@@ -21,11 +21,11 @@ public:
 	HRESULT Initial(DXInF* pDevice);
 	void Destroy() override;
 	std::vector<ModelInF*>* GetModelDataList();
-	std::map<char*, D3DModelInF*>* GetModelObjectList();
+	std::map<std::string, D3DModelInF*>* GetModelObjectList();
 private:
 	DXInF * p_device;
 	std::vector<ModelInF*> m_modelDataList;
-	std::map<char*, D3DModelInF*> m_modelObjectList;
+	std::map<std::string, D3DModelInF*> m_modelObjectList;
 	FbxManager* p_fbxManager;
 };
 

@@ -129,13 +129,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="CameraPerspective.h" />
     <ClInclude Include="D3D11Class.h" />
-    <ClInclude Include="D3D11DefferRenderThread.h" />
+    <ClInclude Include="D3D11GBufferRenderThread.h" />
     <ClInclude Include="D3D11Model.h" />
+    <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3DModelInF.h" />
+    <ClInclude Include="D3DShaderInF.h" />
     <ClInclude Include="DXInclude.h" />
     <ClInclude Include="DXInF.h" />
+    <ClInclude Include="EditorCamera.h" />
     <ClInclude Include="FBXLoader.h" />
     <ClInclude Include="FunctionHelper.h" />
     <ClInclude Include="imGUI\imconfig.h" />
@@ -144,10 +146,18 @@
     <ClInclude Include="imGUI\imstb_rectpack.h" />
     <ClInclude Include="imGUI\imstb_textedit.h" />
     <ClInclude Include="imGUI\imstb_truetype.h" />
+    <ClInclude Include="LightManagementInF.h" />
+    <ClInclude Include="LightManager.h" />
+    <ClInclude Include="LightObjInF.h" />
     <ClInclude Include="ModelDataStructure.h" />
+    <ClInclude Include="D3D11MVP.h" />
+    <ClInclude Include="ModelInF.h" />
+    <ClInclude Include="MVPInF.h" />
     <ClInclude Include="ObjManager.h" />
     <ClInclude Include="NekoEngine.h" />
     <ClInclude Include="ObjSceneInF.h" />
+    <ClInclude Include="OrthogonalCamera.h" />
+    <ClInclude Include="PerspectiveCamera.h" />
     <ClInclude Include="RenderInF.h" />
     <ClInclude Include="D3D11RenderThread.h" />
     <ClInclude Include="ScreenInF.h" />
@@ -155,14 +165,18 @@
     <ClInclude Include="ThreadHandle.h" />
     <ClInclude Include="WindowApplication.h" />
     <ClInclude Include="MainEditor.h" />
+    <ClInclude Include="D3D11WindowRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CameraPerspective.cpp" />
     <ClCompile Include="D3D11Class.cpp" />
+    <ClCompile Include="D3D11GBufferRenderThread.cpp" />
     <ClCompile Include="D3D11Model.cpp" />
+    <ClCompile Include="D3D11MVP.cpp" />
     <ClCompile Include="D3D11RenderThread.cpp" />
+    <ClCompile Include="D3D11Shader.cpp" />
     <ClCompile Include="DXInF.cpp" />
+    <ClCompile Include="EditorCamera.cpp" />
     <ClCompile Include="FBXLoader.cpp" />
     <ClCompile Include="FunctionHelper.cpp" />
     <ClCompile Include="imGUI\imgui.cpp" />
@@ -172,10 +186,13 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="NekoEngine.cpp" />
     <ClCompile Include="ObjManager.cpp" />
+    <ClCompile Include="OrthogonalCamera.cpp" />
+    <ClCompile Include="PerspectiveCamera.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="ThreadHandle.cpp" />
     <ClCompile Include="WindowApplication.cpp" />
     <ClCompile Include="MainEditor.cpp" />
+    <ClCompile Include="D3D11WindowRender.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

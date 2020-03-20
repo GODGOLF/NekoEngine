@@ -105,6 +105,8 @@ void FBXLoader::LoadContent(FbxNode* pNode)
 
 			FbxAMatrix geometryOffset = FbxAMatrix(t0, r0, s0);
 
+			lGlobalTransform = lGlobalTransform * geometryOffset;
+			
 			m_modelList.back().DefaultMatrix = DirectX::XMMATRIX((float)lGlobalTransform.Get(0, 0), (float)lGlobalTransform.Get(0, 1), (float)lGlobalTransform.Get(0, 2), (float)lGlobalTransform.Get(0, 3),
 				(float)lGlobalTransform.Get(1, 0), (float)lGlobalTransform.Get(1, 1), (float)lGlobalTransform.Get(1, 2), (float)lGlobalTransform.Get(1, 3),
 				(float)lGlobalTransform.Get(2, 0), (float)lGlobalTransform.Get(2, 1), (float)lGlobalTransform.Get(2, 2), (float)lGlobalTransform.Get(2, 3),
@@ -223,12 +225,9 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				vertexId++;
 			}
 		}
-
-
 	}
 	//UV
 	{
-
 		for (int l = 0; l < pMesh->GetElementUVCount(); ++l)
 		{
 			FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
@@ -298,12 +297,10 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 		ProcessJointsAndAnimations(model, tempVertex);
 	}
 
-	//model->vertrics.resize(tempVertex.size());
-	//OutputDebugString((L"size"))
+
 	for (unsigned int i = 0; i < model->index.size(); i++) {
 		VertexAnime vertex;
 		vertex.position = tempVertex[model->index[i]].vertex;
-
 		vertex.normal = tempNormal[i];
 		vertex.tangent = DirectX::XMFLOAT4(0, 0, 0, 1);
 		vertex.tex = tempUV[i];
@@ -319,9 +316,13 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 			vertex.width.w = tempVertex[model->index[i]].bone[3].width;
 		}
 		model->vertrics.push_back(vertex);
-
 		tempIndex.push_back(i);
 	}
+	//clear index and add new index
+	model->index.clear();
+	//::CopyMemory(&model->index, &tempIndex,sizeof(WORD)*tempIndex.size());
+	model->index = tempIndex;
+
 	//material
 	{
 		int idCount = 0;
@@ -346,7 +347,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 
 					LoadMaterial(lMaterial, model, idCount, fileName.c_str());
 					model->material.back().startIndex = 0;
-					model->material.back().count = (unsigned int)tempIndex.size();
+					model->material.back().count = (unsigned int)model->index.size();
 				}
 			}
 			break;

@@ -3,11 +3,12 @@
 #include "TextureLoader.h"
 #define DIFFUSE_TEXTURE_INDEX 0
 #define NORMAL_TEXTURE_INDEX 1
+#define TEXTURE_SAMPLE	0
 
 #define SKELETON_MATRIX_CB_INDEX	2
 #define MATERIAL_CB_INDEX	3
 
-D3D11Model::D3D11Model() : g_pConstantLighting(NULL),g_pConstantSkeleton(NULL)
+D3D11Model::D3D11Model() : m_pConstantLighting(NULL),m_pConstantSkeleton(NULL), m_pSamplerState(NULL)
 {
 
 }
@@ -20,13 +21,13 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 {
 	bool result;
 	D3D11ModelParameterInitial* d3dParameter = (D3D11ModelParameterInitial*)parameter;
-	result = m_model.LoadFBX(d3dParameter->fbxManager, file);
+	result = m_model.LoadFBX(d3dParameter->pFbxManager, file);
 	if (!result)
 	{
 		return S_FALSE;
 	}
 	std::vector<FBXModelData>* list = m_model.GetModelList();
-	ID3D11Device* device = d3dParameter->device->GetDevice();
+	ID3D11Device* device = d3dParameter->pDevice->GetDevice();
 
 	//allocate memmory
 	m_modelBuffer.resize(list->size());
@@ -63,15 +64,11 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 			{
 				if (strlen(j.mat.diffuseTexture) !=0)
 				{
-					hr = Texture::LoadTexture((D3D11Class*)device, j.mat.diffuseTexture, m_textureSRV[j.name].diffuseTex);
-					if (FAILED(hr))
-						return hr;
+					Texture::LoadTexture((D3D11Class*)device, j.mat.diffuseTexture, m_textureSRV[j.name].diffuseTex);
 				}
 				if (strlen(j.mat.normalTexture) != 0)
 				{
-					hr = Texture::LoadTexture((D3D11Class*)device, j.mat.normalTexture, m_textureSRV[j.name].normalTex);
-					if (FAILED(hr))
-						return hr;
+					Texture::LoadTexture((D3D11Class*)device, j.mat.normalTexture, m_textureSRV[j.name].normalTex);
 				}
 			}
 		}
@@ -85,10 +82,9 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 	bd.ByteWidth = sizeof(MaterialConstant);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = device->CreateBuffer(&bd, nullptr, &g_pConstantLighting);
+	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantLighting);
 	if (FAILED(hr))
 		return hr;
-
 
 	//skeleton constant buffer
 	ZeroMemory(&bd, sizeof(bd));
@@ -96,7 +92,21 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 	bd.ByteWidth = sizeof(ConstantSkeleton);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = device->CreateBuffer(&bd, nullptr, &g_pConstantSkeleton);
+	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantSkeleton);
+	if (FAILED(hr))
+		return hr;
+
+	// Create the sample state
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = device->CreateSamplerState(&sampDesc, &m_pSamplerState);
 	if (FAILED(hr))
 		return hr;
 
@@ -104,8 +114,12 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 }
 void D3D11Model::Render(DXInF* pDevice, ModelExtraParameter* parameter)
 {
-	ID3D11DeviceContext* pDeviceContext = ((D3D11Class*)pDevice)->GetDeviceContext();
 	std::vector<FBXModelData>* list = m_model.GetModelList();
+
+	D3D11ModelParameterRender* d3dParameter = (D3D11ModelParameterRender*)parameter;
+
+	ID3D11DeviceContext* pDeviceContext = d3dParameter->pDeviceContext;
+
 	UINT stride = sizeof(VertexAnime);
 	UINT offset = 0;
 	for (unsigned int i = 0; i < list->size(); i++) {
@@ -115,6 +129,15 @@ void D3D11Model::Render(DXInF* pDevice, ModelExtraParameter* parameter)
 
 		// Set primitive topology
 		pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		//bind MVP buffer
+		D3D11MVPParameter mvpParameter;
+		mvpParameter.deviceContext = pDeviceContext;
+		d3dParameter->pMVP->BindConstantMVP(&mvpParameter,d3dParameter->pCamera, 
+			list->operator[](i).DefaultMatrix, 
+			d3dParameter->pModelInfo->position, 
+			d3dParameter->pModelInfo->rotation, 
+			d3dParameter->pModelInfo->scale);
 
 		for (auto &j : list->operator[](i).material) {
 			MaterialConstant material;
@@ -132,15 +155,34 @@ void D3D11Model::Render(DXInF* pDevice, ModelExtraParameter* parameter)
 				haveTex.y = 1;
 			}
 			if (m_model.m_haveAnimation) {
-				pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &g_pConstantSkeleton);
+				pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &m_pConstantSkeleton);
 			}
 			material.haveTexture = haveTex;
-			pDeviceContext->UpdateSubresource(g_pConstantLighting, 0, nullptr, &material, 0, 0);
-			pDeviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &g_pConstantLighting);
-			pDeviceContext->DrawIndexed(j.count, j.startIndex, 0);
+			pDeviceContext->UpdateSubresource(m_pConstantLighting, 0, nullptr, &material, 0, 0);
+			pDeviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &m_pConstantLighting);
+			pDeviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
+			//draw object
+
+			pDeviceContext->DrawIndexed(j.count, j.startIndex,0);
+			//unbind texture
+			ID3D11ShaderResourceView* texture = NULL;
+			pDeviceContext->PSSetShaderResources(DIFFUSE_TEXTURE_INDEX, 1, &texture);
+			pDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_INDEX, 1, &texture);
+			//unbind buffer
+			ID3D11Buffer* nullBuffer = NULL;
+			pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &nullBuffer);
+			//unbind sampler
+			ID3D11SamplerState* nullSampler = NULL;
+			pDeviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &nullSampler);
+
 		}
 
 	}
+	D3D11MVPParameter mvpParameter;
+	mvpParameter.deviceContext = pDeviceContext;
+	//unBind MVP 
+	d3dParameter->pMVP->UnbindConstantMVP(&mvpParameter);
+
 }
 void D3D11Model::Destroy()
 {
@@ -154,8 +196,9 @@ void D3D11Model::Destroy()
 		SAFE_RELEASE(i.second.diffuseTex.texture);
 		SAFE_RELEASE(i.second.normalTex.texture);
 	}
-	SAFE_RELEASE(g_pConstantLighting);
-	SAFE_RELEASE(g_pConstantSkeleton);
+	SAFE_RELEASE(m_pConstantLighting);
+	SAFE_RELEASE(m_pConstantSkeleton);
+	SAFE_RELEASE(m_pSamplerState);
 }
 D3D11Model::MaterialConstant::MaterialConstant() :diffuseColor(0.f,0.f,0.f,0.f),
 specularColor(0.f,0.f,0.f,0.f),

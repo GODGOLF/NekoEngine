@@ -5,15 +5,24 @@
 #include "D3DModelInF.h"
 #include "TextureLoader.h"
 #include "FBXLoader.h"
+#include "D3D11Class.h"
+#include "D3D11MVP.h"
+#include "ModelInF.h"
+#include <string>
 #include <vector>
 #include <map>
-#include "D3D11Class.h"
-#include <string>
-
 struct D3D11ModelParameterInitial : ModelExtraParameter
 {
-	FbxManager* fbxManager;
-	D3D11Class* device;
+	FbxManager* pFbxManager;
+	D3D11Class* pDevice;
+};
+struct D3D11ModelParameterRender : ModelExtraParameter
+{
+	//use for thread
+	ID3D11DeviceContext* pDeviceContext;
+	Camera* pCamera;
+	D3D11MVP* pMVP;
+	ModelInF* pModelInfo;
 };
 
 class D3D11Model :public D3DModelInF
@@ -44,19 +53,22 @@ private:
 		float shiness;
 		float  metallic;
 		float roughness;
+		float pad[2];
 	};
 
-	ID3D11Buffer*  g_pConstantLighting;
+	ID3D11Buffer*  m_pConstantLighting;
 
 	struct ConstantSkeleton {
 		XMMATRIX matrix[MAX_SKELETON];
 	};
-	ID3D11Buffer*  g_pConstantSkeleton;
+	ID3D11Buffer*  m_pConstantSkeleton;
 	
 	std::vector<VertexBuffer> m_modelBuffer;
 	std::map<std::string, MaterialTexture> m_textureSRV;
 
 	FBXLoader m_model;
+
+	ID3D11SamplerState* m_pSamplerState;
 };
 
 

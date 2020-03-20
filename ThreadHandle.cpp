@@ -2,7 +2,7 @@
 #include <process.h>
 ThreadHandle::ThreadHandle() : 
 m_beginThread(NULL),
-m_EndThread(NULL),
+m_endThread(NULL),
 m_thread(NULL)
 {
 	InitialThread();
@@ -29,7 +29,7 @@ HRESULT ThreadHandle::InitialThread()
 		NULL);
 
 	m_beginThread = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_EndThread = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_endThread = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	return S_OK;
 }
@@ -45,8 +45,24 @@ void ThreadHandle::DestroyThread()
 	{
 		CloseHandle(m_beginThread);
 	}
-	if (m_EndThread)
+	if (m_endThread)
 	{
-		CloseHandle(m_EndThread);
+		CloseHandle(m_endThread);
 	}
+}
+void ThreadHandle::BindEndEventHandle()
+{
+	SetEvent(m_endThread);
+}
+void ThreadHandle::BindBeginEventHandle()
+{
+	SetEvent(m_beginThread);
+}
+HANDLE ThreadHandle::GetBeginThreadHandle()
+{
+	return m_beginThread;
+}
+HANDLE ThreadHandle::GetEndThreadHandle()
+{
+	return m_endThread;
 }

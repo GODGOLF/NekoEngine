@@ -363,7 +363,7 @@ void D3D11Class::OnDestroy()
 		m_RSCullFront = 0;
 	}
 }
-void D3D11Class::BeginDraw() {
+void D3D11Class::BindMainRenderTarget() {
 	Reset();
 	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, g_backgroundColor_);
 	g_pImmediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);

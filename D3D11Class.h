@@ -6,7 +6,7 @@ public:
 	D3D11Class();
 	~D3D11Class();
 	HRESULT OnInit(HWND hwnd, UINT width, UINT height);
-	void BeginDraw();
+	void BindMainRenderTarget();
 	void EndDraw();
 	void OnDestroy();
 	ID3D11Device* GetDevice();
@@ -17,6 +17,16 @@ public:
 	XMVECTORF32* GetDefaultColorBg();
 	void Reset();
 	void SetCullRaterilization(D3D10_CULL_MODE mode);
+
+
+	void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
 private:
 
 
@@ -41,5 +51,6 @@ private:
 	ID3D11ShaderResourceView* m_shaderResourceViewMap;
 	XMVECTORF32 g_backgroundColor_ = { 0.0000000f, 0.000000f, 0.000000000f, 1.000000000f };
 	D3D11_VIEWPORT m_vp;
+
 };
 #endif // !D3D11_CLASS_H

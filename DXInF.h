@@ -7,19 +7,9 @@ public:
 	virtual ~DXInF() {};
 
 	virtual HRESULT OnInit(HWND hwnd, UINT width, UINT height) = 0;
-	virtual void BeginDraw() = 0;
+	virtual void BindMainRenderTarget() = 0;
 	virtual void EndDraw() = 0;
 	virtual void OnDestroy() = 0;
-
-
-	void* operator new(size_t i)
-	{
-		return _mm_malloc(i, 16);
-	}
-	void operator delete(void* p)
-	{
-		_mm_free(p);
-	}
 };
 
 #endif // !_D3DInf_H

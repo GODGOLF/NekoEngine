@@ -7,6 +7,10 @@ class ThreadHandle
 public:
 	ThreadHandle();
 	virtual ~ThreadHandle();
+	void BindEndEventHandle();
+	void BindBeginEventHandle();
+	HANDLE GetBeginThreadHandle();
+	HANDLE GetEndThreadHandle();
 private:
 	HANDLE m_thread;
 	static unsigned __stdcall ThreadRunning(LPVOID lpParameter);
@@ -14,9 +18,10 @@ private:
 	//when don't use thread anymore, call this function
 	void DestroyThread();
 	virtual void ThreadExcecute() {};
+	
 protected:
 	HANDLE m_beginThread;
-	HANDLE m_EndThread;
+	HANDLE m_endThread;
 	
 };
 

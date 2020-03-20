@@ -1,12 +1,7 @@
 #ifndef _OBJ_SCENE_INF_H_
 #define _OBJ_SCENE_INF_H_ 
 #include <Windows.h>
-class ModelInF
-{
-public:
-	ModelInF() {};
-	virtual ~ModelInF() {};
-};
+#include "ModelInF.h"
 
 class ObjScene
 {

@@ -15,12 +15,19 @@ public:
 		unsigned int width, 
 		unsigned int height,
 		ObjScene** pObjScene);
-	void OnRender(Camera* camera);
+	void OnRender(Camera* pCamera);
 	void OnDestroy();
 private:
-	DXInF* p_directXDevice;
-	std::vector<RenderInF*> p_renderThread;
-	ObjScene* p_objScene;
+	DXInF* m_pDirectXDevice;
+	std::vector<RenderInF*> m_pGBufferRenderThread;
+	ObjScene* m_pObjScene;
+	RenderInF* m_pWindowRender;
+
+	void PreRender(Camera* pCamera);
+	void MainRender(Camera* pCamera);
+	void PostProcressRender();
+
+	bool isPreRender;
 };
 
 #endif // !_NEKO_ENGINE_H_
