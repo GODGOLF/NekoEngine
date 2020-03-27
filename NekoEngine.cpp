@@ -5,17 +5,22 @@
 #include "ObjManager.h"
 #include "D3D11GBufferRenderThread.h"
 #include "D3D11WindowRender.h"
+#include "D3D11LightRenderManager.h"
+#include "LightManager.h"
+#include "D3D11ImGuiRender.h"
 NekoEngine::NekoEngine()
 {
 	m_pDirectXDevice = 0;
 	isPreRender = true;
 	m_pWindowRender = NULL;
+	m_imguiRender = NULL;
 	
 }
 HRESULT NekoEngine::OnInitial(HWND *hwnd, 
 	unsigned int width, 
 	unsigned int height,
-	ObjScene** pObjScene)
+	ObjScene** pObjScene,
+	LightManagementInF** pLightManager)
 {
 	HRESULT isSucessful;
 	m_pDirectXDevice = new D3D11Class();
@@ -42,6 +47,17 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	gBufferParameter.height = height;
 	m_pGBufferRenderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
 
+	//light
+	m_pLightRender = new D3D11LightRenderManager();
+	LightInitialParameter lightParameter;
+	lightParameter.width = width;
+	lightParameter.height = height;
+	m_pLightRender->Initial(m_pDirectXDevice, &lightParameter);
+
+	//create light manager that store light's info 
+	*pLightManager = new LightManager();
+	m_lightObj = *pLightManager;
+
 	//final render
 	m_pWindowRender = new D3D11WindowRender();
 	m_pWindowRender->Initial(m_pDirectXDevice);
@@ -63,6 +79,11 @@ void NekoEngine::OnDestroy()
 		delete m_pWindowRender;
 
 	}
+	if (m_pLightRender)
+	{
+		delete m_pLightRender;
+	}
+	m_imguiRender = NULL;
 	
 }
 void NekoEngine::OnRender(Camera* pCamera)
@@ -113,8 +134,14 @@ void NekoEngine::OnRender(Camera* pCamera)
 	device->BindMainRenderTarget(); 
 	//hard code
 	WindowRenderParameter rParamter;
-	rParamter.texture = ((D3D11GBufferRenderThread*)m_pGBufferRenderThread[0])->GetColorView();
+	rParamter.texture = ((D3D11LightRenderManager*)m_pLightRender)->GetLightSRV();
 	m_pWindowRender->Render(m_pDirectXDevice, &rParamter);
+
+	//draw imGui
+	if (m_imguiRender)
+	{
+		m_imguiRender->Render(m_pDirectXDevice, pCamera);
+	}
 	//last thing is calling this function
 	device->EndDraw();
 }
@@ -126,9 +153,36 @@ void NekoEngine::PreRender(Camera* pCamera)
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {
-
+	LightRenderParameter lightParameter;
+	lightParameter.pCamera = pCamera;
+	//get data from gBuffer
+	D3D11GBufferRenderThread* gBuffer = (D3D11GBufferRenderThread*)m_pGBufferRenderThread[0];
+	lightParameter.colorSRV = gBuffer->GetColorView();
+	lightParameter.depthStencilDSV = gBuffer->GetDepthView();
+	lightParameter.normalSRV = gBuffer->GetNormalView();
+	lightParameter.specPowerSRV = gBuffer->GetSpecPowerView();
+	lightParameter.pLights = ((LightManager*)m_lightObj)->GetLightArray();
+	//draw light!
+	m_pLightRender->Render(m_pDirectXDevice, &lightParameter);
 }
 void NekoEngine::PostProcressRender()
 {
 
+}
+HRESULT NekoEngine::CreateImGUIManager(ImGuiRenderInF** pManager, HWND *hwnd,
+	unsigned int width,
+	unsigned int height)
+{
+	HRESULT hr;
+	*pManager = new D3D11ImGUIRender();
+	hr = (*pManager)->Initial(m_pDirectXDevice, *hwnd, width, height);
+	if (FAILED(hr))
+	{
+		(*pManager)->Destroy();
+		delete (*pManager);
+		(*pManager) = NULL;
+		return hr;
+	}
+	m_imguiRender = *pManager;
+	return S_OK;
 }

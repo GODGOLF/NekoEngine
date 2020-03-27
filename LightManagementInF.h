@@ -19,8 +19,8 @@ public:
 	/*
 		Direction light's function support only one light;
 	*/
-	virtual bool AddLight(LightObjInf** pLightObj) = 0;
-	virtual bool RemoveLight(LightObjInf* pLightObj) = 0;
+	virtual bool AddLight(LightObjInF* pLightObj) = 0;
+	virtual bool RemoveLight(LightObjInF* pLightObj) = 0;
 	virtual void Destroy() = 0;
 };
 

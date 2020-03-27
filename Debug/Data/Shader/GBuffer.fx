@@ -70,7 +70,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal, float SpecIntensity,
 	float SpecPowerNorm = max(0.0001, (SpecPower - g_SpecPowerRange.x) / g_SpecPowerRange.y);
 
 	// Pack all the data into the GBuffer structure
-	Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
+	Out.ColorSpecInt = float4(BaseColor.rgb, SpecIntensity);
 	Out.Normal = float4(Normal * 0.5 + 0.5, 1.0);
 	Out.SpecPow = float4(SpecPowerNorm, 1.0, 0.0, 1.0);
 	return Out;

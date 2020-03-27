@@ -1,11 +1,13 @@
-#ifndef MAIN_EDITOR
-#define MAIN_EDITOR
+#ifndef _MAIN_EDITOR_
+#define _MAIN_EDITOR_
 #include<Windows.h>
 #include <wrl.h>
 #include <shellapi.h>
 #include "ScreenInF.h"
 #include "NekoEngine.h"
 #include "ObjSceneInF.h"
+#include "MenuBarEditor.h"
+#include "KMInputManager.h"
 
 class MainEditor : public ScreenInF
 {
@@ -27,9 +29,16 @@ public:
 private:
 	NekoEngine m_engine;
 	ObjScene* m_objScene;
+	LightManagementInF* m_light;
+	DirectionLightObj m_DirectionLight;
 
 	Camera* m_mainCamera;
 	ModelInF* m_model = NULL;
+
+	ImGuiRenderInF* m_guiEditorManager;
+	MenuBarEditor m_menuEditor;
+
+	KMInputManager m_inputManager;
 };
 #endif // !D3D_SYSTEM
 

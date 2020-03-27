@@ -18,8 +18,6 @@ struct D3D11ModelParameterInitial : ModelExtraParameter
 };
 struct D3D11ModelParameterRender : ModelExtraParameter
 {
-	//use for thread
-	ID3D11DeviceContext* pDeviceContext;
 	Camera* pCamera;
 	D3D11MVP* pMVP;
 	ModelInF* pModelInfo;
@@ -31,7 +29,7 @@ public:
 	D3D11Model();
 	virtual ~D3D11Model();
 	HRESULT Initial(char* file, ModelExtraParameter* parameter =NULL)  override;
-	void Render(DXInF* deviceContext, ModelExtraParameter* parameter=NULL)  override;
+	void Render(void* pDeviceContext, ModelExtraParameter* parameter=NULL)  override;
 	void Destroy() override;
 private:
 	struct MaterialTexture

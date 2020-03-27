@@ -112,13 +112,13 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 
 	return S_OK;
 }
-void D3D11Model::Render(DXInF* pDevice, ModelExtraParameter* parameter)
+void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 {
 	std::vector<FBXModelData>* list = m_model.GetModelList();
 
 	D3D11ModelParameterRender* d3dParameter = (D3D11ModelParameterRender*)parameter;
 
-	ID3D11DeviceContext* pDeviceContext = d3dParameter->pDeviceContext;
+	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)pd3dDeviceContext;
 
 	UINT stride = sizeof(VertexAnime);
 	UINT offset = 0;

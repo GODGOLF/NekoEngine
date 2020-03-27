@@ -257,9 +257,7 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 		return;
 	}
 	D3D11RenderThread::Render(pDevice,pParameter);
-	D3D11PrePostRender shaderRenderParameter;
-	shaderRenderParameter.deviceContext = m_deviceContext;
-	m_GBufferShader.PreRender(&shaderRenderParameter);
+	m_GBufferShader.PreRender(m_deviceContext);
 	m_deviceContext->ClearRenderTargetView(m_ColorSpecIntensityRTV, CLEAR_RENDER);
 	m_deviceContext->ClearRenderTargetView(m_NormalRTV, CLEAR_RENDER);
 	m_deviceContext->ClearRenderTargetView(m_SpecPowerRTV, CLEAR_RENDER);
@@ -277,7 +275,7 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 	//set view port
 	m_deviceContext->RSSetViewports(1, &m_Vp);
 	RenderObj(pDevice);
-	m_GBufferShader.PostRender(&shaderRenderParameter);
+	m_GBufferShader.PostRender(m_deviceContext);
 	ID3D11RenderTargetView* nullRT[3] = { NULL, NULL, NULL };
 	m_deviceContext->OMSetRenderTargets(3, nullRT, m_DepthStencilReadOnlyDSV);
 	m_deviceContext->RSSetViewports(prevViewPortNumber, &prevVp);
@@ -315,6 +313,7 @@ void D3D11GBufferRenderThread::Destroy()
 	if (m_RenderParameter)
 	{
 		delete m_RenderParameter;
+		m_RenderParameter = NULL;
 	}
 	m_pDevice = NULL;
 }
@@ -345,10 +344,9 @@ void D3D11GBufferRenderThread::RenderObj(DXInF* pDevice)
 		
 		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
 		pRenderParameter->pCamera = m_RenderParameter->pCamera;
-		pRenderParameter->pDeviceContext = m_deviceContext;
 		pRenderParameter->pModelInfo = pModelInfo;
 		pRenderParameter->pMVP = &m_mvp;
-		pModel->Render(pDevice, pRenderParameter);
+		pModel->Render(m_deviceContext, pRenderParameter);
 	}
 }
 void D3D11GBufferRenderThread::SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera)

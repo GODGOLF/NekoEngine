@@ -5,8 +5,8 @@ WindowApplication.h
 Author: Zhuang Theerapong
 
 */
-#ifndef WINDOWAPPLICATION_H
-#define WINDOWAPPLICATION_H
+#ifndef _WINDOWAPPLICATION_H_
+#define _WINDOWAPPLICATION_H_
 #pragma once
 #include <ROApi.h>
 #include "ScreenInF.h"

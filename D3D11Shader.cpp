@@ -47,10 +47,10 @@ void D3D11Shader::PostRender(DXInF* pDevice)
 	// Set the input layout
 	pD3DDeviceContext->IASetInputLayout(nullInputLayout);
 }
-void D3D11Shader::PreRender(ShaderPrePostParameter* pParameter)
+void D3D11Shader::PreRender(void* pDeviceContext)
 {
-	D3D11PrePostRender* parameter = (D3D11PrePostRender*)pParameter;
-	ID3D11DeviceContext* pD3DDeviceContext = parameter->deviceContext;
+
+	ID3D11DeviceContext* pD3DDeviceContext = (ID3D11DeviceContext*)pDeviceContext;
 
 	//set Shader
 	pD3DDeviceContext->VSSetShader(m_shader.g_pVertexShader, nullptr, 0);
@@ -62,10 +62,9 @@ void D3D11Shader::PreRender(ShaderPrePostParameter* pParameter)
 	// Set the input layout
 	pD3DDeviceContext->IASetInputLayout(m_shader.g_pVertexLayout);
 }
-void D3D11Shader::PostRender(ShaderPrePostParameter* pParameter)
+void D3D11Shader::PostRender(void* pDeviceContext)
 {
-	D3D11PrePostRender* parameter = (D3D11PrePostRender*)pParameter;
-	ID3D11DeviceContext* pD3DDeviceContext = parameter->deviceContext;
+	ID3D11DeviceContext* pD3DDeviceContext = (ID3D11DeviceContext*)pDeviceContext;
 
 	ID3D11VertexShader*     nullVertexShader = nullptr;
 	ID3D11PixelShader*      nullPixelShader = nullptr;

@@ -21,18 +21,14 @@ struct ShaderLayout
 {
 
 };
-struct ShaderPrePostParameter
-{
-
-};
 
 class D3DShaderInF
 {
 public:
 	virtual void PreRender(DXInF* pDevice) =0;
 	virtual void PostRender(DXInF* pDevice) =0;
-	virtual void PreRender(ShaderPrePostParameter* pParameter) = 0;
-	virtual void PostRender(ShaderPrePostParameter* pParameter) = 0;
+	virtual void PreRender(void* pDeviceContext) = 0;
+	virtual void PostRender(void* pDeviceContext) = 0;
 
 	virtual	 HRESULT Initial(DXInF* pDevice, char* file, ShaderLayout* layout, SHADER_MODE::VALUE mode) =0;
 	virtual void Destroy() = 0;

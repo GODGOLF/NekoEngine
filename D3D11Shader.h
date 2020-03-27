@@ -27,10 +27,6 @@ struct D3D11ShaderLayout : ShaderLayout
 {
 	std::vector<D3D11_INPUT_ELEMENT_DESC> layout;
 };
-struct D3D11PrePostRender : ShaderPrePostParameter
-{
-	ID3D11DeviceContext* deviceContext;
-};
 class D3D11Shader :public D3DShaderInF
 {
 public:
@@ -39,8 +35,8 @@ public:
 	virtual	 HRESULT Initial(DXInF* pDevice, char* file, ShaderLayout* layout, SHADER_MODE::VALUE mode);
 	virtual void PreRender(DXInF* pDevice) override;
 	virtual void PostRender(DXInF* pDevice) override;
-	virtual void PreRender(ShaderPrePostParameter* pParameter) override;
-	virtual void PostRender(ShaderPrePostParameter* pParameter) override;
+	virtual void PreRender(void* pDeviceContext) override;
+	virtual void PostRender(void* pDeviceContext) override;
 	virtual void Destroy() override;
 private:
 	HRESULT LoadVertexShader(const WCHAR* file, ID3D11Device* pDevice, std::vector<D3D11_INPUT_ELEMENT_DESC> layout, Shader &output, string mainName = "VSMain");

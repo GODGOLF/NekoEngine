@@ -5,7 +5,7 @@
 D3D11Class::D3D11Class() 
 {
 	g_pd3dDevice = 0;
-	g_pImmediateContext = 0;
+	m_pImmediateContext = 0;
 	g_pSwapChain = 0;
 
 	g_pRenderTargetView = 0;
@@ -52,13 +52,13 @@ HRESULT D3D11Class::OnInit(HWND hwnd, UINT width, UINT height)
 	{
 		g_driverType = driverTypes[driverTypeIndex];
 		hr = D3D11CreateDevice(nullptr, g_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
+			D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &m_pImmediateContext);
 
 		if (hr == E_INVALIDARG)
 		{
 			// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
 			hr = D3D11CreateDevice(nullptr, g_driverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
-				D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext);
+				D3D11_SDK_VERSION, &g_pd3dDevice, &g_featureLevel, &m_pImmediateContext);
 		}
 
 		if (SUCCEEDED(hr))
@@ -156,7 +156,7 @@ HRESULT D3D11Class::OnInit(HWND hwnd, UINT width, UINT height)
 	if (FAILED(hr))
 		return hr;
 
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, m_depthStencilView);
+	m_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, m_depthStencilView);
 
 
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -192,7 +192,7 @@ HRESULT D3D11Class::OnInit(HWND hwnd, UINT width, UINT height)
 		return hr;
 
 	//set depthStencil
-	g_pImmediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
+	m_pImmediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
 
 
@@ -218,7 +218,7 @@ HRESULT D3D11Class::OnInit(HWND hwnd, UINT width, UINT height)
 		return hr;
 
 	// Now set the rasterizer state.
-	g_pImmediateContext->RSSetState(m_RSCullBack);
+	m_pImmediateContext->RSSetState(m_RSCullBack);
 
 	// Setup the raster description which will determine how and what polygons will be drawn.
 	rasterDesc.AntialiasedLineEnable = false;
@@ -262,7 +262,7 @@ HRESULT D3D11Class::OnInit(HWND hwnd, UINT width, UINT height)
 	m_vp.MaxDepth = 1.0f;
 	m_vp.TopLeftX = 0;
 	m_vp.TopLeftY = 0;
-	g_pImmediateContext->RSSetViewports(1, &m_vp);
+	m_pImmediateContext->RSSetViewports(1, &m_vp);
 
 	//create blend
 	D3D11_BLEND_DESC blendStateDescription;
@@ -315,10 +315,10 @@ void D3D11Class::OnDestroy()
 		g_pSwapChain = 0;
 	}
 
-	if (g_pImmediateContext) {
-		g_pImmediateContext->ClearState();
-		g_pImmediateContext->Release();
-		g_pImmediateContext = 0;
+	if (m_pImmediateContext) {
+		m_pImmediateContext->ClearState();
+		m_pImmediateContext->Release();
+		m_pImmediateContext = 0;
 	}
 
 	if (g_pd3dDevice) {
@@ -365,9 +365,9 @@ void D3D11Class::OnDestroy()
 }
 void D3D11Class::BindMainRenderTarget() {
 	Reset();
-	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, g_backgroundColor_);
-	g_pImmediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, m_depthStencilView);
+	m_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, g_backgroundColor_);
+	m_pImmediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	m_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, m_depthStencilView);
 }
 void D3D11Class::EndDraw() {
 	g_pSwapChain->Present(1, 0);
@@ -376,7 +376,7 @@ ID3D11Device* D3D11Class::GetDevice() {
 	return g_pd3dDevice;
 }
 ID3D11DeviceContext* D3D11Class::GetDeviceContext() {
-	return g_pImmediateContext;
+	return m_pImmediateContext;
 }
 
 ID3D11RenderTargetView* D3D11Class::GetRenderTargetView() 
@@ -394,9 +394,9 @@ XMVECTORF32* D3D11Class::GetDefaultColorBg()
 void D3D11Class::Reset() 
 {
 	// Now set the rasterizer state.
-	g_pImmediateContext->RSSetState(m_RSCullBack);
-	g_pImmediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
-	g_pImmediateContext->RSSetViewports(1, &m_vp);
+	m_pImmediateContext->RSSetState(m_RSCullBack);
+	m_pImmediateContext->OMSetDepthStencilState(m_depthStencilState, 1);
+	m_pImmediateContext->RSSetViewports(1, &m_vp);
 }
 
 void D3D11Class::SetAlphaBlend(bool isTurnOn, bool alphaCover) {
@@ -410,17 +410,17 @@ void D3D11Class::SetAlphaBlend(bool isTurnOn, bool alphaCover) {
 
 	if (isTurnOn) {
 		if (alphaCover) {
-			g_pImmediateContext->OMSetBlendState(m_alphaCoverEnableBlendingState, blendFactor, 0xffffffff);
+			m_pImmediateContext->OMSetBlendState(m_alphaCoverEnableBlendingState, blendFactor, 0xffffffff);
 		}
 		else {
 			// Turn on the alpha blending.
-			g_pImmediateContext->OMSetBlendState(m_alphaEnableBlendingState, blendFactor, 0xffffffff);
+			m_pImmediateContext->OMSetBlendState(m_alphaEnableBlendingState, blendFactor, 0xffffffff);
 		}
 
 	}
 	else {
 		// Turn off the alpha blending.
-		g_pImmediateContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+		m_pImmediateContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
 	}
 }
 void D3D11Class::SetCullRaterilization(D3D10_CULL_MODE mode) 
@@ -428,13 +428,13 @@ void D3D11Class::SetCullRaterilization(D3D10_CULL_MODE mode)
 	switch (mode)
 	{
 	case D3D10_CULL_NONE:
-		g_pImmediateContext->RSSetState(m_RSCullNone);
+		m_pImmediateContext->RSSetState(m_RSCullNone);
 		break;
 	case D3D10_CULL_FRONT:
-		g_pImmediateContext->RSSetState(m_RSCullFront);
+		m_pImmediateContext->RSSetState(m_RSCullFront);
 		break;
 	case D3D10_CULL_BACK:
-		g_pImmediateContext->RSSetState(m_RSCullBack);
+		m_pImmediateContext->RSSetState(m_RSCullBack);
 		break;
 	default:
 		break;
