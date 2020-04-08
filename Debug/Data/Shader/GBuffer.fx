@@ -3,6 +3,8 @@ Texture2D txDiffuse : register(t0);
 Texture2D ObjNormMap: register(t1);
 SamplerState samLinear : register(s0);
 
+
+
 cbuffer cbPerMesh : register(b2)
 {
 	matrix g_mConstBoneWorld[MAX_BONE_MATRICES];
@@ -34,9 +36,10 @@ PSInput VSMain(float3 position : POSITION,
 	float4 vInputPos = float4(position, 1.f);
 	float4 vWorldPos = float4(0.f, 0.f, 0.f, 0.f);
 	float3 vNormal = normal.xyz;
-	//if (bone.x == NANI_IDENTIFY) {
+	
+	if (bone.x == -1) {
 		vWorldPos = vInputPos;
-	/*}
+	}
 	else {
 		matrix boneTransform = g_mConstBoneWorld[bone.x] * weight.x;
 		boneTransform += g_mConstBoneWorld[bone.y] * weight.y;
@@ -44,7 +47,7 @@ PSInput VSMain(float3 position : POSITION,
 		boneTransform += g_mConstBoneWorld[bone.w] * weight.w;
 		vWorldPos = mul(vInputPos, boneTransform);
 		vNormal = mul(normal, (float3x3)boneTransform);
-	}*/
+	}
 	PSInput result;
 	result.position = mul(vWorldPos, MVP);
 	result.normal = mul(vNormal, (float3x3)worldInverse);

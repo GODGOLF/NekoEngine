@@ -28,7 +28,12 @@ struct Vertex
 	DirectX::XMFLOAT2 tex;
 	DirectX::XMFLOAT4 tangent;
 };
-struct VertexAnime : Vertex {
+struct VertexAnime : Vertex 
+{
+	VertexAnime() : bones(-1,-1,-1,-1), width(-1,-1,-1,-1)
+	{
+
+	}
 	DirectX::XMUINT4 bones;
 	DirectX::XMFLOAT4 width;
 

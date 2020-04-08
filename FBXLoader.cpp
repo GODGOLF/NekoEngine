@@ -8,15 +8,15 @@
 #define NORMAL_TEXTURE_KEY "NormalMap"
 
 
-FBXLoader::FBXLoader()
+FBXLoader::FBXLoader() :m_scene(NULL)
 {
 
 }
 FBXLoader::~FBXLoader()
 {
-
+	m_scene->Destroy();
 }
-bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file)
+bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file, AnimationFrame::VALUE frameRate)
 {
 	pFBXManager->GetIOSettings()->SetBoolProp(IMP_FBX_MATERIAL, true);
 	pFBXManager->GetIOSettings()->SetBoolProp(IMP_FBX_TEXTURE, true);
@@ -25,6 +25,8 @@ bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file)
 	pFBXManager->GetIOSettings()->SetBoolProp(IMP_FBX_GOBO, true);
 	pFBXManager->GetIOSettings()->SetBoolProp(IMP_FBX_ANIMATION, true);
 	pFBXManager->GetIOSettings()->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
+
+	m_frameRate = frameRate;
 
 	// Create an importer using the SDK manager.
 	FbxImporter* lImporter = FbxImporter::Create(pFBXManager, "");
@@ -35,41 +37,46 @@ bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file)
 	if (!lImporter) {
 		return false;
 	}
-	FbxScene* lScene = FbxScene::Create(pFBXManager, "");
+	m_scene = FbxScene::Create(pFBXManager, "");
 	// Import the contents of the file into the scene.
-	bool status = lImporter->Import(lScene);
+	bool status = lImporter->Import(m_scene);
 	if (!status) {
 		return false;
 	}
 	lImporter->Destroy();
 
-	int AnimStackNumber = 0;
 	FbxArray<FbxString*> AnimStackNameArray;
 
-	lScene->FillAnimStackNameArray(AnimStackNameArray);
-	//check whether has animation or not 
+	m_scene->FillAnimStackNameArray(AnimStackNameArray);
+	//get animation stack
 	if (AnimStackNameArray.Size() >0) {
-		m_haveAnimation = true;
-		FbxAnimStack *AnimationStack = lScene->FindMember<FbxAnimStack>(AnimStackNameArray[AnimStackNumber]->Buffer());
-		lScene->SetCurrentAnimationStack(AnimationStack);
-		FbxTakeInfo *takeInfo = lScene->GetTakeInfo(*(AnimStackNameArray[AnimStackNumber]));
-		m_start = takeInfo->mLocalTimeSpan.GetStart();
-		m_stop = takeInfo->mLocalTimeSpan.GetStop();
-		m_frameTime.SetTime(0, 0, 0, 1, 0, lScene->GetGlobalSettings().GetTimeMode());
-		m_timeCount = m_start;
-	}
-	else {
-		m_haveAnimation = false;
-	}
-
-	FbxNode*lNode = lScene->GetRootNode();
-	if (lNode) {
-		for (int i = 0; i < lNode->GetChildCount(); i++) {
-
-			LoadContent(lNode->GetChild(i));
+		haveAnimation = true;
+		for (int i = 0; i < AnimStackNameArray.Size(); i++)
+		{
+			FbxTakeInfo *takeInfo = m_scene->GetTakeInfo(*(AnimStackNameArray[i]));
+			AnimationStack anim;
+			anim.start = (long long)takeInfo->mLocalTimeSpan.GetStart().GetMilliSeconds();
+			anim.end = (long long)takeInfo->mLocalTimeSpan.GetStop().GetMilliSeconds();
+			anim.name = *AnimStackNameArray[i];
+			m_animationStack.push_back(anim);
+			
 		}
 
 	}
+	else {
+		haveAnimation = false;
+	}
+	
+	
+
+	FbxNode*lNode = m_scene->GetRootNode();
+	if (lNode) {
+		for (int i = 0; i < lNode->GetChildCount(); i++) {
+			
+			LoadContent(lNode->GetChild(i));
+		}
+	}
+	LoadAnimationData();
 	return true;
 }
 
@@ -187,19 +194,23 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 	}
 	//// 法線ベクトルをセット
 	{
-		int vertexId = 0;
-		for (int i = 0; i < lPolygonCount; i++)
+		
+		for (int l = 0; l < pMesh->GetElementNormalCount(); ++l)
 		{
-			int lPolygonSize = pMesh->GetPolygonSize(i);
-			for (int j = 0; j < lPolygonSize; j++)
+			FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(l);
+			FbxGeometryElement::EMappingMode mappingType = leNormal->GetMappingMode();
+			FbxGeometryElement::EReferenceMode reference = leNormal->GetReferenceMode();
+			switch (mappingType)
 			{
-				for (int l = 0; l < pMesh->GetElementNormalCount(); ++l)
+			case FbxGeometryElement::eByPolygonVertex:
+			{
+				int vertexId = 0;
+				for (int i = 0; i < lPolygonCount; i++)
 				{
-					FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(l);
-
-					if (leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+					int lPolygonSize = pMesh->GetPolygonSize(i);
+					for (int j = 0; j < lPolygonSize; j++)
 					{
-						switch (leNormal->GetReferenceMode())
+						switch (reference)
 						{
 						case FbxGeometryElement::eDirect:
 						{
@@ -219,15 +230,51 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 							break; // other reference modes not shown here!
 						}
 					}
-
 				}
-				//Display3DVector(header, leNormal->GetDirectArray().GetAt(id));
-				vertexId++;
+				break;
+			}
+			case FbxGeometryElement::eByControlPoint:
+			{
+				
+				switch (reference)
+				{
+				case fbxsdk::FbxLayerElement::eDirect:
+				{
+					
+					for (int i = 0; i < model->index.size(); i++)
+					{
+						FbxVector4 normalVector = leNormal->GetDirectArray().GetAt(model->index[i]);
+						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0], (float)normalVector[1], (float)normalVector[2] * -1));
+					}
+				}
+					break;
+				case fbxsdk::FbxLayerElement::eIndex:
+					break;
+				case fbxsdk::FbxLayerElement::eIndexToDirect:
+				{
+					for (int i = 0; i < model->index.size(); i++)
+					{
+						int index = leNormal->GetIndexArray().GetAt(model->index[i]);
+						FbxVector4 normalVector = leNormal->GetDirectArray().GetAt(index);
+						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0], (float)normalVector[1], (float)normalVector[2] * -1));
+					}
+				}
+					break;
+				default:
+					break;
+				}
+				
+
+				break;
+			}
+			default:
+				break;
 			}
 		}
 	}
 	//UV
 	{
+		int ls = pMesh->GetElementUVCount();
 		for (int l = 0; l < pMesh->GetElementUVCount(); ++l)
 		{
 			FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
@@ -239,10 +286,22 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				switch (leUV->GetReferenceMode())
 				{
 				case FbxGeometryElement::eDirect:
-
+				{
+					for (int i = 0; i < model->index.size(); i++)
+					{
+						FbxVector2 normalVector = leUV->GetDirectArray().GetAt(model->index[i]);
+						tempUV.push_back(DirectX::XMFLOAT2((float)normalVector[0], 1-(float)normalVector[1]));
+					}
+				}
 					break;
 				case FbxGeometryElement::eIndexToDirect:
 				{
+					for (int i = 0; i < model->index.size(); i++)
+					{
+						int index = leUV->GetIndexArray().GetAt(model->index[i]);
+						FbxVector2 normalVector = leUV->GetDirectArray().GetAt(index);
+						tempUV.push_back(DirectX::XMFLOAT2((float)normalVector[0], 1 - (float)normalVector[1]));
+					}
 					//mada
 				}
 				break;
@@ -253,8 +312,6 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 
 			case FbxGeometryElement::eByPolygonVertex:
 			{
-
-
 				switch (leUV->GetReferenceMode())
 				{
 				case FbxGeometryElement::eDirect:
@@ -290,20 +347,26 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 			}
 		}
 	}
+	
 
-	//load animation
-
-	if (m_haveAnimation) {
-		ProcessJointsAndAnimations(model, tempVertex);
-	}
-
+	LoadBoneData(model, tempVertex);
 
 	for (unsigned int i = 0; i < model->index.size(); i++) {
 		VertexAnime vertex;
 		vertex.position = tempVertex[model->index[i]].vertex;
 		vertex.normal = tempNormal[i];
 		vertex.tangent = DirectX::XMFLOAT4(0, 0, 0, 1);
-		vertex.tex = tempUV[i];
+		//fixed later
+		if (tempUV.size() > 0)
+		{
+			vertex.tex = tempUV[i];
+		}
+		else
+		{
+			vertex.tex = DirectX::XMFLOAT2(0, 0);
+		}
+		
+		
 		if (tempVertex[model->index[i]].bone.size() >0) {
 			vertex.bones.x = tempVertex[model->index[i]].bone[0].bone;
 			vertex.bones.y = tempVertex[model->index[i]].bone[1].bone;
@@ -496,10 +559,6 @@ void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser
 
 	}
 }
-void FBXLoader::LoadSkeletonHierachy(FbxNode* rootNode)
-{
-
-}
 void FBXLoader::LoadSkeletonHierarchyRecursive(FbxNode* inNode, int inDepth, int myIndex, int inParentIndex)
 {
 	FbxSkeleton* lSkeleton = inNode->GetSkeleton();
@@ -507,7 +566,6 @@ void FBXLoader::LoadSkeletonHierarchyRecursive(FbxNode* inNode, int inDepth, int
 		Joint joint;
 		strcpy_s(joint.name,sizeof(joint.name), inNode->GetName());
 		joint.parentIndex = inParentIndex;
-		joint.mGlobalBindposeInverse.SetIdentity();
 
 		FbxNode* parentNode = inNode->GetParent();
 		if (parentNode != NULL) {
@@ -527,18 +585,10 @@ int FBXLoader::FindJointUsingName(const char* name) {
 	}
 	return -1;
 }
-void FBXLoader::ProcessJointsAndAnimations(FBXModelData* mesh, std::vector<TempVertexData> &vertex)
+void FBXLoader::LoadBoneData(FBXModelData* mesh, std::vector<TempVertexData> &vertex)
 {
 	FbxMesh* currMesh = mesh->meshNode->GetMesh();
 	unsigned int numOfDeformers = currMesh->GetDeformerCount();
-
-	FbxVector4 t0 = mesh->meshNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	FbxVector4 r0 = mesh->meshNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	FbxVector4 s0 = mesh->meshNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	FbxAMatrix globalPosition = mesh->meshNode->EvaluateGlobalTransform(m_timeCount);
-	FbxAMatrix geometryOffset = FbxAMatrix(t0, r0, s0);
-
-
 
 	for (unsigned int deformerIndex = 0; deformerIndex < numOfDeformers; ++deformerIndex)
 	{
@@ -548,80 +598,28 @@ void FBXLoader::ProcessJointsAndAnimations(FBXModelData* mesh, std::vector<TempV
 			continue;
 		}
 		unsigned int numOfClusters = currSkin->GetClusterCount();
-		for (unsigned int clusterIndex = 0; clusterIndex < numOfClusters; clusterIndex++) {
-			FbxCluster* currCluster = currSkin->GetCluster(clusterIndex);
-			std::string currJointName = currCluster->GetLink()->GetName();
-			int currJointIndex = FindJointUsingName(currJointName.c_str());
+		for (unsigned int clusterIndex = 0; clusterIndex < numOfClusters; clusterIndex++) 
+		{
+			FbxCluster* curCluster = currSkin->GetCluster(clusterIndex);
+			std::string curJointName = curCluster->GetLink()->GetName();
+			int currJointIndex = FindJointUsingName(curJointName.c_str());
 			if (currJointIndex == -1) {
 				continue;
 			}
-
-			m_skeleton[currJointIndex].mNode = currCluster->GetLink();
-			FbxAMatrix transformMatrix;
-			FbxAMatrix transformLinkMatrix;
-
-			FbxAMatrix vertexTransformMatrix;
-			FbxAMatrix globalBindposeInverseMatrix;
-			currCluster->GetTransformMatrix(transformMatrix);	// The transformation of the mesh at binding time
-			currCluster->GetTransformLinkMatrix(transformLinkMatrix);	// The transformation of the cluster(joint) at binding time from joint space to world space
-			globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryOffset;
-			//globalBindposeInverseMatrix.SetIdentity();
-			FbxAMatrix currentTransformOffset = globalPosition * geometryOffset;
-			FbxAMatrix mGlobalTransform = currentTransformOffset.Inverse() *
-				currCluster->GetLink()->EvaluateGlobalTransform(m_timeCount);
-
-			int parentIndex = m_skeleton[currJointIndex].parentIndex;
-
-
-			FbxAMatrix parentTranform;
-			if (parentIndex != -1) {
-				parentTranform = m_skeleton[parentIndex].finalTransform;
-			}
-			else {
-				parentTranform.SetIdentity();
-			}
-
-
-			FbxAMatrix mMattranForm = mGlobalTransform * parentTranform;
-
-			m_skeleton[currJointIndex].boneAnimationTranform = mMattranForm;
-
-			vertexTransformMatrix = globalBindposeInverseMatrix * mMattranForm;
-
-
-			/*XMFLOAT4X4 fVertexTranform = XMFLOAT4X4((float)vertexTransformMatrix.Get(0, 0), (float)vertexTransformMatrix.Get(0, 1), (float)vertexTransformMatrix.Get(0, 2), (float)vertexTransformMatrix.Get(0, 3),
-			(float)vertexTransformMatrix.Get(1, 0), (float)vertexTransformMatrix.Get(1, 1), (float)vertexTransformMatrix.Get(1, 2), (float)vertexTransformMatrix.Get(1, 3),
-			(float)vertexTransformMatrix.Get(2, 0), (float)vertexTransformMatrix.Get(2, 1), (float)vertexTransformMatrix.Get(2, 2), (float)vertexTransformMatrix.Get(2, 3),
-			(float)vertexTransformMatrix.Get(3, 0), (float)vertexTransformMatrix.Get(3, 1), (float)vertexTransformMatrix.Get(3, 2), (float)vertexTransformMatrix.Get(3, 3));
-
-
-			XMFLOAT4X4 fBindpose = XMFLOAT4X4((float)globalBindposeInverseMatrix.Get(0, 0), (float)globalBindposeInverseMatrix.Get(0, 1), (float)globalBindposeInverseMatrix.Get(0, 2), (float)globalBindposeInverseMatrix.Get(0, 3),
-			(float)globalBindposeInverseMatrix.Get(1, 0), (float)globalBindposeInverseMatrix.Get(1, 1), (float)globalBindposeInverseMatrix.Get(1, 2), (float)globalBindposeInverseMatrix.Get(1, 3),
-			(float)globalBindposeInverseMatrix.Get(2, 0), (float)globalBindposeInverseMatrix.Get(2, 1), (float)globalBindposeInverseMatrix.Get(2, 2), (float)globalBindposeInverseMatrix.Get(2, 3),
-			(float)globalBindposeInverseMatrix.Get(3, 0), (float)globalBindposeInverseMatrix.Get(3, 1), (float)globalBindposeInverseMatrix.Get(3, 2), (float)globalBindposeInverseMatrix.Get(3, 3));
-
-
-
-			XMMATRIX mFinalTranform =   XMLoadFloat4x4(&fVertexTranform);
-			XMMATRIX mBindPose = XMLoadFloat4x4(&fBindpose);*/
-			m_skeleton[currJointIndex].finalTransform = vertexTransformMatrix.Transpose();
-			m_skeleton[currJointIndex].mGlobalBindposeInverse = globalBindposeInverseMatrix;
-
-
-
-			unsigned int numOfIndices = currCluster->GetControlPointIndicesCount();
+			
+			unsigned int numOfIndices = curCluster->GetControlPointIndicesCount();
 
 			for (unsigned int i = 0; i < numOfIndices; i++)
 			{
 
-				int controlPointIndices = currCluster->GetControlPointIndices()[i];
+				int controlPointIndices = curCluster->GetControlPointIndices()[i];
 				BoneInfo info;
 				info.bone = currJointIndex;
-				info.width = (float)currCluster->GetControlPointWeights()[i];
+				info.width = (float)curCluster->GetControlPointWeights()[i];
 				vertex[controlPointIndices].bone.push_back(info);
 			}
+				
 
-			//FbxTime mAnimationLength = stop.GetFrameCount(FbxTime::eFrames24) - start.GetFrameCount(FbxTime::eFrames24) + 1;
 		}
 	}
 	for (unsigned int i = 0; i < vertex.size(); i++) {
@@ -642,4 +640,101 @@ std::vector<FBXModelData>* FBXLoader::GetModelList()
 std::vector<Joint>* FBXLoader::GetJoint()
 {
 	return &m_skeleton;
+}
+std::vector<AnimationStack>* FBXLoader::GetAnimationStacks()
+{
+	return &m_animationStack;
+}
+void FBXLoader::LoadAnimationData()
+{
+	for (unsigned int i = 0; i < m_animationStack.size(); i++)
+	{
+		FbxAnimStack *animationStack = m_scene->FindMember<FbxAnimStack>(m_animationStack[i].name.Buffer());
+		m_scene->SetCurrentAnimationStack(animationStack);
+
+		FbxTime::EMode frameRate = ConvertAnimFrameValueToFbxEnum(m_frameRate);
+		
+		FbxTime startTime;
+		startTime.SetMilliSeconds(m_animationStack[i].start);
+		FbxTime endTime; 
+		endTime.SetMilliSeconds(m_animationStack[i].end);
+
+		for (FbxLongLong iTime = startTime.GetFrameCount(frameRate);iTime <= endTime.GetFrameCount(frameRate); ++iTime)
+		{
+			FbxTime curTime;
+			curTime.SetFrame(iTime, frameRate);
+
+			for (unsigned int j = 0; j < m_modelList.size(); j++)
+			{
+				FBXModelData * mesh = &m_modelList[j];
+				FbxMesh* curMesh = mesh->meshNode->GetMesh();
+				unsigned int numOfDeformers = curMesh->GetDeformerCount(FbxDeformer::eSkin);
+				FbxAMatrix globalPosition = mesh->meshNode->EvaluateGlobalTransform(curTime);
+
+				// 移動、回転、拡大のための行列を作成
+				FbxVector4 t0 = mesh->meshNode->GetGeometricTranslation(FbxNode::eSourcePivot);
+				FbxVector4 r0 = mesh->meshNode->GetGeometricRotation(FbxNode::eSourcePivot);
+				FbxVector4 s0 = mesh->meshNode->GetGeometricScaling(FbxNode::eSourcePivot);
+				FbxAMatrix geometryOffset = FbxAMatrix(t0, r0, s0);
+
+				for (unsigned int deformerIndex = 0; deformerIndex < numOfDeformers; ++deformerIndex)
+				{
+					FbxSkin* curSkin = (FbxSkin*)curMesh->GetDeformer(deformerIndex, FbxDeformer::eSkin);
+					int clusterCount = curSkin->GetClusterCount();
+					for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
+					{
+						FbxCluster* curCluster = curSkin->GetCluster(clusterIndex);
+						std::string curJointName = curCluster->GetLink()->GetName();
+						int currJointIndex = FindJointUsingName(curJointName.c_str());
+						if (currJointIndex == -1) {
+							continue;
+						}
+
+						FbxAMatrix transformMatrix;
+						// The transformation of the mesh at binding time 
+						curCluster->GetTransformMatrix(transformMatrix);
+						transformMatrix *= geometryOffset;
+						FbxAMatrix curIntialTranformation;
+						curIntialTranformation = curCluster->GetLink()->EvaluateGlobalTransform(curTime);
+						FbxAMatrix transformLinkMatrix;
+						curCluster->GetTransformLinkMatrix(transformLinkMatrix);
+						FbxAMatrix transFormMatrix = (globalPosition.Inverse() * curIntialTranformation) * (transformLinkMatrix.Inverse() * transformMatrix);
+
+						DirectX::XMMATRIX fVertexTranform = DirectX::XMMatrixSet((float)transFormMatrix.Get(0, 0), (float)transFormMatrix.Get(0, 1), (float)transFormMatrix.Get(0, 2), (float)transFormMatrix.Get(0, 3),
+							(float)transFormMatrix.Get(1, 0), (float)transFormMatrix.Get(1, 1), (float)transFormMatrix.Get(1, 2), (float)transFormMatrix.Get(1, 3),
+							(float)transFormMatrix.Get(2, 0), (float)transFormMatrix.Get(2, 1), (float)transFormMatrix.Get(2, 2), (float)transFormMatrix.Get(2, 3),
+							(float)transFormMatrix.Get(3, 0), (float)transFormMatrix.Get(3, 1), (float)transFormMatrix.Get(3, 2), (float)transFormMatrix.Get(3, 3));
+
+						KeyFrame saveData;
+						saveData.mFrameTime = curTime.GetMilliSeconds();
+						saveData.transformMatrix = fVertexTranform;
+						m_skeleton[currJointIndex].keyframeAnimation[animationStack->GetName()].push_back(saveData);
+					}
+				}
+
+			}
+		}
+	}
+}
+FbxTime::EMode FBXLoader::ConvertAnimFrameValueToFbxEnum(AnimationFrame::VALUE frameRate)
+{
+	switch (frameRate)
+	{
+	case AnimationFrame::e24:
+		return FbxTime::EMode::eFrames24;
+		break;
+	case AnimationFrame::e100:
+		return FbxTime::EMode::eFrames100;
+		break;
+	default:
+		break;
+	}
+	return FbxTime::EMode::eFrames24;
+}
+long long FBXLoader::ConvertMillisecondToFrameRate(AnimationFrame::VALUE frameRate,long long timeValue)
+{
+	FbxTime::EMode fbxMode = ConvertAnimFrameValueToFbxEnum(frameRate);
+	FbxTime curTime;
+	curTime.SetMilliSeconds(timeValue);
+	return curTime.GetFrameCount(fbxMode);
 }

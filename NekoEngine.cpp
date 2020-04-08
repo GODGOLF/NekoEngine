@@ -8,6 +8,7 @@
 #include "D3D11LightRenderManager.h"
 #include "LightManager.h"
 #include "D3D11ImGuiRender.h"
+#include "D3D11VoxelizationThread.h"
 NekoEngine::NekoEngine()
 {
 	m_pDirectXDevice = 0;
@@ -41,11 +42,16 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	m_pObjScene = *pObjScene;
 
 	//create gBuffer's object
-	m_pGBufferRenderThread.push_back(new D3D11GBufferRenderThread());
+	m_renderThread.push_back(new D3D11GBufferRenderThread());
 	GBufferInitialParameter gBufferParameter;
 	gBufferParameter.width = width;
 	gBufferParameter.height = height;
-	m_pGBufferRenderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
+	m_renderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
+
+	//create voxel thread
+	m_renderThread.push_back(new D3D11VoxelizationThread());
+	m_renderThread.back()->Initial(m_pDirectXDevice);
+
 
 	//light
 	m_pLightRender = new D3D11LightRenderManager();
@@ -70,7 +76,7 @@ void NekoEngine::OnDestroy()
 	{
 		delete m_pDirectXDevice;
 	}
-	for (auto &i : m_pGBufferRenderThread)
+	for (auto &i : m_renderThread)
 	{
 		delete i;
 	}
@@ -93,14 +99,11 @@ void NekoEngine::OnRender(Camera* pCamera)
 		PreRender(pCamera);
 		isPreRender = false;
 	}
-	//get array size
-	const int numHandle = 1;
-	int* pNum = const_cast<int*>(&numHandle);
-	*pNum = (int)m_pGBufferRenderThread.size();
-	
-	HANDLE handleArray[numHandle];
+	//create empty array to store Handle
+	std::vector<HANDLE> handleArray;
+	handleArray.resize(m_renderThread.size());
 	int i = 0;
-	for (auto &threadObj : m_pGBufferRenderThread)
+	for (auto &threadObj : m_renderThread)
 	{
 		D3D11RenderThread* pGBufferRender = (D3D11RenderThread*)threadObj;
 		//signal ready for scene kickoff
@@ -109,19 +112,19 @@ void NekoEngine::OnRender(Camera* pCamera)
 		i++;
 	}
 	// wait for completion
-	WaitForMultipleObjects(numHandle,
-		handleArray,
+	WaitForMultipleObjects(handleArray.size(),
+		&handleArray[0],
 		TRUE,
 		INFINITE);
+	//clear handle array;
+	ZeroMemory(&handleArray, sizeof(handleArray));
 
 	D3D11Class* device = (D3D11Class*)m_pDirectXDevice;
 	//Execute all CommandList from the thread
-	for (auto &threadObj : m_pGBufferRenderThread)
+	for (auto &threadObj : m_renderThread)
 	{
 		D3D11RenderThread* pGBufferRender = (D3D11RenderThread*)threadObj;
-		ID3D11CommandList* pCommanList = pGBufferRender->GetCommandList();
-		device->GetDeviceContext()->ExecuteCommandList(pCommanList, false);
-		SAFE_RELEASE(pCommanList);
+		pGBufferRender->ExecuteAndReleaseCommandList(device);
 	}
 	
 	//draw Scene in the main Thread(lighting)
@@ -148,15 +151,15 @@ void NekoEngine::OnRender(Camera* pCamera)
 void NekoEngine::PreRender(Camera* pCamera)
 {
 	//set necessary variable for gBuffer into the thread
-	((D3D11GBufferRenderThread*)m_pGBufferRenderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
-	
+	((D3D11GBufferRenderThread*)m_renderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
+	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter(m_pObjScene, pCamera);
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {
 	LightRenderParameter lightParameter;
 	lightParameter.pCamera = pCamera;
 	//get data from gBuffer
-	D3D11GBufferRenderThread* gBuffer = (D3D11GBufferRenderThread*)m_pGBufferRenderThread[0];
+	D3D11GBufferRenderThread* gBuffer = (D3D11GBufferRenderThread*)m_renderThread[0];
 	lightParameter.colorSRV = gBuffer->GetColorView();
 	lightParameter.depthStencilDSV = gBuffer->GetDepthView();
 	lightParameter.normalSRV = gBuffer->GetNormalView();

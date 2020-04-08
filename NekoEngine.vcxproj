@@ -135,6 +135,7 @@
     <ClInclude Include="D3D11Model.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11TextureRecord.h" />
+    <ClInclude Include="D3D11VoxelizationThread.h" />
     <ClInclude Include="D3DModelInF.h" />
     <ClInclude Include="D3DShaderInF.h" />
     <ClInclude Include="D3D11DirectionalLightRender.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="EditorInF.h" />
     <ClInclude Include="FBXLoader.h" />
     <ClInclude Include="FunctionHelper.h" />
+    <ClInclude Include="GlobalVariable.h" />
     <ClInclude Include="ImGuiIRenderInF.h" />
     <ClInclude Include="imGUI\imconfig.h" />
     <ClInclude Include="imGUI\imgui.h" />
@@ -173,6 +175,7 @@
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureRecordInF.h" />
     <ClInclude Include="ThreadHandle.h" />
+    <ClInclude Include="VoxelRenderVariable.h" />
     <ClInclude Include="WindowApplication.h" />
     <ClInclude Include="MainEditor.h" />
     <ClInclude Include="D3D11WindowRender.h" />
@@ -188,6 +191,7 @@
     <ClCompile Include="D3D11Shader.cpp" />
     <ClCompile Include="D3D11DirectionalLightRender.cpp" />
     <ClCompile Include="D3D11TextureRecord.cpp" />
+    <ClCompile Include="D3D11VoxelizationThread.cpp" />
     <ClCompile Include="DXInF.cpp" />
     <ClCompile Include="EditorCamera.cpp" />
     <ClCompile Include="FBXLoader.cpp" />
@@ -201,6 +205,7 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MenuBarEditor.cpp" />
+    <ClCompile Include="ModelInF.cpp" />
     <ClCompile Include="NekoEngine.cpp" />
     <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="OrthogonalCamera.cpp" />

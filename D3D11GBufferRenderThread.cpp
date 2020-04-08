@@ -52,7 +52,10 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 		return hr;
 	}
 	
-
+	m_Vp.MinDepth = 0.f;
+	m_Vp.MaxDepth = 1.f;
+	m_Vp.TopLeftX = 0.f;
+	m_Vp.TopLeftY = 0.f;
 	m_Vp.Width = (float)parameter->width;
 	m_Vp.Height = (float)parameter->height;
 
@@ -92,7 +95,8 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	};
 	dtd.Format = depthStencilTextureFormat;
 	result = device->CreateTexture2D(&dtd, NULL, &m_DepthStencilRT);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	// Allocate the base color with specular intensity target
@@ -100,13 +104,15 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	dtd.Format = basicColorTextureFormat;
 
 	result = device->CreateTexture2D(&dtd, NULL, &m_ColorSpecIntensityRT);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	// Allocate the base color with specular intensity target
 	dtd.Format = normalTextureFormat;
 	result = device->CreateTexture2D(&dtd, NULL, &m_NormalRT);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 
@@ -114,7 +120,8 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	// Allocate the specular power target
 	dtd.Format = specPowTextureFormat;
 	result = device->CreateTexture2D(&dtd, NULL, &m_SpecPowerRT);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 
@@ -127,7 +134,8 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	};
 
 	result = device->CreateDepthStencilView(m_DepthStencilRT, &dsvd, &m_DepthStencilDSV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 
@@ -143,17 +151,20 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 		D3D11_RTV_DIMENSION_TEXTURE2D
 	};
 	result = device->CreateRenderTargetView(m_ColorSpecIntensityRT, &rtsvd, &m_ColorSpecIntensityRTV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	rtsvd.Format = normalRenderViewFormat;
 	result = device->CreateRenderTargetView(m_NormalRT, &rtsvd, &m_NormalRTV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	rtsvd.Format = specPowRenderViewFormat;
 	result = device->CreateRenderTargetView(m_SpecPowerRT, &rtsvd, &m_SpecPowerRTV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	// Create the resource views
@@ -166,22 +177,26 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	};
 	dsrvd.Texture2D.MipLevels = 1;
 	result = device->CreateShaderResourceView(m_DepthStencilRT, &dsrvd, &m_DepthStencilSRV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	dsrvd.Format = basicColorResourceViewFormat;
 	result = device->CreateShaderResourceView(m_ColorSpecIntensityRT, &dsrvd, &m_ColorSpecIntensitySRV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	dsrvd.Format = normalResourceViewFormat;
 	result = device->CreateShaderResourceView(m_NormalRT, &dsrvd, &m_NormalSRV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	dsrvd.Format = specPowResourceViewFormat;
 	result = device->CreateShaderResourceView(m_SpecPowerRT, &dsrvd, &m_SpecPowerSRV);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	D3D11_DEPTH_STENCIL_DESC descDepth;
@@ -195,7 +210,8 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	descDepth.FrontFace = stencilMarkOp;
 	descDepth.BackFace = stencilMarkOp;
 	result = device->CreateDepthStencilState(&descDepth, &m_DepthStencilState);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	// Create constant buffers
@@ -206,12 +222,14 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	cbDesc.ByteWidth = sizeof(CB_GBUFFER_UNPACK);
 	result = device->CreateBuffer(&cbDesc, NULL, &m_pGBufferUnpackCB);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 
 	result =  m_mvp.Initial(pDevice);
-	if (FAILED(result)) {
+	if (FAILED(result)) 
+	{
 		return result;
 	}
 	D3D11ShaderLayout shaderLayout;
@@ -225,8 +243,11 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 64,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	//initial shader
-	m_GBufferShader.Initial(pDevice,(char*)G_BUFFER_FILE, &shaderLayout, SHADER_MODE::VS_PS_MODE);
-
+	result =m_GBufferShader.Initial(pDevice,(char*)G_BUFFER_FILE, &shaderLayout, SHADER_MODE::VS_PS_MODE);
+	if (FAILED(result)) 
+	{
+		return result;
+	}
 
 	D3D11_RASTERIZER_DESC rasterDesc;
 	// Setup the raster description which will determine how and what polygons will be drawn.
@@ -326,6 +347,7 @@ void D3D11GBufferRenderThread::ThreadExcecute()
 		Render(m_pDevice, NULL);
 		m_deviceContext->FinishCommandList(false, &m_commanList);
 		SetEvent(m_endThread);
+		
 	}
 	
 }
@@ -336,17 +358,18 @@ void D3D11GBufferRenderThread::RenderObj(DXInF* pDevice)
 	{
 		ModelInF* pModelInfo = m_RenderParameter->m_modelDataList->operator[](i);
 		
-		if (m_RenderParameter->m_modelObjectList->count(pModelInfo->modelIndex.c_str()) ==0)
+		if (m_RenderParameter->m_modelObjectList->count(pModelInfo->GetModelIndex().c_str()) ==0)
 		{
 			continue;
 		}
-		D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->modelIndex.c_str());
+		D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 		
 		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
 		pRenderParameter->pCamera = m_RenderParameter->pCamera;
 		pRenderParameter->pModelInfo = pModelInfo;
 		pRenderParameter->pMVP = &m_mvp;
 		pModel->Render(m_deviceContext, pRenderParameter);
+		delete pRenderParameter;
 	}
 }
 void D3D11GBufferRenderThread::SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera)

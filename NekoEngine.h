@@ -27,7 +27,7 @@ public:
 	void OnDestroy();
 private:
 	DXInF* m_pDirectXDevice;
-	std::vector<RenderInF*> m_pGBufferRenderThread;
+	std::vector<RenderInF*> m_renderThread;
 	ObjScene* m_pObjScene;
 	//render result of drawing
 	RenderInF* m_pWindowRender;

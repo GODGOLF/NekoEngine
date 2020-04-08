@@ -26,6 +26,7 @@ public:
 	virtual void Destroy() override;
 
 	ID3D11CommandList* GetCommandList();
+	void ExecuteAndReleaseCommandList(DXInF* pDevice);
 
 private:
 

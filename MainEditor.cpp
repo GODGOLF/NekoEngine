@@ -30,12 +30,15 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 		return S_FALSE;
 	}
 	////test
-	char a[] = "Data/Models/SuspCableHolder.fbx";
+	char a[] = "Data/Models/011.FBX";
 	m_objScene->AddObj(&a[0], &m_model);
 
 	m_model->position.z += 5.f;
+	m_model->scale = DirectX::XMFLOAT3(0.2f, 0.2f, .2f);
+	m_model->SetAnimationStackIndex(0);
 
 	m_mainCamera = new EditorCamera((int)width, (int)height);
+	
 
 	m_DirectionLight.Direction = DirectX::XMFLOAT3(1, 1, 0);
 	m_DirectionLight.Color = DirectX::XMFLOAT4(1, 1, 1, 1);
@@ -46,6 +49,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_guiEditorManager->AddWindow(&m_menuEditor);
 	return S_OK;
 }
+static long long time = 0;
 void MainEditor::OnUpdate() 
 {
 	m_inputManager.Frame();
@@ -57,6 +61,14 @@ void MainEditor::OnUpdate()
 	m_inputManager.GetMouseLocation(x,y);
 	m_guiEditorManager->Update(&mouseButton[0], m_inputManager.GetMouseWheel(), DirectX::XMFLOAT2((float)x, (float)y));
 	m_model->rotation.y += 0.01f;
+	
+	m_model->SetAnimationTime(time);
+
+	time += 20;
+	if (time > m_model->GetAnimationStack(m_model->GetAnimationStackIndex()).end)
+	{
+		time = 0;
+	}
 
 }
 void MainEditor::OnRender(HWND hWnd)

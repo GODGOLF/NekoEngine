@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "ModelInF.h"
 
+
 class ObjScene
 {
 public:

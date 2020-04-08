@@ -162,6 +162,15 @@
     <ClInclude Include="KMInputManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="D3D11VoxelizationThread.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelRenderVariable.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalVariable.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WindowApplication.cpp">
@@ -198,9 +207,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="FunctionHelper.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="ThreadHandle.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="D3D11RenderThread.cpp">
@@ -258,6 +264,15 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="KMInputManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11VoxelizationThread.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadHandle.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelInF.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

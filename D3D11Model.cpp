@@ -16,6 +16,9 @@ D3D11Model::~D3D11Model()
 {
 	Destroy();
 }
+struct ConstantSkeleton {
+	XMMATRIX matrix[MAX_SKELETON];
+};
 
 HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 {
@@ -88,10 +91,10 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 
 	//skeleton constant buffer
 	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.Usage = D3D11_USAGE_DYNAMIC;
 	bd.ByteWidth = sizeof(ConstantSkeleton);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantSkeleton);
 	if (FAILED(hr))
 		return hr;
@@ -119,6 +122,9 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 	D3D11ModelParameterRender* d3dParameter = (D3D11ModelParameterRender*)parameter;
 
 	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)pd3dDeviceContext;
+
+	//if have animation,bind data into it;
+	UpdateAnimation(pDeviceContext, d3dParameter->pModelInfo);
 
 	UINT stride = sizeof(VertexAnime);
 	UINT offset = 0;
@@ -154,7 +160,7 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 				pDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_INDEX, 1, &m_textureSRV[j.name].normalTex.texture);
 				haveTex.y = 1;
 			}
-			if (m_model.m_haveAnimation) {
+			if (m_model.haveAnimation) {
 				pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &m_pConstantSkeleton);
 			}
 			material.haveTexture = haveTex;
@@ -208,4 +214,67 @@ metallic(0.f),
 roughness(0.5f)
 {
 	
+}
+void D3D11Model::UpdateAnimation(ID3D11DeviceContext* pDeviceContext, ModelInF* pModelInfo)
+{
+	if(m_model.haveAnimation)
+	{
+		int animStackIndex = pModelInfo->GetAnimationStackIndex();
+		long long animTime = pModelInfo->GetAnimationTime();
+		//if don't selected animation stack, use first of animation stack,but animation is not run
+		if (animStackIndex == -1)
+		{
+			animStackIndex =0;
+			animTime = 0;
+		}
+		if (animTime == -1)
+		{
+			animTime = 0;
+		}
+		std::vector<AnimationStack>* animStack = m_model.GetAnimationStacks();
+
+		std::string stackName = animStack->operator[](animStackIndex).name.Buffer();
+
+		D3D11_MAPPED_SUBRESOURCE MappedResource;
+		pDeviceContext->Map(m_pConstantSkeleton, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+
+		ConstantSkeleton* cb = (ConstantSkeleton*)MappedResource.pData;
+
+		std::vector<Joint>* pJoint =  m_model.GetJoint();
+
+		long long frameIndex = m_model.ConvertMillisecondToFrameRate(AnimationFrame::e24, animTime);
+		
+		for (unsigned int i = 0; i < pJoint->size(); i++)
+		{
+			
+			if (pJoint->operator[](i).keyframeAnimation.size() == 0)
+			{
+				cb->matrix[i] = XMMatrixIdentity();
+				continue;
+			}
+			else if ((unsigned int)frameIndex > pJoint->operator[](i).keyframeAnimation[stackName].size() - 1)
+			{
+				unsigned int newFrameIndex = pJoint->operator[](i).keyframeAnimation[stackName].size() - 1;
+				cb->matrix[i] = XMMatrixTranspose(pJoint->operator[](i).keyframeAnimation[stackName][newFrameIndex].transformMatrix);
+			}
+			else
+			{
+				cb->matrix[i] = XMMatrixTranspose(pJoint->operator[](i).keyframeAnimation[stackName][(unsigned int)frameIndex].transformMatrix);
+			}
+			if (pJoint->operator[](i).keyframeAnimation[stackName].size() > 0)
+			{
+				int a = pJoint->operator[](i).keyframeAnimation[stackName].size();
+				int b = 0;
+			}
+			
+		}
+		pDeviceContext->Unmap(m_pConstantSkeleton,0);
+
+		//clear data
+		std::string().swap(stackName);
+	}
+}
+FBXLoader* D3D11Model::GetModelData()
+{
+	return &m_model;
 }

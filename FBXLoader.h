@@ -5,24 +5,38 @@
 #include <Windows.h>
 #include <fbxsdk.h>
 #include "ModelDataStructure.h"
+#include <map>
+#include <string>
 
 struct KeyFrame {
-	FbxLongLong mFrameTime;
-	DirectX::XMMATRIX globalMatrix;
+	long long mFrameTime;
+	DirectX::XMMATRIX transformMatrix;
 };
 struct FBXModelData : public BufferData
 {
 	FbxNode *meshNode = NULL;
-	std::vector<KeyFrame> keyFrames;
 	std::vector<WORD> index;
 };
 struct Joint {
 	int parentIndex;
-	char* name;
-	FbxAMatrix mGlobalBindposeInverse;
-	FbxAMatrix finalTransform;
-	FbxAMatrix boneAnimationTranform;
-	FbxNode *mNode;
+	char name[128];
+	std::map<std::string, std::vector<KeyFrame>> keyframeAnimation;
+};
+struct AnimationStack
+{
+	FbxString name;
+	long long start;
+	long long end;
+	
+};
+
+struct AnimationFrame
+{
+	enum VALUE
+	{
+		e24,
+		e100
+	};
 };
 
 class FBXLoader
@@ -30,24 +44,27 @@ class FBXLoader
 public:
 	FBXLoader();
 	~FBXLoader();
-	bool LoadFBX(FbxManager* pFBXManager, char* file);
+	bool LoadFBX(FbxManager* pFBXManager, char* file, AnimationFrame::VALUE frameRate = AnimationFrame::e24);
 	std::vector<FBXModelData>* GetModelList();
 	std::vector<Joint>* GetJoint();
-	bool m_haveAnimation;
-	FbxTime m_start;
-	FbxTime m_stop;
-	FbxTime m_frameTime;
-	FbxTime m_timeCount;
+	std::vector<AnimationStack>* GetAnimationStacks();
+	bool haveAnimation;
+	long long ConvertMillisecondToFrameRate(AnimationFrame::VALUE frameRate,long long timeValue);
 private:
 	std::vector<FBXModelData> m_modelList;
 	std::vector<Joint> m_skeleton;
+	std::vector<AnimationStack> m_animationStack;
+	FbxScene* m_scene;
+	AnimationFrame::VALUE m_frameRate;
+private:
 
 	void LoadContent(FbxNode* pNode);
 	void LoadPolygon(FbxMesh* pMesh);
 	void LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser, int &id,const char* file);
-	void LoadSkeletonHierachy(FbxNode* rootNode);
 	void LoadSkeletonHierarchyRecursive(FbxNode* inNode, int inDepth, int myIndex, int inParentIndex);
 	int	FindJointUsingName(const char* name);
+	void LoadAnimationData();
+	FbxTime::EMode ConvertAnimFrameValueToFbxEnum(AnimationFrame::VALUE frameRate);
 
 	struct BoneInfo {
 		unsigned int bone;
@@ -58,7 +75,7 @@ private:
 		DirectX::XMFLOAT3 vertex;
 		std::vector<BoneInfo> bone;
 	};
-	void ProcessJointsAndAnimations(FBXModelData* mesh, std::vector<TempVertexData> &vertex);
+	void LoadBoneData(FBXModelData* mesh, std::vector<TempVertexData> &vertex);
 };
 
 #endif

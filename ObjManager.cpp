@@ -20,9 +20,24 @@ bool ObjManager::AddObj(char* file, ModelInF** pModelObj)
 	//add obj in the map list
 	m_modelObjectList[file] = model;
 	delete parameter;
+
 	//create obj data
 	*pModelObj = new ModelInF();
-	(*pModelObj)->modelIndex = string(file);
+	(*pModelObj)->m_modelIndex = string(file);
+
+	//extra data from Model obj such as animation info
+	FBXLoader* modelData = ((D3D11Model*)model)->GetModelData();
+	(*pModelObj)->haveAnimation = modelData->haveAnimation;
+	std::vector<AnimationStack>* animStack = modelData->GetAnimationStacks();
+	for (unsigned int i = 0; i < animStack->size(); i++)
+	{
+		ModelInF::AnimationStackInfo info;
+		info.name = animStack->operator[](i).name;
+		info.end = animStack->operator[](i).end;
+		info.start = animStack->operator[](i).start;
+		(*pModelObj)->m_animationStacks.push_back(info);
+	}
+
 	//add data in array
 	m_modelDataList.push_back(*pModelObj);
 	return false;

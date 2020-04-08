@@ -1,7 +1,7 @@
 #pragma once
 #ifndef _D3D11_MODEL_H_
 #define _D3D11_MODEL_H_
-#define MAX_SKELETON 50
+#define MAX_SKELETON 200
 #include "D3DModelInF.h"
 #include "TextureLoader.h"
 #include "FBXLoader.h"
@@ -31,6 +31,7 @@ public:
 	HRESULT Initial(char* file, ModelExtraParameter* parameter =NULL)  override;
 	void Render(void* pDeviceContext, ModelExtraParameter* parameter=NULL)  override;
 	void Destroy() override;
+	FBXLoader* GetModelData();
 private:
 	struct MaterialTexture
 	{
@@ -56,17 +57,20 @@ private:
 
 	ID3D11Buffer*  m_pConstantLighting;
 
-	struct ConstantSkeleton {
-		XMMATRIX matrix[MAX_SKELETON];
-	};
+	
 	ID3D11Buffer*  m_pConstantSkeleton;
 	
 	std::vector<VertexBuffer> m_modelBuffer;
 	std::map<std::string, MaterialTexture> m_textureSRV;
 
+
 	FBXLoader m_model;
 
 	ID3D11SamplerState* m_pSamplerState;
+
+private:
+	void UpdateAnimation(ID3D11DeviceContext* pDeviceContext, ModelInF* pModelInfo);
+
 };
 
 

@@ -2,7 +2,7 @@
 #include "D3D11RenderThread.h"
 #include "D3D11Class.h"
 
-D3D11RenderThread::D3D11RenderThread() : m_pDevice(NULL)
+D3D11RenderThread::D3D11RenderThread() : m_pDevice(NULL), m_commanList(NULL)
 {
 }
 D3D11RenderThread::~D3D11RenderThread()
@@ -46,6 +46,7 @@ void D3D11RenderThread::Update(DXInF* pDevice, Parameter* pParameter)
 void D3D11RenderThread::Destroy()
 {
 	SAFE_RELEASE(m_deviceContext);
+	SAFE_RELEASE(m_commanList);
 }
 void D3D11RenderThread::ThreadExcecute()
 {
@@ -55,4 +56,10 @@ void D3D11RenderThread::ThreadExcecute()
 ID3D11CommandList* D3D11RenderThread::GetCommandList()
 {
 	return m_commanList;
+}
+void D3D11RenderThread::ExecuteAndReleaseCommandList(DXInF* pDevice)
+{
+	D3D11Class* device = (D3D11Class*)pDevice;
+	device->GetDeviceContext()->ExecuteCommandList(m_commanList, false);
+	SAFE_RELEASE(m_commanList);
 }
