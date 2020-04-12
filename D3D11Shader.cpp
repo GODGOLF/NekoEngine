@@ -104,7 +104,23 @@ HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, S
 
 	ID3D11Device* pD3DDevice = ((D3D11Class*)pDevice)->GetDevice();
 
-	D3D11ShaderLayout* pLayout = (D3D11ShaderLayout*)layout;
+	D3D11ShaderLayout* pLayout = NULL;
+	if (layout == NULL)
+	{
+		if (mode == SHADER_MODE::VS_MODE
+			|| mode == SHADER_MODE::VS_PS_MODE
+			|| mode == SHADER_MODE::VS_PS_HS_DS_MODE
+			|| mode == SHADER_MODE::VS_PS_GS_MODE)
+		{
+			return S_FALSE;
+		}
+		
+	}
+	else 
+	{
+		pLayout = (D3D11ShaderLayout*)layout;
+	}
+	
 
 	wstring wFile = DirectXHelper::ConvertStringToWstring(string(file));
 	switch (mode)
@@ -162,6 +178,11 @@ HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, S
 			return hr;
 		}
 		break;
+	case SHADER_MODE::CS_MODE:
+	{
+		hr = LoadCSShader(wFile.c_str(), pD3DDevice, m_shader);
+	}
+	break;
 	default:
 		break;
 	}

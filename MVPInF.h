@@ -16,10 +16,6 @@ struct MVP_SHADER_INPUT
 	};
 };
 
-struct MVPParameter
-{
-
-};
 class MVPInF
 {
 public:
@@ -35,15 +31,21 @@ public:
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) =0;
 	virtual void BindConstantMVP(
-		MVPParameter* deviceContext,
+		void* deviceContext,
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
 		DirectX::XMFLOAT3 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) = 0;
-	virtual void UnbindConstantMVP(DXInF* pDevice, MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) =0;
-	virtual void UnbindConstantMVP(MVPParameter* pParameter, MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) = 0;
+	virtual void BindConstantMVP(
+		void* deviceContext,
+		Camera* pCamera,
+		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) = 0;
+	virtual void UnbindConstantMVP(void* deviceContext,
+		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) = 0;
+	virtual void UnbindConstantMVP(DXInF* pDevice, 
+		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) =0;
 	virtual void Destroy() = 0;
 };
 #endif // !_MVP_INTERFACE_H_

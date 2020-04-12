@@ -4,13 +4,40 @@
 #include "D3D11Model.h"
 #include "ObjManager.h"
 #include "FunctionHelper.h"
+#include "D3D11DirectionalLightRender.h"
+#include "FunctionHelper.h"
 #define VOXEL_TEXTURE_SIZE	128
 #define VOXEL_FILE "Data/Shader/VoxelizationGBuffer.fx"
+#define VOXEL_LIGHT_INJECTION_FILE "Data/Shader/VoxelInjectRadiance.fx"
 #define CB_SLOT	4
+
+//inject radiance
+#define VOXEL_INJECT_RADIANCE 3
+#define VOXEL_INJECT_RADIANCE_ALBEDO 0
+#define VOXEL_INJECT_RADIANCE_NORMAL 1
+#define VOXEL_INJECT_RADIANCE_EMISSION 2
+#define VOXEL_INJECT_RADIANCE_LIGHTPASS 0
+#define VOXEL_INJECT_RADIANCE_DIR_LIGHT 2
+
+#define VOXEL_DIRECTIONAL_LIGHT_MAX	50
+
 const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const UINT8 STENCIL_VALUE = 1;
 const UINT8 STENCIL_CLEAR_VALUE = 0;
 
+
+
+struct CBInjectRadiance
+{
+	XMFLOAT3 eyePosition;
+	float pad0;
+	XMFLOAT3 worldMinPoint;
+	float pad1;
+	float voxelSize;
+	float voxelScale;
+	UINT volumeDimension;
+	float pad2;
+};
 
 struct CB_GBUFFER_DIM
 {
@@ -20,6 +47,18 @@ struct CB_GBUFFER_DIM
 	float voxelScale;
 	UINT volumeDimension;
 	float pad[3];
+};
+struct CB_VOXEL_DIRECTIONAL
+{
+	XMFLOAT3 vDirToLight;
+	float intensity;
+	XMFLOAT4 vDirectionalColor;
+	
+};
+
+struct CBLightingResource
+{
+	CB_VOXEL_DIRECTIONAL directionLight[VOXEL_DIRECTIONAL_LIGHT_MAX];
 };
 
 D3D11VoxelizationThread::D3D11VoxelizationThread() :
@@ -45,7 +84,8 @@ D3D11VoxelizationThread::D3D11VoxelizationThread() :
 	m_DepthStencilRT(NULL),
 	m_dummyRT(NULL),
 	m_RSCullBack(NULL),
-	m_DepthStencilState(NULL)
+	m_DepthStencilState(NULL),
+	m_voxelInjectRadianceCB(NULL)
 {
 	
 }
@@ -149,6 +189,7 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	static const DXGI_FORMAT basicColorRenderViewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	static const DXGI_FORMAT normalRenderViewFormat = DXGI_FORMAT_R11G11B10_FLOAT;
 	static const DXGI_FORMAT specPowRenderViewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	static const DXGI_FORMAT LightPassViewFormat = DXGI_FORMAT_R16G16B16A16_UNORM;
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtsvd =
 	{
@@ -174,6 +215,12 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	}
 	rtsvd.Format = specPowRenderViewFormat;
 	hr = device->CreateRenderTargetView(m_voxelSpecPowerRT, &rtsvd, &m_voxelSpecRTV);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	rtsvd.Format = LightPassViewFormat;
+	hr = device->CreateRenderTargetView(m_voxelLightPassRT, &rtsvd, &m_voxelLightPassRTV);
 	if (FAILED(hr))
 	{
 		return hr;
@@ -246,7 +293,7 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 64,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
-	//initial shader
+	//initial voxelization shader
 	hr = m_voxelShader.Initial(pDevice, (char*)VOXEL_FILE, &shaderLayout, SHADER_MODE::VS_PS_GS_MODE);
 	if (FAILED(hr))
 	{
@@ -334,12 +381,42 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return hr;
 	}
+	// Create voxel inject radianuce constant buffers
+	ZeroMemory(&cbDesc, sizeof(cbDesc));
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.ByteWidth = sizeof(CBInjectRadiance);
+	hr = device->CreateBuffer(&cbDesc, NULL, &m_voxelInjectRadianceCB);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	// Create voxel inject radianuce constant buffers
+	ZeroMemory(&cbDesc, sizeof(cbDesc));
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.ByteWidth = sizeof(CBLightingResource);
+	hr = device->CreateBuffer(&cbDesc, NULL, &m_voxelLightResourceCB);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	//intial light injection shader
+	hr = m_LightInjection.Initial(pDevice, (char*)VOXEL_LIGHT_INJECTION_FILE, NULL, SHADER_MODE::CS_MODE);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	return S_OK;
 }
 void D3D11VoxelizationThread::Render(DXInF* pDevice, Parameter* pParameter)
 {
 	D3D11RenderThread::Render(pDevice, pParameter);
 	GenerateVoxel();
+	ComputeLightInjection();
 }
 
 void D3D11VoxelizationThread::Update(DXInF* pDevice, Parameter* pParameter)
@@ -373,6 +450,8 @@ void D3D11VoxelizationThread::Destroy()
 	SAFE_RELEASE(m_dummyRT);
 	SAFE_RELEASE(m_RSCullBack);
 	SAFE_RELEASE(m_DepthStencilState);
+	SAFE_RELEASE(m_voxelLightResourceCB);
+	SAFE_RELEASE(m_voxelInjectRadianceCB);
 	m_voxelShader.Destroy();
 	m_mvp.Destroy();
 	if (m_RenderParameter)
@@ -380,6 +459,8 @@ void D3D11VoxelizationThread::Destroy()
 		delete m_RenderParameter;
 		m_RenderParameter = NULL;
 	}
+	m_LightInjection.Destroy();
+	int a =0;
 }
 void D3D11VoxelizationThread::ThreadExcecute()
 {
@@ -412,7 +493,7 @@ void D3D11VoxelizationThread::RenderObj()
 		delete pRenderParameter;
 	}
 }
-void D3D11VoxelizationThread::SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera)
+void D3D11VoxelizationThread::SetGBufferRenderParameter(LightManager* pLightManager, ObjScene* pParameter, Camera* camera)
 {
 	if (m_RenderParameter == NULL)
 	{
@@ -422,6 +503,7 @@ void D3D11VoxelizationThread::SetGBufferRenderParameter(ObjScene* pParameter, Ca
 
 	m_RenderParameter->m_modelDataList = obj->GetModelDataList();
 	m_RenderParameter->m_modelObjectList = obj->GetModelObjectList();
+	m_RenderParameter->pLightManager = pLightManager;
 	m_RenderParameter->pCamera = camera;
 }
 void D3D11VoxelizationThread::GenerateVoxel()
@@ -510,5 +592,60 @@ void D3D11VoxelizationThread::UpdateVoxelCB()
 	cb->worldMinPoint = XMFLOAT3(fCenter.x - halfSize, fCenter.y - halfSize, fCenter.z - halfSize);
 	m_deviceContext->Unmap(m_voxelCB, 0);
 
-	
+}
+void D3D11VoxelizationThread::ComputeLightInjection()
+{
+	m_LightInjection.PreRender(m_deviceContext);
+	m_deviceContext->ClearRenderTargetView(m_voxelLightPassRTV, CLEAR_RENDER);
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	m_deviceContext->Map(m_voxelInjectRadianceCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+	CBInjectRadiance* cb = (CBInjectRadiance*)MappedResource.pData;
+	XMStoreFloat3(&cb->eyePosition, m_RenderParameter->pCamera->GetPosition());
+	cb->worldMinPoint = XMFLOAT3(-m_volumeGridSize / 2, -m_volumeGridSize / 2, -m_volumeGridSize / 2);
+	cb->voxelSize = m_voxelSize;
+	cb->voxelScale = 1.0f / m_volumeGridSize;
+	cb->volumeDimension = m_volumeDimension;
+	m_deviceContext->Unmap(m_voxelInjectRadianceCB, 0);
+
+	//add light data into constant buffer
+	D3D11_MAPPED_SUBRESOURCE lightMappedResource;
+	m_deviceContext->Map(m_voxelLightResourceCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &lightMappedResource);
+	CBLightingResource* cbLight = (CBLightingResource*)lightMappedResource.pData;
+
+	std::vector<LightObjInF*>* pLights = m_RenderParameter->pLightManager->GetLightArray();
+	for (unsigned int i = 0; i < pLights->size(); i++)
+	{
+		if (DirectXHelper::instanceof<DirectionLightObj>(pLights->operator[](i)))
+		{
+			cbLight->directionLight[i].vDirectionalColor = pLights->operator[](i)->Color;
+			cbLight->directionLight[i].vDirToLight = ((DirectionLightObj*)pLights->operator[](i))->Direction;
+			cbLight->directionLight[i].vDirToLight.x *= -1.f;
+			cbLight->directionLight[i].vDirToLight.y *= -1.f;
+			cbLight->directionLight[i].vDirToLight.z *= -1.f;
+			cbLight->directionLight[i].intensity = pLights->operator[](i)->Intensity;
+		}
+	}
+	m_deviceContext->Unmap(m_voxelLightResourceCB, 0);
+
+	m_deviceContext->CSSetConstantBuffers(VOXEL_INJECT_RADIANCE_DIR_LIGHT, 1, &m_voxelLightResourceCB);
+	m_deviceContext->CSSetConstantBuffers(VOXEL_INJECT_RADIANCE, 1, &m_voxelInjectRadianceCB);
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_ALBEDO, 1, &m_voxelColorSRV);
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_NORMAL, 1, &m_voxelNormalSRV);
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_EMISSION, 1, &m_voxelSpecPowerSRV);
+	m_deviceContext->CSSetUnorderedAccessViews(VOXEL_INJECT_RADIANCE_LIGHTPASS, 1, &m_voxelLightPassUAV, NULL);
+
+	UINT numThreat = (UINT)std::ceil(m_volumeDimension / 8.0f);
+	m_deviceContext->Dispatch(numThreat, numThreat, numThreat);
+
+	ID3D11Buffer* pNullCB = NULL;
+	m_deviceContext->CSSetConstantBuffers(VOXEL_INJECT_RADIANCE_DIR_LIGHT, 1, &pNullCB);
+	m_deviceContext->CSSetConstantBuffers(VOXEL_INJECT_RADIANCE, 1, &pNullCB);
+	ID3D11ShaderResourceView* pNULLSRV = NULL;
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_ALBEDO, 1, &pNULLSRV);
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_NORMAL, 1, &pNULLSRV);
+	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_EMISSION, 1, &pNULLSRV);
+	ID3D11UnorderedAccessView* pNULLUAV = NULL;
+	m_deviceContext->CSSetUnorderedAccessViews(VOXEL_INJECT_RADIANCE_LIGHTPASS, 1, &pNULLUAV, NULL);
+
+	m_LightInjection.PostRender(m_deviceContext);
 }

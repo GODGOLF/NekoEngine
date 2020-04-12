@@ -11,6 +11,14 @@ struct DirectionalLightRenderParameter : LightParameter
 	ID3D11ShaderResourceView* specPowerSRV;
 	ID3D11Buffer * GBufferUnpackCB;
 };
+struct CB_DIRECTIONAL
+{
+	XMFLOAT3 vDirToLight;
+	float pad0;
+	XMFLOAT4 vDirectionalColor;
+	float intensity;
+	float pad2[7];
+};
 
 class D3D11DirectionalLightRender :public LightRenderInF
 {

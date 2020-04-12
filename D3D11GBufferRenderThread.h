@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "D3D11MVP.h"
 #include "D3D11Shader.h"
+#include "FrustumCullling.h"
 
 struct GBufferInitialParameter : Parameter
 {
@@ -49,6 +50,7 @@ private:
 	void RenderObj(DXInF* pDevice);
 
 	ID3D11Buffer * m_pGBufferUnpackCB;
+	ID3D11Buffer * m_pFrustumCB;
 	// GBuffer textures
 	ID3D11Texture2D * m_DepthStencilRT;
 	ID3D11Texture2D* m_ColorSpecIntensityRT;
@@ -81,6 +83,8 @@ private:
 	D3D11Shader m_GBufferShader;
 	//cull 
 	ID3D11RasterizerState* m_RSCullBack;
+
+	FrustumCulling m_culling;
 };
 
 

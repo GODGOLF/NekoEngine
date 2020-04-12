@@ -152,7 +152,7 @@ void NekoEngine::PreRender(Camera* pCamera)
 {
 	//set necessary variable for gBuffer into the thread
 	((D3D11GBufferRenderThread*)m_renderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
-	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter(m_pObjScene, pCamera);
+	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter((LightManager*)m_lightObj, m_pObjScene, pCamera);
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {

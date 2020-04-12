@@ -45,7 +45,7 @@ void D3D11MVP::BindConstantMVP(
 	UpdateContantMVP(deviceContext, pCamera, defaultMatrix, pos, rot, scale, shaderInput);
 }
 void D3D11MVP::BindConstantMVP(
-	MVPParameter* deviceContext,
+	void* deviceContext,
 	Camera* pCamera,
 	DirectX::XMMATRIX defaultMatrix,
 	DirectX::XMFLOAT3 pos,
@@ -53,8 +53,7 @@ void D3D11MVP::BindConstantMVP(
 	DirectX::XMFLOAT3 scale,
 	MVP_SHADER_INPUT::VALUE shaderInput)
 {
-	D3D11MVPParameter* parameter = (D3D11MVPParameter*)deviceContext;
-	UpdateContantMVP(parameter->deviceContext, pCamera, defaultMatrix, pos, rot, scale, shaderInput);
+	UpdateContantMVP((ID3D11DeviceContext*)deviceContext, pCamera, defaultMatrix, pos, rot, scale, shaderInput);
 }
 void D3D11MVP::UnbindConstantMVP(DXInF* pDevice, MVP_SHADER_INPUT::VALUE shaderInput)
 {
@@ -63,12 +62,12 @@ void D3D11MVP::UnbindConstantMVP(DXInF* pDevice, MVP_SHADER_INPUT::VALUE shaderI
 	SetConstantMVP(dx, nullBuffer, shaderInput);
 	
 }
-void D3D11MVP::UnbindConstantMVP(MVPParameter* pParameter,
+void D3D11MVP::UnbindConstantMVP(void* deviceContext,
 	MVP_SHADER_INPUT::VALUE shaderInput)
 {
 	ID3D11Buffer* nullBuffer = NULL;
-	D3D11MVPParameter* parameter = (D3D11MVPParameter*)pParameter;
-	SetConstantMVP(parameter->deviceContext, nullBuffer, shaderInput);
+
+	SetConstantMVP((ID3D11DeviceContext*)deviceContext, nullBuffer, shaderInput);
 }
 void D3D11MVP::Destroy()
 {
@@ -134,4 +133,16 @@ void D3D11MVP::SetConstantMVP(ID3D11DeviceContext* deviceContext,ID3D11Buffer* p
 	{
 		deviceContext->CSSetConstantBuffers(MVP_VS_POS, 1, &pBuffer);
 	}
+}
+void D3D11MVP::BindConstantMVP(
+	void* deviceContext,
+	Camera* pCamera,
+	MVP_SHADER_INPUT::VALUE shaderInput)
+{
+	BindConstantMVP(deviceContext, pCamera,
+		XMMatrixIdentity(),
+		XMFLOAT3(0, 0, 0),
+		XMFLOAT3(0, 0, 0),
+		XMFLOAT3(0, 0, 0),
+		shaderInput);
 }

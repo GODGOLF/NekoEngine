@@ -137,9 +137,7 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 		pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		//bind MVP buffer
-		D3D11MVPParameter mvpParameter;
-		mvpParameter.deviceContext = pDeviceContext;
-		d3dParameter->pMVP->BindConstantMVP(&mvpParameter,d3dParameter->pCamera, 
+		d3dParameter->pMVP->BindConstantMVP(pDeviceContext,d3dParameter->pCamera,
 			list->operator[](i).DefaultMatrix, 
 			d3dParameter->pModelInfo->position, 
 			d3dParameter->pModelInfo->rotation, 
@@ -184,10 +182,8 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 		}
 
 	}
-	D3D11MVPParameter mvpParameter;
-	mvpParameter.deviceContext = pDeviceContext;
 	//unBind MVP 
-	d3dParameter->pMVP->UnbindConstantMVP(&mvpParameter);
+	d3dParameter->pMVP->UnbindConstantMVP(pDeviceContext);
 
 }
 void D3D11Model::Destroy()

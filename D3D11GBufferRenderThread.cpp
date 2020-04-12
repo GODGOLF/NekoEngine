@@ -5,6 +5,7 @@
 #include "ObjManager.h"
 
 #define G_BUFFER_FILE "Data/Shader/GBuffer.fx"
+#define FRUSTUM_CB_INDEX	4
 const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const UINT8 STENCIL_VALUE = 1;
 const UINT8 STENCIL_CLEAR_VALUE = 0;
@@ -13,6 +14,10 @@ struct CB_GBUFFER_UNPACK
 {
 	XMFLOAT4 PerspectiveValues;
 	XMMATRIX  ViewInv;
+};
+struct CB_FRUSTUM
+{
+	XMFLOAT4 frustumValues[6];
 };
 D3D11GBufferRenderThread::D3D11GBufferRenderThread() :
 	m_pGBufferUnpackCB(NULL),
@@ -243,7 +248,7 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 64,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	//initial shader
-	result =m_GBufferShader.Initial(pDevice,(char*)G_BUFFER_FILE, &shaderLayout, SHADER_MODE::VS_PS_MODE);
+	result =m_GBufferShader.Initial(pDevice,(char*)G_BUFFER_FILE, &shaderLayout, SHADER_MODE::VS_PS_GS_MODE);
 	if (FAILED(result)) 
 	{
 		return result;
@@ -267,6 +272,18 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	if (FAILED(hr))
 		return hr;
 
+
+	// Create constant buffers
+	ZeroMemory(&cbDesc, sizeof(cbDesc));
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.ByteWidth = sizeof(CB_FRUSTUM);
+	result = device->CreateBuffer(&cbDesc, NULL, &m_pFrustumCB);
+	if (FAILED(result))
+	{
+		return result;
+	}
 
 	return S_OK;
 }
@@ -331,6 +348,7 @@ void D3D11GBufferRenderThread::Destroy()
 	SAFE_RELEASE(m_SpecPowerSRV);
 	SAFE_RELEASE(m_DepthStencilState);
 	SAFE_RELEASE(m_RSCullBack);
+	SAFE_RELEASE(m_pFrustumCB);
 	if (m_RenderParameter)
 	{
 		delete m_RenderParameter;
@@ -353,7 +371,20 @@ void D3D11GBufferRenderThread::ThreadExcecute()
 }
 void D3D11GBufferRenderThread::RenderObj(DXInF* pDevice)
 {
-	
+	m_culling.ConstructFrustum(m_RenderParameter->pCamera->GetFarValue(),
+		m_RenderParameter->pCamera->GetProjection(), 
+		m_RenderParameter->pCamera->GetView());
+	//bind frustum data into Constant buffer
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	m_deviceContext->Map(m_pFrustumCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+	CB_FRUSTUM* data = (CB_FRUSTUM*)MappedResource.pData;
+	for (int index = 0; index < 6; index++)
+	{
+		XMStoreFloat4(&data->frustumValues[index],m_culling.getPlane(index));
+	}
+	m_deviceContext->Unmap(m_pFrustumCB, 0);
+
+	m_deviceContext->GSSetConstantBuffers(FRUSTUM_CB_INDEX, 1, &m_pFrustumCB);
 	for (unsigned int i = 0; i < m_RenderParameter->m_modelDataList->size(); i++)
 	{
 		ModelInF* pModelInfo = m_RenderParameter->m_modelDataList->operator[](i);
@@ -364,13 +395,18 @@ void D3D11GBufferRenderThread::RenderObj(DXInF* pDevice)
 		}
 		D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 		
+		//bind MVP to geometric shader
+		m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::GEO_SHADER);
 		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
 		pRenderParameter->pCamera = m_RenderParameter->pCamera;
 		pRenderParameter->pModelInfo = pModelInfo;
 		pRenderParameter->pMVP = &m_mvp;
 		pModel->Render(m_deviceContext, pRenderParameter);
 		delete pRenderParameter;
+		m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::GEO_SHADER);
 	}
+	ID3D11Buffer * nullCB = NULL;
+	m_deviceContext->GSSetConstantBuffers(FRUSTUM_CB_INDEX, 1, &nullCB);
 }
 void D3D11GBufferRenderThread::SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera)
 {

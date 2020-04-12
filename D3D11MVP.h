@@ -9,10 +9,6 @@ Author: Zhuang Theerapong
 #define _MVP_CLASS_H_
 #define MVP_VS_POS	(0)
 #include "MVPInF.h"
-struct D3D11MVPParameter : public MVPParameter
-{
-	ID3D11DeviceContext* deviceContext;
-};
 class D3D11MVP : MVPInF{
 private:
 public:
@@ -28,17 +24,22 @@ public:
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) override;
 	void BindConstantMVP(
-		MVPParameter* deviceContext,
+		void* deviceContext,
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
 		DirectX::XMFLOAT3 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER);
+	void BindConstantMVP(
+		void* deviceContext,
+		Camera* pCamera,
+		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) override;
+		
 	void UnbindConstantMVP(DXInF* pDevice, 
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) override;
-	void UnbindConstantMVP(MVPParameter* pParameter, 
-		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER);
+	void UnbindConstantMVP(void* deviceContext,
+		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) override;
 	void Destroy() override;
 	void* operator new(size_t i)
 	{

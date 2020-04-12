@@ -144,6 +144,7 @@
     <ClInclude Include="EditorCamera.h" />
     <ClInclude Include="EditorInF.h" />
     <ClInclude Include="FBXLoader.h" />
+    <ClInclude Include="FrustumCullling.h" />
     <ClInclude Include="FunctionHelper.h" />
     <ClInclude Include="GlobalVariable.h" />
     <ClInclude Include="ImGuiIRenderInF.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="DXInF.cpp" />
     <ClCompile Include="EditorCamera.cpp" />
     <ClCompile Include="FBXLoader.cpp" />
+    <ClCompile Include="FrustumCulling.cpp" />
     <ClCompile Include="FunctionHelper.cpp" />
     <ClCompile Include="imGUI\imgui.cpp" />
     <ClCompile Include="imGUI\imgui_demo.cpp" />

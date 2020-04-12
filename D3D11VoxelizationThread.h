@@ -10,11 +10,14 @@
 #include "D3D11MVP.h"
 #include "ObjSceneInF.h"
 #include "VoxelRenderVariable.h"
+#include "LightManager.h"
+#include "FrustumCullling.h"
 struct VoxelRenderParameter : Parameter
 {
 	std::vector<ModelInF*>* m_modelDataList;
 	std::map<std::string, D3DModelInF*>* m_modelObjectList;
 	Camera* pCamera;
+	LightManager* pLightManager;
 };
 class D3D11VoxelizationThread : public D3D11RenderThread, public VoxelRenderVariable
 {
@@ -30,7 +33,7 @@ public:
 
 	virtual void Destroy() override;
 
-	void SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera);
+	void SetGBufferRenderParameter(LightManager* pLightManager, ObjScene* pParameter, Camera* camera);
 
 private:
 	virtual void ThreadExcecute() override;
@@ -73,8 +76,9 @@ private:
 	ID3D11Texture2D * m_DepthStencilRT;
 	ID3D11Texture2D* m_dummyRT;
 
+	//voxelization
 	D3D11Shader m_voxelShader;
-
+	
 	//cull 
 	ID3D11RasterizerState* m_RSCullBack;
 	ID3D11DepthStencilState *m_DepthStencilState;
@@ -86,10 +90,19 @@ private:
 
 	D3D11_VIEWPORT m_Vp;
 
-private:
-	void RenderObj();
+	//voxel light pass
+	D3D11Shader m_LightInjection;
+	ID3D11Buffer * m_voxelInjectRadianceCB;
+	ID3D11Buffer * m_voxelLightResourceCB;
 
+	FrustumCulling m_culling;
+
+private:
+	//render all object
+	void RenderObj();
 	void GenerateVoxel();
 	void UpdateVoxelCB();
+	void ComputeLightInjection();
+	
 };
 #endif // !_D3D11_VOXELIZATION_THREAD_H_

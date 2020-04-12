@@ -10,14 +10,7 @@
 #define DIR_CB_INDEX	2
 #define SAMPLE_INDEX	0
 
-struct CB_DIRECTIONAL
-{
-	XMFLOAT3 vDirToLight;
-	float pad0;
-	XMFLOAT4 vDirectionalColor;
-	float intensity;
-	float pad2[7];
-};
+
 struct Vertex {
 	XMFLOAT3 pos;
 	XMFLOAT2 tex;

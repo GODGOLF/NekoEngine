@@ -19,6 +19,18 @@ cbuffer MaterialBufferPS : register(b3)
 	float alphaBlend;
 	float specIntensity;
 }
+
+cbuffer FrustumCulling : register(b4)
+{
+	float4 frustumPlanes[6];
+}
+struct GSInput
+{
+	float4 position : SV_POSITION;
+	float3 normal : NORMAL;
+	float2 tex : TEXCOORD0;
+	float4 tangent : TANGENT;
+};
 struct PSInput
 {
 	float4 position : SV_POSITION;
@@ -26,7 +38,7 @@ struct PSInput
 	float2 tex : TEXCOORD0;
 	float4 tangent : TANGENT;
 };
-PSInput VSMain(float3 position : POSITION,
+GSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
@@ -48,8 +60,8 @@ PSInput VSMain(float3 position : POSITION,
 		vWorldPos = mul(vInputPos, boneTransform);
 		vNormal = mul(normal, (float3x3)boneTransform);
 	}
-	PSInput result;
-	result.position = mul(vWorldPos, MVP);
+	GSInput result;
+	result.position = mul(vWorldPos, worldMatrix);
 	result.normal = mul(vNormal, (float3x3)worldInverse);
 	result.normal = normalize(result.normal);
 	result.tex = tex;
@@ -58,6 +70,52 @@ PSInput VSMain(float3 position : POSITION,
 
 
 	return result;
+}
+
+bool FrustumCulling(float3 position)
+{
+	for(int i=0;i<6;i++)
+	{
+		float4 plane = frustumPlanes[i];
+		float d = dot(position, plane.xyz) + plane.w;
+		if(d < 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+[maxvertexcount(3)]
+void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
+{
+	bool render = true;
+	for(int i=0;i<3;i++)
+	{
+		bool isInside = FrustumCulling(input[i].position.xyz);
+		if(isInside == true)
+		{
+			render = true;
+			break;
+		}
+		render = false;
+	}
+	if(!render)
+	{
+		return;
+	}
+	PSInput output;
+	for (int i = 0; i < 3; ++i)
+	{
+		output.position = mul(input[i].position, viewMatrix);
+		output.position = mul(output.position, projectMatrix);
+		output.normal =  input[i].normal;
+		output.tex = input[i].tex;
+		output.tangent = input[i].tangent;
+		triStream.Append(output);
+		
+	}
+	triStream.RestartStrip();
 }
 struct PS_GBUFFER_OUT
 {

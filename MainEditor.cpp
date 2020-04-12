@@ -70,6 +70,8 @@ void MainEditor::OnUpdate()
 		time = 0;
 	}
 
+	((EditorCamera*)m_mainCamera)->Update(&m_inputManager);
+
 }
 void MainEditor::OnRender(HWND hWnd)
 {
