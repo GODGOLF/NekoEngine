@@ -312,12 +312,13 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 	m_deviceContext->RSGetViewports(&prevViewPortNumber, &prevVp);
 	//set view port
 	m_deviceContext->RSSetViewports(1, &m_Vp);
-	RenderObj(pDevice);
+	RenderObj();
 	m_GBufferShader.PostRender(m_deviceContext);
 	ID3D11RenderTargetView* nullRT[3] = { NULL, NULL, NULL };
 	m_deviceContext->OMSetRenderTargets(3, nullRT, m_DepthStencilReadOnlyDSV);
 	m_deviceContext->RSSetViewports(prevViewPortNumber, &prevVp);
 	m_deviceContext->RSSetState(prevState);
+	SAFE_RELEASE(prevState);
 
 }
 
@@ -362,14 +363,14 @@ void D3D11GBufferRenderThread::ThreadExcecute()
 	while (true)
 	{
 		WaitForSingleObject(m_beginThread, INFINITE);
-		Render(m_pDevice, NULL);
+		Render(NULL, NULL);
 		m_deviceContext->FinishCommandList(false, &m_commanList);
 		SetEvent(m_endThread);
 		
 	}
 	
 }
-void D3D11GBufferRenderThread::RenderObj(DXInF* pDevice)
+void D3D11GBufferRenderThread::RenderObj()
 {
 	m_culling.ConstructFrustum(m_RenderParameter->pCamera->GetFarValue(),
 		m_RenderParameter->pCamera->GetProjection(), 

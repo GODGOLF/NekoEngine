@@ -14,6 +14,7 @@ struct SHADER_MODE
 		VS_PS_MODE,
 		VS_PS_HS_DS_MODE,
 		VS_PS_GS_MODE,
+		VS_GS_MODE,
 		CS_MODE
 	};
 };

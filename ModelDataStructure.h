@@ -17,7 +17,6 @@ struct Material
 struct MaterialInfo {
 	char name[256];
 	Material mat;
-	int id;
 	int startIndex;
 	int count;
 };
@@ -43,7 +42,6 @@ struct BufferData {
 	char texID;
 	bool hasBone;
 	std::vector<VertexAnime> vertrics;
-	bool isTriangleStrip;
 	DirectX::XMFLOAT3 tran;
 	DirectX::XMFLOAT3 rotate;
 	DirectX::XMFLOAT3 scale;

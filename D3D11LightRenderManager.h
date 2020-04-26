@@ -7,6 +7,7 @@
 #include "LightRenderInF.h"
 #include "LightObjInF.h"
 #include "TextureRecordInF.h"
+#include "D3D11ShadowManagerThread.h"
 
 struct LightInitialParameter :Parameter
 {
@@ -21,6 +22,7 @@ struct LightRenderParameter :Parameter
 	ID3D11ShaderResourceView* colorSRV;
 	ID3D11ShaderResourceView* normalSRV;
 	ID3D11ShaderResourceView* specPowerSRV;
+	D3D11ShadowManagerThread* shadowManager;
 };
 
 
@@ -40,6 +42,7 @@ public:
 	ID3D11ShaderResourceView* GetLightSRV();
 private:
 	LightRenderInF * m_pDirectionLight;
+	LightRenderInF * m_pAmbientLight;
 
 	//depth stencil state 
 	ID3D11DepthStencilState* m_pNoDepthWriteLessStencilMaskState;

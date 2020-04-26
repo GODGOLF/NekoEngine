@@ -183,6 +183,21 @@ HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, S
 		hr = LoadCSShader(wFile.c_str(), pD3DDevice, m_shader);
 	}
 	break;
+	case SHADER_MODE::VS_GS_MODE:
+	{
+		hr = LoadGeometricShader(wFile.c_str(), pD3DDevice, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+		hr = LoadVertexShader(wFile.c_str(), pD3DDevice, pLayout->layout, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+	}
+	break;
 	default:
 		break;
 	}

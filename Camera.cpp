@@ -36,7 +36,7 @@ float Camera::GetFarValue() const
 {
 	return m_farValue;
 }
-inline DirectX::XMVECTOR Camera::GetWorldRight() const
+DirectX::XMVECTOR Camera::GetWorldRight() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;
@@ -44,7 +44,7 @@ inline DirectX::XMVECTOR Camera::GetWorldRight() const
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._11));
 }
-inline DirectX::XMVECTOR Camera::GetWorldUp() const
+DirectX::XMVECTOR Camera::GetWorldUp() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;
@@ -52,7 +52,7 @@ inline DirectX::XMVECTOR Camera::GetWorldUp() const
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._21));
 }
-inline DirectX::XMVECTOR Camera::GetWorldAhead() const
+DirectX::XMVECTOR Camera::GetWorldAhead() const
 {
 	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
 	DirectX::XMMATRIX mCameraWorld;

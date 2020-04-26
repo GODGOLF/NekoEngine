@@ -34,6 +34,7 @@ private:
 
 	Camera* m_mainCamera;
 	ModelInF* m_model = NULL;
+	ModelInF* m_model2 = NULL;
 
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;

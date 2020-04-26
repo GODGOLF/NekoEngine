@@ -66,7 +66,7 @@ float3 CalLightPBR(float3 position, MaterialPBR material) {
 
 	float3 N = material.normal;
 	float3 V = normalize(material.eyePosition - position);
-	float3 L = normalize(material.dirLight);
+	float3 L = normalize(-material.dirLight);
 	float3 H = normalize(V + L);
 	float3 R = reflect(-V, N);
 	
@@ -90,6 +90,10 @@ float3 CalLightPBR(float3 position, MaterialPBR material) {
 	//add to outgoing radiance Lo
 	float NDotL = max(dot(N,L),0);
 	float3 Lo = (kD * albedo /PI+specular)*NDotL* material.dirLightColor * material.intensity;
+	
+	float3 ambient = 0.03f * albedo;
+	
+	Lo += ambient;
 	
 
 	return Lo;

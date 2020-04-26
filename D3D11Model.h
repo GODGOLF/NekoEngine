@@ -49,7 +49,7 @@ private:
 		XMFLOAT4 diffuseColor;
 		XMFLOAT4 specularColor;
 		XMFLOAT3 haveTexture;
-		float shiness;
+		float specExp;
 		float  metallic;
 		float roughness;
 		float pad[2];

@@ -24,8 +24,18 @@ public:
 	int GetAnimationStackIndex();
 	void SetAnimationTime(long long time);
 	long long GetAnimationTime();
+	float roughness;
+	float metallic;
 public:
-	ModelInF() : position(0, 0, 0), rotation(0, 0, 0), scale(1, 1, 1), name(""), m_curAnimationStrackIndex(-1), m_curAnimationTime(-1) {};
+	ModelInF() : 
+		position(0, 0, 0), 
+		rotation(0, 0, 0), 
+		scale(1, 1, 1), 
+		name(""), 
+		m_curAnimationStrackIndex(-1), 
+		m_curAnimationTime(-1), 
+		metallic(0.1f),
+		roughness(0.5f) {};
 	virtual ~ModelInF() {};
 	AnimationStackInfo GetAnimationStack(unsigned int i) const;
 	unsigned int GetAnimationCount() const;

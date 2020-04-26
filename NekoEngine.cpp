@@ -9,6 +9,7 @@
 #include "LightManager.h"
 #include "D3D11ImGuiRender.h"
 #include "D3D11VoxelizationThread.h"
+#include "D3D11ShadowManagerThread.h"
 NekoEngine::NekoEngine()
 {
 	m_pDirectXDevice = 0;
@@ -67,6 +68,13 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	//final render
 	m_pWindowRender = new D3D11WindowRender();
 	m_pWindowRender->Initial(m_pDirectXDevice);
+
+	//Shadow Manager
+	m_renderThread.push_back(new D3D11ShadowManagerThread());
+	ShadowInitialParameter shadowParameter;
+	shadowParameter.width = width;
+	shadowParameter.height = height;
+	m_renderThread.back()->Initial(m_pDirectXDevice, &shadowParameter);
 
 	return S_OK;
 }
@@ -153,6 +161,7 @@ void NekoEngine::PreRender(Camera* pCamera)
 	//set necessary variable for gBuffer into the thread
 	((D3D11GBufferRenderThread*)m_renderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
 	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter((LightManager*)m_lightObj, m_pObjScene, pCamera);
+	((D3D11ShadowManagerThread*)m_renderThread[2])->SetShadowDepthRenderParameter(m_pObjScene, (LightManager*)m_lightObj, pCamera);
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {
@@ -165,6 +174,7 @@ void NekoEngine::MainRender(Camera* pCamera)
 	lightParameter.normalSRV = gBuffer->GetNormalView();
 	lightParameter.specPowerSRV = gBuffer->GetSpecPowerView();
 	lightParameter.pLights = ((LightManager*)m_lightObj)->GetLightArray();
+	lightParameter.shadowManager = (D3D11ShadowManagerThread*)m_renderThread[2];
 	//draw light!
 	m_pLightRender->Render(m_pDirectXDevice, &lightParameter);
 }

@@ -15,8 +15,8 @@ PerspectiveCamera::PerspectiveCamera(int width,
 	XMVECTOR vUp = XMLoadFloat3(&upVector);
 	m_view = XMMatrixLookAtLH(m_camPos, vTargetPos, vUp);
 	m_FOV = XMConvertToRadians(degree);
-	m_projection = XMMatrixPerspectiveFovLH(m_FOV, (float)width / (float)height, 0.1f, 1000.0f);
 	m_aspectRadio = (float)width / (float)height;
+	m_projection = XMMatrixPerspectiveFovLH(m_FOV, m_aspectRadio, 0.1f, 1000.0f);
 	m_nearValue = near;
 	m_farValue = far;
 }

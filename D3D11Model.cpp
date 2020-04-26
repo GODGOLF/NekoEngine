@@ -142,12 +142,14 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 			d3dParameter->pModelInfo->position, 
 			d3dParameter->pModelInfo->rotation, 
 			d3dParameter->pModelInfo->scale);
-
 		for (auto &j : list->operator[](i).material) {
+			
 			MaterialConstant material;
 			material.diffuseColor = j.mat.diffuseColor;
 			material.specularColor = j.mat.specularColor;
-			material.shiness = j.mat.shiness;
+			material.specExp = j.mat.shiness;
+			material.roughness = d3dParameter->pModelInfo->roughness;
+			material.metallic = d3dParameter->pModelInfo->metallic;
 			XMFLOAT3 haveTex = XMFLOAT3(0, 0, 0);
 			 
 			if (m_textureSRV[j.name].diffuseTex.texture != NULL) {
@@ -205,8 +207,8 @@ void D3D11Model::Destroy()
 D3D11Model::MaterialConstant::MaterialConstant() :diffuseColor(0.f,0.f,0.f,0.f),
 specularColor(0.f,0.f,0.f,0.f),
 haveTexture(0.f,0.f,0.f),
-shiness(0),
-metallic(0.f),
+specExp(0),
+metallic(0.1f),
 roughness(0.5f)
 {
 	

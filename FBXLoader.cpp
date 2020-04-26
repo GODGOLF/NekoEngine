@@ -101,7 +101,7 @@ void FBXLoader::LoadContent(FbxNode* pNode)
 			m_modelList.back().rotate = DirectX::XMFLOAT3((float)lRotation[0], (float)lRotation[1], (float)lRotation[2]);
 			FbxDouble3 lScaling = pNode->LclScaling.Get();
 			m_modelList.back().scale = DirectX::XMFLOAT3((float)lScaling[0], (float)lScaling[1], (float)lScaling[2]);
-
+			
 			FbxAMatrix& lGlobalTransform = pNode->EvaluateGlobalTransform();
 
 			m_modelList.back().meshNode = pNode;
@@ -215,20 +215,21 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 						case FbxGeometryElement::eDirect:
 						{
 							FbxVector4 normal = leNormal->GetDirectArray().GetAt(vertexId);
-							tempNormal.push_back(DirectX::XMFLOAT3((float)normal[0], (float)normal[1], (float)normal[2] * -1));
+							tempNormal.push_back(DirectX::XMFLOAT3((float)normal[0], (float)normal[1], (float)normal[2]));
 						}
 						break;
 						case FbxGeometryElement::eIndexToDirect:
 						{
 							int id = leNormal->GetIndexArray().GetAt(vertexId);
 							FbxVector4 normal = leNormal->GetDirectArray().GetAt(id);
-							tempNormal.push_back(DirectX::XMFLOAT3((float)normal[0] * -1, (float)normal[1] * -1, (float)normal[2] * -1));
+							tempNormal.push_back(DirectX::XMFLOAT3((float)normal[0], (float)normal[1], (float)normal[2]));
 
 						}
 						break;
 						default:
 							break; // other reference modes not shown here!
 						}
+						vertexId++;
 					}
 				}
 				break;
@@ -241,10 +242,10 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				case fbxsdk::FbxLayerElement::eDirect:
 				{
 					
-					for (int i = 0; i < model->index.size(); i++)
+					for (unsigned int i = 0; i < model->index.size(); i++)
 					{
 						FbxVector4 normalVector = leNormal->GetDirectArray().GetAt(model->index[i]);
-						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0], (float)normalVector[1], (float)normalVector[2] * -1));
+						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0] , (float)normalVector[1] , (float)normalVector[2]));
 					}
 				}
 					break;
@@ -252,11 +253,11 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 					break;
 				case fbxsdk::FbxLayerElement::eIndexToDirect:
 				{
-					for (int i = 0; i < model->index.size(); i++)
+					for (unsigned int i = 0; i < model->index.size(); i++)
 					{
 						int index = leNormal->GetIndexArray().GetAt(model->index[i]);
 						FbxVector4 normalVector = leNormal->GetDirectArray().GetAt(index);
-						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0], (float)normalVector[1], (float)normalVector[2] * -1));
+						tempNormal.push_back(DirectX::XMFLOAT3((float)normalVector[0] , (float)normalVector[1], (float)normalVector[2]));
 					}
 				}
 					break;
@@ -287,7 +288,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				{
 				case FbxGeometryElement::eDirect:
 				{
-					for (int i = 0; i < model->index.size(); i++)
+					for (unsigned int i = 0; i < model->index.size(); i++)
 					{
 						FbxVector2 normalVector = leUV->GetDirectArray().GetAt(model->index[i]);
 						tempUV.push_back(DirectX::XMFLOAT2((float)normalVector[0], 1-(float)normalVector[1]));
@@ -296,7 +297,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 					break;
 				case FbxGeometryElement::eIndexToDirect:
 				{
-					for (int i = 0; i < model->index.size(); i++)
+					for (unsigned int i = 0; i < model->index.size(); i++)
 					{
 						int index = leUV->GetIndexArray().GetAt(model->index[i]);
 						FbxVector2 normalVector = leUV->GetDirectArray().GetAt(index);
@@ -388,9 +389,9 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 
 	//material
 	{
-		int idCount = 0;
-		std::string fileName = "";
 		int polyCount = 0;
+		std::string curIDName = "";
+		int startIndex = 0;
 		FbxLayerElementMaterial* lLayerMaterial = pMesh->GetLayer(0)->GetMaterials();
 		if (lLayerMaterial)
 		{
@@ -399,7 +400,6 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				// １つのメッシュに１つだけマッピングされている
 			case FbxLayerElement::eAllSame:
 			{
-				model->material.push_back(MaterialInfo());
 				int lMatId = lLayerMaterial->GetIndexArray().GetAt(0);
 				FbxSurfaceMaterial* lMaterial = pMesh->GetNode()->GetMaterial(lMatId);
 
@@ -407,8 +407,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 				{
 					// テクスチャーのロード
 					//GetBaseTextureMap(lMaterial, pMeshUser);
-
-					LoadMaterial(lMaterial, model, idCount, fileName.c_str());
+					LoadMaterial(lMaterial, model);
 					model->material.back().startIndex = 0;
 					model->material.back().count = (unsigned int)model->index.size();
 				}
@@ -416,13 +415,12 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 			break;
 			case FbxLayerElement::eByPolygon:
 			{
-				model->material.push_back(MaterialInfo());
 				for (int i = 0; i < lPolygonCount; i++)
 				{
 					int lPolygonSize = pMesh->GetPolygonSize(i);
 					for (int j = 0; j < pMesh->GetLayerCount(); j++)
 					{
-
+						int b = pMesh->GetLayerCount();
 						FbxLayerElementMaterial* lLayerMaterial = pMesh->GetLayer(j)->GetMaterials();
 						if (lLayerMaterial)
 						{
@@ -434,30 +432,29 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 							if (lMatId >= 0)
 							{
 								// テクスチャーのロード
-								int prvID = idCount;
-								std::string prevfile = fileName;
+								
+								auto curName = lMaterial->GetName();
 
-								LoadMaterial(lMaterial, model, idCount, fileName.c_str());
-								polyCount += (lPolygonSize >3) ? 6 : 3;
-								if (prevfile.compare("") == 0) {
-									//don't do any thing
-									model->material[idCount].startIndex = 0;
+								int polygonVertexCount = (lPolygonSize > 3) ? 6 : 3;
+								polyCount += polygonVertexCount;
 
+							
+								if (curIDName.compare(curName) == 0)
+								{
+									model->material.back().count = polyCount - startIndex;
 								}
-								else if (i == lPolygonCount - 1) {
-									model->material[idCount].count = polyCount;
+								else
+								{
+									LoadMaterial(lMaterial, model);
+									curIDName = curName;
+									startIndex = i * polygonVertexCount;
+									model->material.back().startIndex = startIndex;
+									model->material.back().count = polyCount - startIndex;
+									
 								}
-								else if (fileName.compare(prevfile) != 0) {
-									idCount++;
-									model->material[idCount - 1].count = polyCount;
-									model->material[idCount].startIndex = i;
-									polyCount = 0;
-								}
-
+								
 							}
 						}
-
-
 					}
 				}
 
@@ -472,8 +469,10 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 	std::vector<WORD> clear;
 	tempIndex.swap(clear);
 }
-void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser, int &id,const char* file)
+void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser)
 {
+	modelUser->material.push_back(MaterialInfo());
+	int id = modelUser->material.size() - 1;
 	FbxProperty lProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
 	strcpy_s(modelUser->material.back().name, sizeof(modelUser->material.back().name), material->GetName());
 	if (lProperty.IsValid())
@@ -590,6 +589,11 @@ void FBXLoader::LoadBoneData(FBXModelData* mesh, std::vector<TempVertexData> &ve
 	FbxMesh* currMesh = mesh->meshNode->GetMesh();
 	unsigned int numOfDeformers = currMesh->GetDeformerCount();
 
+	if (numOfDeformers <= 0)
+	{
+		return;
+	}
+
 	for (unsigned int deformerIndex = 0; deformerIndex < numOfDeformers; ++deformerIndex)
 	{
 		FbxSkin *currSkin = (FbxSkin *)currMesh->GetDeformer(0, FbxDeformer::eSkin);
@@ -622,6 +626,7 @@ void FBXLoader::LoadBoneData(FBXModelData* mesh, std::vector<TempVertexData> &ve
 
 		}
 	}
+	
 	for (unsigned int i = 0; i < vertex.size(); i++) {
 		if (vertex[i].bone.size() < 4) {
 			for (unsigned int j = (unsigned int)vertex[i].bone.size(); j < 4; j++) {

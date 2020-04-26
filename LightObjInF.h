@@ -6,11 +6,12 @@
 class LightObjInF
 {
 public:
-	LightObjInF() {};
+	LightObjInF() : Intensity(1),Name(""),Color(1.f,1.f,1.f,1.f),DisplayShadow(false) {} ;
 	virtual ~LightObjInF() {};
 	DirectX::XMFLOAT4 Color;
 	std::string Name;
 	float Intensity;
+	bool DisplayShadow;
 };
 class PointLightObj : public LightObjInF
 {

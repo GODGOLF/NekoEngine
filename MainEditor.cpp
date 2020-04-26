@@ -34,15 +34,22 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_objScene->AddObj(&a[0], &m_model);
 
 	m_model->position.z += 5.f;
-	m_model->scale = DirectX::XMFLOAT3(0.2f, 0.2f, .2f);
+	m_model->scale = DirectX::XMFLOAT3(1.f, 1.f, 1.f);
 	m_model->SetAnimationStackIndex(0);
+
+	////test
+	char b[] = "Data/Models/plane.fbx";
+	m_objScene->AddObj(&b[0], &m_model2);
+	m_model2->scale = DirectX::XMFLOAT3(1.f, 1.f, 1.f);
+	m_model2->SetAnimationStackIndex(0);
 
 	m_mainCamera = new EditorCamera((int)width, (int)height);
 	
 
-	m_DirectionLight.Direction = DirectX::XMFLOAT3(1, 1, 0);
+	m_DirectionLight.Direction = DirectX::XMFLOAT3(-1, -1, 0);
 	m_DirectionLight.Color = DirectX::XMFLOAT4(1, 1, 1, 1);
-	m_DirectionLight.Intensity = 1.0f;
+	m_DirectionLight.Intensity = 3.0f;
+	m_DirectionLight.DisplayShadow = true;
 	m_light->AddLight(&m_DirectionLight);
 
 	//add Gui

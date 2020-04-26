@@ -3,7 +3,7 @@ Texture2D txDiffuse : register(t0);
 Texture2D ObjNormMap: register(t1);
 SamplerState samLinear : register(s0);
 
-
+#define FLT_MAX 3.402823e+38
 
 cbuffer cbPerMesh : register(b2)
 {
@@ -16,8 +16,8 @@ cbuffer MaterialBufferPS : register(b3)
 	float4 specularColor;
 	float3 haveTexture;
 	float specExp;
-	float alphaBlend;
-	float specIntensity;
+	float  metallic;
+	float roughness;
 }
 
 cbuffer FrustumCulling : register(b4)
@@ -72,46 +72,73 @@ GSInput VSMain(float3 position : POSITION,
 	return result;
 }
 
-bool FrustumCulling(float3 position)
+bool FrustumCulling(float3 position, float3 extent)
 {
 	for(int i=0;i<6;i++)
 	{
 		float4 plane = frustumPlanes[i];
-		float d = dot(position, plane.xyz) + plane.w;
-		if(d < 0)
+		float d = dot(extent, abs(plane.xyz));
+		float r = dot(position, plane.xyz) + plane.w;
+		if((d+r) < 0)
 		{
 			return false;
 		}
 	}
 	return true;
 }
-
+float3 FindCenterTriangle(float3 point0, float3 point1,float3 point2)
+{
+	//find center
+	float3 center;
+	center.x = (point0.x + point1.x + point2.x) /3.f;
+	center.y = (point0.y + point1.y + point2.y) /3.f;
+	center.z = (point0.z + point1.z + point2.z) /3.f;
+	return center;
+}
+float FindRadianFromTriangle(float3 point0, float3 point1,float3 point2, float3 centerPoint)
+{
+	//first we have to find min,max value
+	float radius =0;
+	
+	float l = abs(length(point0 - centerPoint));
+	if(l>radius)
+	{
+		radius = l;
+	}
+	l = abs(length(point1 - centerPoint));
+	if(l>radius)
+	{
+		radius = l;
+	}
+	l = abs(length(point2 - centerPoint));
+	if(l>radius)
+	{
+		radius = l;
+	}
+	
+	return radius;
+	
+}
 [maxvertexcount(3)]
 void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
 {
-	bool render = true;
-	for(int i=0;i<3;i++)
-	{
-		bool isInside = FrustumCulling(input[i].position.xyz);
-		if(isInside == true)
-		{
-			render = true;
-			break;
-		}
-		render = false;
-	}
-	if(!render)
+	float3 center = FindCenterTriangle(input[0].position.xyz,input[1].position.xyz,input[2].position.xyz);
+	float3 radius = FindRadianFromTriangle(input[0].position.xyz,input[1].position.xyz,input[2].position.xyz,center);
+	
+	bool isInside = FrustumCulling(center,radius);
+
+	if(!isInside)
 	{
 		return;
 	}
 	PSInput output;
-	for (int i = 0; i < 3; ++i)
+	for (int j = 0; j < 3; ++j)
 	{
-		output.position = mul(input[i].position, viewMatrix);
+		output.position = mul(input[j].position, viewMatrix);
 		output.position = mul(output.position, projectMatrix);
-		output.normal =  input[i].normal;
-		output.tex = input[i].tex;
-		output.tangent = input[i].tangent;
+		output.normal =  input[j].normal;
+		output.tex = input[j].tex;
+		output.tangent = input[j].tangent;
 		triStream.Append(output);
 		
 	}
@@ -123,7 +150,7 @@ struct PS_GBUFFER_OUT
 	float4 Normal : SV_TARGET1;
 	float4 SpecPow : SV_TARGET2;
 };
-PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal, float SpecIntensity, float SpecPower)
+PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal, float SpecPower)
 {
 	PS_GBUFFER_OUT Out;
 
@@ -131,9 +158,9 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal, float SpecIntensity,
 	float SpecPowerNorm = max(0.0001, (SpecPower - g_SpecPowerRange.x) / g_SpecPowerRange.y);
 
 	// Pack all the data into the GBuffer structure
-	Out.ColorSpecInt = float4(BaseColor.rgb, SpecIntensity);
+	Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
 	Out.Normal = float4(Normal * 0.5 + 0.5, 1.0);
-	Out.SpecPow = float4(SpecPowerNorm, 1.0, 0.0, 1.0);
+	Out.SpecPow = float4(SpecPowerNorm, metallic, roughness, 1.0);
 	return Out;
 }
 
@@ -167,7 +194,7 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 		//Convert normal from normal map to texture space and store in input.normal
 		input.normal = mul(normalMap.xyz, texSpace);
 	}
-	output = PackGBuffer(textureColor.xyz, normalize(input.normal), specIntensity, specExp);
+	output = PackGBuffer(textureColor.xyz, normalize(input.normal), specExp);
 	return output;
 }
 

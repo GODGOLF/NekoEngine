@@ -44,10 +44,19 @@ public:
 	ID3D11ShaderResourceView* GetNormalView() { return m_NormalSRV; }
 	ID3D11ShaderResourceView* GetSpecPowerView() { return m_SpecPowerSRV; }
 
+	void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
+
 private:
 	virtual void ThreadExcecute() override;
 
-	void RenderObj(DXInF* pDevice);
+	void RenderObj();
 
 	ID3D11Buffer * m_pGBufferUnpackCB;
 	ID3D11Buffer * m_pFrustumCB;

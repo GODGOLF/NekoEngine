@@ -60,7 +60,7 @@ private:
 
 	void LoadContent(FbxNode* pNode);
 	void LoadPolygon(FbxMesh* pMesh);
-	void LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser, int &id,const char* file);
+	void LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser);
 	void LoadSkeletonHierarchyRecursive(FbxNode* inNode, int inDepth, int myIndex, int inParentIndex);
 	int	FindJointUsingName(const char* name);
 	void LoadAnimationData();

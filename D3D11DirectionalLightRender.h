@@ -2,6 +2,7 @@
 #define _D3D11_DIRECTIONAL_LIGHT_RENDER_H_
 #include "LightRenderInF.h"
 #include "D3D11Shader.h"
+#include "D3D11ShadowManagerThread.h"
 
 struct DirectionalLightRenderParameter : LightParameter
 {
@@ -10,14 +11,7 @@ struct DirectionalLightRenderParameter : LightParameter
 	ID3D11ShaderResourceView* normalSRV;
 	ID3D11ShaderResourceView* specPowerSRV;
 	ID3D11Buffer * GBufferUnpackCB;
-};
-struct CB_DIRECTIONAL
-{
-	XMFLOAT3 vDirToLight;
-	float pad0;
-	XMFLOAT4 vDirectionalColor;
-	float intensity;
-	float pad2[7];
+	DirectionalLightSahdow* shadow;
 };
 
 class D3D11DirectionalLightRender :public LightRenderInF
@@ -34,12 +28,14 @@ public:
 private:
 	D3D11Shader m_shader;
 	ID3D11SamplerState* m_pSamplerState;
+	ID3D11SamplerState* m_PCFSamplerState;
+	ID3D11SamplerState* m_BlockerSampler;
 	// Directional light constant buffer
 	ID3D11Buffer*   m_pDirLightCB;
 	ID3D11Buffer * m_indexBuffer;
 	ID3D11Buffer* m_vertBuffer;
 private:
-	void UpdateDirCB(void* pDeviceContext,LightObjInF* pObj);
+	void UpdateDirCB(void* pDeviceContext,LightObjInF* pObj, DirectionalLightRenderParameter* extraParameter);
 };
 
 #endif // !_DIRECTION_LIGHT_RENDER_H_
