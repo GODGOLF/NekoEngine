@@ -232,7 +232,7 @@ void D3D11DirectionalLightRender::Destroy()
 void D3D11DirectionalLightRender::UpdateDirCB(void* pDeviceContext, LightObjInF* pObj, DirectionalLightRenderParameter* extraParameter)
 {
 	ID3D11DeviceContext* pd3dDeviceContext = (ID3D11DeviceContext*)pDeviceContext;
-	// Fill the directional and ambient values constant buffer
+	// Fill the directional constant buffer
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	pd3dDeviceContext->Map(m_pDirLightCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
 	CB_DIRECTIONAL* pDirectionalValuesCB = (CB_DIRECTIONAL*)MappedResource.pData;

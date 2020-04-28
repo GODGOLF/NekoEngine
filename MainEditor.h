@@ -31,6 +31,8 @@ private:
 	ObjScene* m_objScene;
 	LightManagementInF* m_light;
 	DirectionLightObj m_DirectionLight;
+	PointLightObj m_pointLight;
+	SpotLightObj m_spotLight;
 
 	Camera* m_mainCamera;
 	ModelInF* m_model = NULL;

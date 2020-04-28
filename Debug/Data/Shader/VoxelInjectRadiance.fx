@@ -84,12 +84,13 @@ void CSMain(uint3 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_
 		voxelRadiance[writePos] = float4(0.f,0.f,0.f,0.f);
 		return; 
 	}
-	albedo.a = 0.f;
 	float3 normal = DecodeNormal(VoxelNormal.Load(int4(writePos, 0)));
 	
 	//load material
 	MaterialSpecular mat;
 	MaterialFromGBuffer(int4(writePos, 0),mat);
+	
+	float4 finalColor = float4(0,0,0,0);
 
 	if (albedo.r > 0.f || albedo.g > 0.f || albedo.b >0.f ) 
 	{
@@ -97,7 +98,7 @@ void CSMain(uint3 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_
 		for(int i =0;i<VOXEL_DIRECTIONAL_LIGHT_MAX;i++)
 		{
 			LightDiretionLight light = directionLight[i];
-			if(light.intensity == -1.f)
+			if(light.intensity <= 0.f)
 			{
 				break;
 			}
@@ -111,9 +112,9 @@ void CSMain(uint3 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_
 			matPBR.eyePosition = eyePosition;
 			matPBR.intensity = light.intensity;
 			matPBR.dirLightColor = light.DirLightColor.xyz;
-			albedo.xyz = CalLightPBR(wsPosition, matPBR) ;
+			finalColor.xyz += CalLightPBR(wsPosition, matPBR);
 		}
 	}
-	albedo.a = 1.f;
-	voxelRadiance[writePos] = albedo;
+	finalColor.a = 1.f;
+	voxelRadiance[writePos] = finalColor;
 }

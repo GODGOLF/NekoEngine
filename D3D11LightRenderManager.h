@@ -43,14 +43,17 @@ public:
 private:
 	LightRenderInF * m_pDirectionLight;
 	LightRenderInF * m_pAmbientLight;
+	LightRenderInF * m_pPointLight;
+	LightRenderInF * m_pSpotLight;
 
 	//depth stencil state 
-	ID3D11DepthStencilState* m_pNoDepthWriteLessStencilMaskState;
+	ID3D11DepthStencilState* m_pDepthWriteLessStencilMaskState;
 	ID3D11DepthStencilState* m_pNoDepthWriteGreatherStencilMaskState;
 	ID3D11BlendState* m_pAdditiveBlendState;
 	ID3D11BlendState* m_pAddBlendState;
 	ID3D11RasterizerState* m_pNoDepthClipFrontRS;
 	ID3D11RasterizerState* m_RSCullBack;
+	ID3D11RasterizerState* m_RSCullFont;
 
 	TextureRecordInF* m_record;
 	//gBuffer

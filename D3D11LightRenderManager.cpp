@@ -5,6 +5,8 @@
 #include "D3D11TextureRecord.h"
 #include "FunctionHelper.h"
 #include "D3D11AmbientLightRender.h"
+#include "D3D11PointLightRender.h"
+#include "D3D11SpotLightRender.h"
 #define PREPARE_FOR_UNPACK_INDEX	1
 
 struct CB_GBUFFER_UNPACK
@@ -43,6 +45,15 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return hr;
 	}
+	m_pPointLight = new D3D11PointLightRender();
+	hr = m_pPointLight->Initial(pDevice);
+	
+	m_pSpotLight = new D3D11SpotLightRender();
+	hr = m_pSpotLight->Initial(pDevice);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	LightInitialParameter* pLightParameter = (LightInitialParameter*)pParameter;
 	ID3D11Device* pD3D11Device = ((D3D11Class*)pDevice)->GetDevice();
 	D3D11_DEPTH_STENCIL_DESC descDepth;
@@ -61,12 +72,14 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	descDepth.FrontFace = stencilMarkOp;
 	descDepth.BackFace = stencilMarkOp;
 	// Stencil operations if pixel is front-facing.
-	hr = pD3D11Device->CreateDepthStencilState(&descDepth, &m_pNoDepthWriteLessStencilMaskState);
+	hr = pD3D11Device->CreateDepthStencilState(&descDepth, &m_pDepthWriteLessStencilMaskState);
 	if (FAILED(hr))
 	{
 		return hr;
 	}
 	descDepth.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	descDepth.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	const D3D11_DEPTH_STENCILOP_DESC stencilRepleaseMarkOp = { D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_STENCIL_OP_REPLACE, D3D11_COMPARISON_ALWAYS };
 	hr = pD3D11Device->CreateDepthStencilState(&descDepth, &m_pNoDepthWriteGreatherStencilMaskState);
 	if (FAILED(hr))
 	{
@@ -142,6 +155,11 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	hr = pD3D11Device->CreateRasterizerState(&rasterDesc, &m_RSCullBack);
 	if (FAILED(hr))
 		return hr;
+	rasterDesc.CullMode = D3D11_CULL_FRONT;
+	hr = pD3D11Device->CreateRasterizerState(&rasterDesc, &m_RSCullFont);
+	if (FAILED(hr))
+		return hr;
+
 
 	m_record = new D3D11TextureRecord();
 	hr = m_record->Initial(pDevice, pLightParameter->width,pLightParameter->height);
@@ -161,6 +179,7 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return hr;
 	}
+	
 	return S_OK;
 }
 
@@ -202,7 +221,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 	//hard code
 	ambientParameter.LowerLight = XMFLOAT3(0.2f, 0.2f, 0.2f);
 	ambientParameter.upperLight = XMFLOAT3(0.2f, 0.2f, 0.2f);
-	pD3D11DeviceContext->OMSetDepthStencilState(m_pNoDepthWriteLessStencilMaskState, 1);
+	pD3D11DeviceContext->OMSetDepthStencilState(m_pDepthWriteLessStencilMaskState, 1);
 	m_pAmbientLight->Render(pD3D11DeviceContext, NULL, NULL, &ambientParameter);
 
 	for (unsigned int i = 0; i < pRenderParameter->pLights->size(); i++)
@@ -211,6 +230,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 		{
 			// Set the depth state for the directional light
 			pD3D11DeviceContext->OMSetDepthStencilState(m_pNoDepthWriteGreatherStencilMaskState, 1);
+			pD3D11DeviceContext->RSSetState(m_RSCullBack);
 			DirectionalLightRenderParameter directionalRenderParameter;
 			directionalRenderParameter.GBufferUnpackCB = m_pGBufferUnpackCB;
 			directionalRenderParameter.colorSRV = pRenderParameter->colorSRV;
@@ -219,6 +239,30 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			directionalRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
 			directionalRenderParameter.shadow = (DirectionalLightSahdow*)pRenderParameter->shadowManager->GetShadowData((int)pRenderParameter->pLights->operator[](i));
 			m_pDirectionLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &directionalRenderParameter);
+		}
+		else if (DirectXHelper::instanceof<PointLightObj>(pRenderParameter->pLights->operator[](i)))
+		{
+			pD3D11DeviceContext->OMSetDepthStencilState(m_pNoDepthWriteGreatherStencilMaskState, 1);
+			pD3D11DeviceContext->RSSetState(m_RSCullFont);
+			PointLightRenderParameter pointRenderParameter;
+			pointRenderParameter.GBufferUnpackCB = m_pGBufferUnpackCB;
+			pointRenderParameter.colorSRV = pRenderParameter->colorSRV;
+			pointRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
+			pointRenderParameter.normalSRV = pRenderParameter->normalSRV;
+			pointRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
+			m_pPointLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &pointRenderParameter);
+		}
+		else if (DirectXHelper::instanceof<SpotLightObj>(pRenderParameter->pLights->operator[](i)))
+		{
+			pD3D11DeviceContext->OMSetDepthStencilState(m_pNoDepthWriteGreatherStencilMaskState, 1);
+			pD3D11DeviceContext->RSSetState(m_RSCullFont);
+			SpotLightRenderParameter spotRenderParameter;
+			spotRenderParameter.GBufferUnpackCB = m_pGBufferUnpackCB;
+			spotRenderParameter.colorSRV = pRenderParameter->colorSRV;
+			spotRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
+			spotRenderParameter.normalSRV = pRenderParameter->normalSRV;
+			spotRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
+			m_pSpotLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &spotRenderParameter);
 		}
 		
 	}
@@ -258,17 +302,26 @@ void D3D11LightRenderManager::Destroy()
 	{
 		delete m_pAmbientLight;
 	}
+	if (m_pPointLight)
+	{
+		delete m_pPointLight;
+	}
 	if (m_record)
 	{
 		delete m_record;
 	}
-	SAFE_RELEASE(m_pNoDepthWriteLessStencilMaskState);
+	if (m_pSpotLight)
+	{
+		delete m_pSpotLight;
+	}
+	SAFE_RELEASE(m_pDepthWriteLessStencilMaskState);
 	SAFE_RELEASE(m_pNoDepthWriteGreatherStencilMaskState);
 	SAFE_RELEASE(m_pAdditiveBlendState);
 	SAFE_RELEASE(m_pAddBlendState);
 	SAFE_RELEASE(m_pNoDepthClipFrontRS);
 	SAFE_RELEASE(m_pGBufferUnpackCB);
 	SAFE_RELEASE(m_RSCullBack);
+	SAFE_RELEASE(m_RSCullFont);
 }
 void D3D11LightRenderManager::PrepareForUnpack(ID3D11DeviceContext* pd3dImmediateContext, Camera* camera)
 {

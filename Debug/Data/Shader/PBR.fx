@@ -91,10 +91,5 @@ float3 CalLightPBR(float3 position, MaterialPBR material) {
 	float NDotL = max(dot(N,L),0);
 	float3 Lo = (kD * albedo /PI+specular)*NDotL* material.dirLightColor * material.intensity;
 	
-	float3 ambient = 0.03f * albedo;
-	
-	Lo += ambient;
-	
-
 	return Lo;
 }

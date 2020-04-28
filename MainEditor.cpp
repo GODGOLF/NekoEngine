@@ -52,6 +52,21 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_DirectionLight.DisplayShadow = true;
 	m_light->AddLight(&m_DirectionLight);
 
+	m_pointLight.Color = DirectX::XMFLOAT4(1, 0, 0,1);
+	m_pointLight.Intensity = 3.f;
+	m_pointLight.Position = DirectX::XMFLOAT3(1, 3, 1);
+	m_pointLight.Radius = 15.f;
+	m_light->AddLight(&m_pointLight);
+
+	m_spotLight.Color = DirectX::XMFLOAT4(0, 1, 0, 1);
+	m_spotLight.Intensity = 3.f;
+	m_spotLight.Position = DirectX::XMFLOAT3(4, 6, 1);
+	m_spotLight.Radius = 15.f;
+	m_spotLight.InnerAngle = 30.f;
+	m_spotLight.OuterAngle = 40.f;
+	m_spotLight.Direction = DirectX::XMFLOAT3(0, -1, 0);
+	m_light->AddLight(&m_spotLight);
+
 	//add Gui
 	m_guiEditorManager->AddWindow(&m_menuEditor);
 	return S_OK;

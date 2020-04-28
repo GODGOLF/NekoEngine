@@ -128,6 +128,7 @@ HRESULT D3D11AmbientLightRender::Initial(DXInF* pDevice)
 	{
 		return hr;
 	}
+	return S_OK;
 }
 void D3D11AmbientLightRender::Render(void* pDeviceContext,
 	LightObjInF* pObj,

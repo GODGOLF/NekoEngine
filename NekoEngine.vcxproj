@@ -138,6 +138,7 @@
     <ClInclude Include="D3D11PointLightRender.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11ShadowManagerThread.h" />
+    <ClInclude Include="D3D11SpotLightRender.h" />
     <ClInclude Include="D3D11TextureRecord.h" />
     <ClInclude Include="D3D11VoxelizationThread.h" />
     <ClInclude Include="D3DModelInF.h" />
@@ -194,10 +195,12 @@
     <ClCompile Include="D3D11ImGUIRender.cpp" />
     <ClCompile Include="D3D11Model.cpp" />
     <ClCompile Include="D3D11MVP.cpp" />
+    <ClCompile Include="D3D11PointLightRender.cpp" />
     <ClCompile Include="D3D11RenderThread.cpp" />
     <ClCompile Include="D3D11Shader.cpp" />
     <ClCompile Include="D3D11DirectionalLightRender.cpp" />
     <ClCompile Include="D3D11ShadowManagerThread.cpp" />
+    <ClCompile Include="D3D11SpotLightRender.cpp" />
     <ClCompile Include="D3D11TextureRecord.cpp" />
     <ClCompile Include="D3D11VoxelizationThread.cpp" />
     <ClCompile Include="DXInF.cpp" />

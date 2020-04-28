@@ -16,7 +16,8 @@ public:
 class PointLightObj : public LightObjInF
 {
 public:
-	PointLightObj() {};
+	PointLightObj() :Radius(1), Position(0,0,0)
+	{};
 	virtual ~PointLightObj(){}
 	float Radius;
 	DirectX::XMFLOAT3 Position;
@@ -24,19 +25,20 @@ public:
 class DirectionLightObj : public LightObjInF
 {
 public:
-	DirectionLightObj() {};
+	DirectionLightObj() : Direction(1,0,0){};
 	virtual ~DirectionLightObj() {};
 	DirectX::XMFLOAT3 Direction;
-	DirectX::XMFLOAT3 Position;
 };
 class SpotLightObj : public LightObjInF
 {
 public:
-	SpotLightObj() {};
+	SpotLightObj() : Direction(1,1,0),OuterAngle(3.12f),InnerAngle(3.12f/2.f),Position(0,0,0), Radius(1) {};
 	virtual ~SpotLightObj() {};
 	DirectX::XMFLOAT3 Direction;
 	float OuterAngle;
 	float InnerAngle;
+	DirectX::XMFLOAT3 Position;
+	float Radius;
 };
 
 #endif // !_LIGHT_OBJ_INF_H_
