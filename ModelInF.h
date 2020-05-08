@@ -10,7 +10,7 @@ class ModelInF
 {
 public:
 	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT3 rotation;
+	DirectX::XMFLOAT4 rotation;
 	DirectX::XMFLOAT3 scale;
 	std::string name;
 	bool haveAnimation;
@@ -29,7 +29,7 @@ public:
 public:
 	ModelInF() : 
 		position(0, 0, 0), 
-		rotation(0, 0, 0), 
+		rotation(0, 0, 0,1), 
 		scale(1, 1, 1), 
 		name(""), 
 		m_curAnimationStrackIndex(-1), 

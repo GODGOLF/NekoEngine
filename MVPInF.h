@@ -27,7 +27,7 @@ public:
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
-		DirectX::XMFLOAT3 rot,
+		DirectX::XMFLOAT4 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) =0;
 	virtual void BindConstantMVP(
@@ -35,7 +35,7 @@ public:
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
-		DirectX::XMFLOAT3 rot,
+		DirectX::XMFLOAT4 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) = 0;
 	virtual void BindConstantMVP(

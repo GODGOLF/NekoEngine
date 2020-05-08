@@ -34,10 +34,10 @@ cbuffer cbDirLight : register(b2)
 cbuffer VoxelCB : register(b3)
 {
 	float3 eyePosition : packoffset(c0);
-	float3 worldMinPoint : packoffset(c1);;
-	float voxelSize : packoffset(c2.x);;
-	float voxelScale : packoffset(c2.y);;
-	uint volumeDimension : packoffset(c2.z);;
+	float3 worldMinPoint : packoffset(c1);
+	float voxelSize : packoffset(c2.x);
+	float voxelScale : packoffset(c2.y);
+	uint volumeDimension : packoffset(c2.z);
 }
 
 float3 VoxelToWorld(int3 pos)
@@ -108,7 +108,7 @@ void CSMain(uint3 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_
 			matPBR.diffuseColor = albedo.xyz;
 			matPBR.metallic = mat.metallic;
 			matPBR.roughness = mat.roughness;
-			matPBR.dirLight = light.DirToLight;
+			matPBR.dirLight = -light.DirToLight;
 			matPBR.eyePosition = eyePosition;
 			matPBR.intensity = light.intensity;
 			matPBR.dirLightColor = light.DirLightColor.xyz;

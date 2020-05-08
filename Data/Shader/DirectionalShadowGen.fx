@@ -15,6 +15,7 @@ float4 VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
+	float4 binormal : BINORMAL,
 	uint4 bone : BONEINDICES,
 	float4 weight : WEIGHTS) : SV_Position
 {

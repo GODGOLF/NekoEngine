@@ -67,11 +67,11 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 			{
 				if (strlen(j.mat.diffuseTexture) !=0)
 				{
-					Texture::LoadTexture((D3D11Class*)device, j.mat.diffuseTexture, m_textureSRV[j.name].diffuseTex);
+					Texture::LoadTexture(d3dParameter->pDevice, j.mat.diffuseTexture, m_textureSRV[j.name].diffuseTex);
 				}
 				if (strlen(j.mat.normalTexture) != 0)
 				{
-					Texture::LoadTexture((D3D11Class*)device, j.mat.normalTexture, m_textureSRV[j.name].normalTex);
+					Texture::LoadTexture(d3dParameter->pDevice, j.mat.normalTexture, m_textureSRV[j.name].normalTex);
 				}
 			}
 		}

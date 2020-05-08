@@ -6,18 +6,20 @@
 #include "FunctionHelper.h"
 #include "D3D11DirectionalLightRender.h"
 #include "FunctionHelper.h"
-#define VOXEL_TEXTURE_SIZE	128
-#define VOXEL_FILE "Data/Shader/VoxelizationGBuffer.fx"
-#define VOXEL_LIGHT_INJECTION_FILE "Data/Shader/VoxelInjectRadiance.fx"
-#define CB_SLOT	4
+#define VOXEL_TEXTURE_SIZE							128
+#define VOXEL_FILE									"Data/Shader/VoxelizationGBuffer.fx"
+#define VOXEL_LIGHT_INJECTION_FILE					"Data/Shader/VoxelInjectRadiance.fx"
+#define ANSIO_FILE									"Data/Shader/VoxelAnsio.fx"
+#define VOXEL_LIGHT_INJECTION_PROPAGATION_FILE		"Data/Shader/VoxelInjectProgation.fx"
+#define CB_SLOT										4
 
 //inject radiance
-#define VOXEL_INJECT_RADIANCE 3
-#define VOXEL_INJECT_RADIANCE_ALBEDO 0
-#define VOXEL_INJECT_RADIANCE_NORMAL 1
-#define VOXEL_INJECT_RADIANCE_EMISSION 2
-#define VOXEL_INJECT_RADIANCE_LIGHTPASS 0
-#define VOXEL_INJECT_RADIANCE_DIR_LIGHT 2
+#define VOXEL_INJECT_RADIANCE						3
+#define VOXEL_INJECT_RADIANCE_ALBEDO				0
+#define VOXEL_INJECT_RADIANCE_NORMAL				1
+#define VOXEL_INJECT_RADIANCE_EMISSION				2
+#define VOXEL_INJECT_RADIANCE_LIGHTPASS				0
+#define VOXEL_INJECT_RADIANCE_DIR_LIGHT				2
 
 #define VOXEL_DIRECTIONAL_LIGHT_MAX	50
 
@@ -53,7 +55,23 @@ struct CB_VOXEL_DIRECTIONAL
 	XMFLOAT3 vDirToLight;
 	float intensity;
 	XMFLOAT4 vDirectionalColor;
-	
+};
+struct CB_VOXEL_LIGHT_PASS
+{
+	CB_VOXEL_LIGHT_PASS(): 
+		worldMinPoint(-VOXEL_TEXTURE_SIZE/2, -VOXEL_TEXTURE_SIZE/2, -VOXEL_TEXTURE_SIZE/2),
+		worldMaxPoint(VOXEL_TEXTURE_SIZE / 2, VOXEL_TEXTURE_SIZE / 2, VOXEL_TEXTURE_SIZE / 2),
+		samplingFactor(0.5f),voxelScale(1.f/VOXEL_TEXTURE_SIZE),volumeDimension(VOXEL_TEXTURE_SIZE),
+		boundStength(1.0f), maxTracingDistanceGlobal(1.0f)
+	{}
+	XMFLOAT3 worldMinPoint;
+	float pad;
+	XMFLOAT3 worldMaxPoint;
+	float voxelScale;
+	unsigned int volumeDimension;
+	float samplingFactor;
+	float boundStength;
+	float maxTracingDistanceGlobal;
 };
 
 struct CBLightingResource
@@ -85,7 +103,8 @@ D3D11VoxelizationThread::D3D11VoxelizationThread() :
 	m_dummyRT(NULL),
 	m_RSCullBack(NULL),
 	m_DepthStencilState(NULL),
-	m_voxelInjectRadianceCB(NULL)
+	m_voxelInjectRadianceCB(NULL),
+	m_voxelLightRenderCB(NULL)
 {
 	
 }
@@ -290,8 +309,9 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 64,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 64, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 80,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	//initial voxelization shader
 	hr = m_voxelShader.Initial(pDevice, (char*)VOXEL_FILE, &shaderLayout, SHADER_MODE::VS_PS_GS_MODE);
@@ -410,6 +430,40 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return hr;
 	}
+
+	ZeroMemory(&cbDesc, sizeof(cbDesc));
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.ByteWidth = sizeof(CB_VOXEL_LIGHT_PASS);
+	hr = device->CreateBuffer(&cbDesc, NULL, &m_voxelLightRenderCB);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	/*D3D11ShaderLayout propogationLayout;
+	propogationLayout.layout =
+	{
+		
+	};
+	hr = m_injectPropagation.Initial(pDevice, (char*)VOXEL_LIGHT_INJECTION_PROPAGATION_FILE, &propogationLayout, SHADER_MODE::CS_MODE);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	D3D11ShaderLayout ansioLayout;
+	ansioLayout.layout =
+	{
+
+	};
+	hr = m_ansioShader.Initial(pDevice, (char*)ANSIO_FILE, &ansioLayout, SHADER_MODE::CS_MODE);
+	if (FAILED(hr))
+	{
+		return hr;
+	}*/
+
 	return S_OK;
 }
 void D3D11VoxelizationThread::Render(DXInF* pDevice, Parameter* pParameter)
@@ -417,6 +471,8 @@ void D3D11VoxelizationThread::Render(DXInF* pDevice, Parameter* pParameter)
 	D3D11RenderThread::Render(pDevice, pParameter);
 	GenerateVoxel();
 	ComputeLightInjection();
+	//use for light pass in Light render manager
+	UpdateVoxelLightPassCB();
 }
 
 void D3D11VoxelizationThread::Update(DXInF* pDevice, Parameter* pParameter)
@@ -452,6 +508,7 @@ void D3D11VoxelizationThread::Destroy()
 	SAFE_RELEASE(m_DepthStencilState);
 	SAFE_RELEASE(m_voxelLightResourceCB);
 	SAFE_RELEASE(m_voxelInjectRadianceCB);
+	SAFE_RELEASE(m_voxelLightRenderCB);
 	m_voxelShader.Destroy();
 	m_mvp.Destroy();
 	if (m_RenderParameter)
@@ -593,6 +650,24 @@ void D3D11VoxelizationThread::UpdateVoxelCB()
 	m_deviceContext->Unmap(m_voxelCB, 0);
 
 }
+void D3D11VoxelizationThread::UpdateVoxelLightPassCB()
+{
+	const auto &vCenter = m_RenderParameter->pCamera->GetPosition();
+	XMFLOAT3 fCenter;
+	DirectX::XMStoreFloat3(&fCenter, vCenter);
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	m_deviceContext->Map(m_voxelLightRenderCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+	CB_VOXEL_LIGHT_PASS* cb = (CB_VOXEL_LIGHT_PASS*)MappedResource.pData;
+	cb->boundStength = boundStength;
+	cb->samplingFactor = samplingFactor;
+	cb->voxelScale = 1.f / VOXEL_TEXTURE_SIZE;
+	cb->volumeDimension = VOXEL_TEXTURE_SIZE;
+	XMVector3Normalize(vCenter);
+	cb->worldMinPoint = XMFLOAT3(fCenter.x-VOXEL_TEXTURE_SIZE / 2, fCenter.y -VOXEL_TEXTURE_SIZE / 2, fCenter.z -VOXEL_TEXTURE_SIZE / 2);
+	cb->worldMaxPoint = XMFLOAT3(fCenter.x + VOXEL_TEXTURE_SIZE / 2, fCenter.y + VOXEL_TEXTURE_SIZE / 2, fCenter.z + VOXEL_TEXTURE_SIZE / 2);
+	cb->maxTracingDistanceGlobal = maxTracingDistanceGlobal;
+	m_deviceContext->Unmap(m_voxelLightRenderCB, 0);
+}
 void D3D11VoxelizationThread::ComputeLightInjection()
 {
 	m_LightInjection.PreRender(m_deviceContext);
@@ -648,4 +723,16 @@ void D3D11VoxelizationThread::ComputeLightInjection()
 	m_deviceContext->CSSetUnorderedAccessViews(VOXEL_INJECT_RADIANCE_LIGHTPASS, 1, &pNULLUAV, NULL);
 
 	m_LightInjection.PostRender(m_deviceContext);
+
+	//generate mip map
+	m_deviceContext->GenerateMips(m_voxelLightPassSRV);
+
+}
+void D3D11VoxelizationThread::ComputeAnisoMipMap()
+{
+	
+}
+void D3D11VoxelizationThread::ComputeLightPropagation()
+{
+
 }

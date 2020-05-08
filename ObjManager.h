@@ -15,7 +15,7 @@ class ObjManager : public ObjScene
 public:
 	ObjManager();
 	virtual ~ObjManager();
-	bool AddObj(char* file, ModelInF** pModelObj) override;
+	bool AddObj(char* file, ModelInF* pModelObj) override;
 	bool AddObj(ModelInF* pModelObj) override;
 	bool RemoveObj(ModelInF* pModelObj) override;
 	HRESULT Initial(DXInF* pDevice);

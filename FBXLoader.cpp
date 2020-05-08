@@ -155,6 +155,8 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 	std::vector<TempVertexData> tempVertex;
 	std::vector<DirectX::XMFLOAT2> tempUV;
 	std::vector<DirectX::XMFLOAT3> tempNormal;
+	std::vector<DirectX::XMFLOAT4> tempTangent;
+	std::vector<DirectX::XMFLOAT4> tempBinormal;
 	FBXModelData* model = &m_modelList.back();
 
 
@@ -275,7 +277,6 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 	}
 	//UV
 	{
-		int ls = pMesh->GetElementUVCount();
 		for (int l = 0; l < pMesh->GetElementUVCount(); ++l)
 		{
 			FbxGeometryElementUV* leUV = pMesh->GetElementUV(l);
@@ -303,7 +304,6 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 						FbxVector2 normalVector = leUV->GetDirectArray().GetAt(index);
 						tempUV.push_back(DirectX::XMFLOAT2((float)normalVector[0], 1 - (float)normalVector[1]));
 					}
-					//mada
 				}
 				break;
 				default:
@@ -327,7 +327,7 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 							int lTextureUVIndex = pMesh->GetTextureUVIndex(i, j);
 							FbxVector2 uv = leUV->GetDirectArray().GetAt(lTextureUVIndex);
 							tempUV.push_back(DirectX::XMFLOAT2((float)uv[0], (float)(1 - uv[1])));
-
+							
 						}
 
 					}
@@ -348,7 +348,158 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 			}
 		}
 	}
-	
+	//tangent
+	{
+		FbxGeometryElementTangent* tangentArray;
+		tangentArray = pMesh->GetElementTangent();
+		int elementSize = pMesh->GetElementTangentCount();
+		for (int i = 0; i < elementSize; i++)
+		{
+			switch (tangentArray->GetMappingMode())
+			{
+			case FbxGeometryElement::eByControlPoint:
+			{
+				switch (tangentArray->GetReferenceMode())
+				{
+				case FbxGeometryElement::eDirect:
+				{
+					for (unsigned int i = 0; i < model->index.size(); i++)
+					{
+						FbxVector4 tangentVector = tangentArray->GetDirectArray().GetAt(model->index[i]);
+						tempTangent.push_back(DirectX::XMFLOAT4((float)tangentVector[0],(float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+					}
+				}
+				break;
+				case FbxGeometryElement::eIndexToDirect:
+				{
+					for (unsigned int i = 0; i < model->index.size(); i++)
+					{
+						int index = tangentArray->GetIndexArray().GetAt(model->index[i]);
+						FbxVector4 tangentVector = tangentArray->GetDirectArray().GetAt(index);
+						tempTangent.push_back(DirectX::XMFLOAT4((float)tangentVector[0], (float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+					}
+				}
+				break;
+				default:
+					break; // other reference modes not shown here!
+				}
+				
+			}
+			break;
+			case FbxGeometryElement::eByPolygonVertex:
+			{
+				int vertexId = 0;
+				for (int i = 0; i < lPolygonCount; i++)
+				{
+					int lPolygonSize = pMesh->GetPolygonSize(i);
+					for (int j = 0; j < lPolygonSize; j++)
+					{
+						switch (tangentArray->GetReferenceMode())
+						{
+						case FbxGeometryElement::eDirect:
+						{
+							FbxVector4 tangentVector = tangentArray->GetDirectArray().GetAt(vertexId);
+							tempTangent.push_back(DirectX::XMFLOAT4((float)tangentVector[0], (float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+						}
+						break;
+						case FbxGeometryElement::eIndexToDirect:
+						{
+							int id = tangentArray->GetIndexArray().GetAt(vertexId);
+							FbxVector4 tangentVector = tangentArray->GetDirectArray().GetAt(id);
+							tempTangent.push_back(DirectX::XMFLOAT4((float)tangentVector[0], (float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+
+						}
+						break;
+						default:
+							break; // other reference modes not shown here!
+						}
+						vertexId++;
+					}
+				}
+				break;
+			}
+			break;
+			default:
+				break;
+			}
+		}
+	}
+	//biNormal
+	{
+		FbxGeometryElementBinormal* binormalArray;
+		binormalArray = pMesh->GetElementBinormal();
+		int elementSize = pMesh->GetElementBinormalCount();
+		for (int i = 0; i < elementSize; i++)
+		{
+			switch (binormalArray->GetMappingMode())
+			{
+			case FbxGeometryElement::eByControlPoint:
+			{
+				switch (binormalArray->GetReferenceMode())
+				{
+				case FbxGeometryElement::eDirect:
+				{
+					for (unsigned int i = 0; i < model->index.size(); i++)
+					{
+						FbxVector4 tangentVector = binormalArray->GetDirectArray().GetAt(model->index[i]);
+						tempBinormal.push_back(DirectX::XMFLOAT4((float)tangentVector[0], (float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+					}
+				}
+				break;
+				case FbxGeometryElement::eIndexToDirect:
+				{
+					for (unsigned int i = 0; i < model->index.size(); i++)
+					{
+						int index = binormalArray->GetIndexArray().GetAt(model->index[i]);
+						FbxVector4 tangentVector = binormalArray->GetDirectArray().GetAt(index);
+						tempBinormal.push_back(DirectX::XMFLOAT4((float)tangentVector[0], (float)tangentVector[1], (float)tangentVector[2], (float)tangentVector[3]));
+					}
+				}
+				break;
+				default:
+					break; // other reference modes not shown here!
+				}
+
+			}
+			break;
+			case FbxGeometryElement::eByPolygonVertex:
+			{
+				int vertexId = 0;
+				for (int i = 0; i < lPolygonCount; i++)
+				{
+					int lPolygonSize = pMesh->GetPolygonSize(i);
+					for (int j = 0; j < lPolygonSize; j++)
+					{
+						switch (binormalArray->GetReferenceMode())
+						{
+						case FbxGeometryElement::eDirect:
+						{
+							FbxVector4 binormalVector = binormalArray->GetDirectArray().GetAt(vertexId);
+							tempBinormal.push_back(DirectX::XMFLOAT4((float)binormalVector[0], (float)binormalVector[1], (float)binormalVector[2], (float)binormalVector[3]));
+						}
+						break;
+						case FbxGeometryElement::eIndexToDirect:
+						{
+							int id = binormalArray->GetIndexArray().GetAt(vertexId);
+							FbxVector4 binormalVector = binormalArray->GetDirectArray().GetAt(id);
+							tempBinormal.push_back(DirectX::XMFLOAT4((float)binormalVector[0], (float)binormalVector[1], (float)binormalVector[2], (float)binormalVector[3]));
+
+						}
+						break;
+						default:
+							break; // other reference modes not shown here!
+						}
+						vertexId++;
+					}
+				}
+				break;
+			}
+			break;
+			default:
+				break;
+			}
+		}
+	}
 
 	LoadBoneData(model, tempVertex);
 
@@ -356,7 +507,22 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 		VertexAnime vertex;
 		vertex.position = tempVertex[model->index[i]].vertex;
 		vertex.normal = tempNormal[i];
-		vertex.tangent = DirectX::XMFLOAT4(0, 0, 0, 1);
+		if (tempBinormal.size() >0)
+		{
+			vertex.biNormal = tempBinormal[i];
+		}
+		else
+		{
+			vertex.biNormal = DirectX::XMFLOAT4(0, 0,0,1.f);
+		}
+		if (tempTangent.size() >0)
+		{
+			vertex.tangent = tempTangent[i];
+		}
+		else
+		{
+			vertex.tangent = DirectX::XMFLOAT4(0, 0, 0, 1.f);
+		}
 		//fixed later
 		if (tempUV.size() > 0)
 		{
@@ -366,8 +532,6 @@ void FBXLoader::LoadPolygon(FbxMesh* pMesh)
 		{
 			vertex.tex = DirectX::XMFLOAT2(0, 0);
 		}
-		
-		
 		if (tempVertex[model->index[i]].bone.size() >0) {
 			vertex.bones.x = tempVertex[model->index[i]].bone[0].bone;
 			vertex.bones.y = tempVertex[model->index[i]].bone[1].bone;
@@ -473,6 +637,7 @@ void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser
 {
 	modelUser->material.push_back(MaterialInfo());
 	int id = modelUser->material.size() - 1;
+	//load diffuse texture
 	FbxProperty lProperty = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
 	strcpy_s(modelUser->material.back().name, sizeof(modelUser->material.back().name), material->GetName());
 	if (lProperty.IsValid())
@@ -504,6 +669,7 @@ void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser
 			}
 		}
 	}
+	//load normal map
 	lProperty = material->FindProperty(FbxSurfaceMaterial::sNormalMap);
 	if (lProperty.IsValid())
 	{
@@ -535,7 +701,7 @@ void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser
 		}
 	}
 
-	// load material
+	// load material color
 	FbxPropertyT<FbxDouble3> lKFbxDouble3;
 	FbxColor theColor;
 	if (material->GetClassId().Is(FbxSurfacePhong::ClassId)) {

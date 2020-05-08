@@ -8,6 +8,8 @@
 #include "ObjSceneInF.h"
 #include "MenuBarEditor.h"
 #include "KMInputManager.h"
+#include "PhysicManager.h"
+#include "CollisionObject.h"
 
 class MainEditor : public ScreenInF
 {
@@ -35,13 +37,16 @@ private:
 	SpotLightObj m_spotLight;
 
 	Camera* m_mainCamera;
-	ModelInF* m_model = NULL;
-	ModelInF* m_model2 = NULL;
+	ModelInF m_model;
+	CollisionObject m_model2;
+	CollisionObject m_model3;
 
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;
 
 	KMInputManager m_inputManager;
+
+	PhysicManager m_physicManager;
 };
 #endif // !D3D_SYSTEM
 

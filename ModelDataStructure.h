@@ -26,6 +26,7 @@ struct Vertex
 	DirectX::XMFLOAT3 normal;
 	DirectX::XMFLOAT2 tex;
 	DirectX::XMFLOAT4 tangent;
+	DirectX::XMFLOAT4 biNormal;
 };
 struct VertexAnime : Vertex 
 {

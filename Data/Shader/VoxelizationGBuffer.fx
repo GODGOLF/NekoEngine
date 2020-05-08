@@ -20,8 +20,6 @@ cbuffer MaterialBufferPS : register(b3)
 	float4 specularColor;
 	float3 haveTexture;
 	float specExp;
-	float alphaBlend;
-	float specIntensity;
 	float  metallic;
 	float roughness;
 }
@@ -38,7 +36,8 @@ struct GSInput
 	float4 position : SV_POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD0;
-	float4 tangent : TANGENT;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
 };
 struct PSInput
 {
@@ -46,7 +45,8 @@ struct PSInput
 	float3 wPosition : TEXCOORD0;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD1;
-	float4 tangent : TANGENT;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
 	float3 wsPosition : TEXCOORD2;
 	float4 triangleAABB : TEXCOORD3;
 };
@@ -54,31 +54,33 @@ GSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
+	float4 binormal : BINORMAL,
 	uint4 bone : BONEINDICES,
 	float4 weight : WEIGHTS)
 {
 	float4 vInputPos = float4(position, 1.f);
 	float4 vWorldPos = float4(0.f, 0.f, 0.f, 0.f);
 	float3 vNormal = normal.xyz;
-	//if (bone.x == NANI_IDENTIFY) {
-	vWorldPos = vInputPos;
-	/*}
-	else {
-	matrix boneTransform = g_mConstBoneWorld[bone.x] * weight.x;
-	boneTransform += g_mConstBoneWorld[bone.y] * weight.y;
-	boneTransform += g_mConstBoneWorld[bone.z] * weight.z;
-	boneTransform += g_mConstBoneWorld[bone.w] * weight.w;
-	vWorldPos = mul(vInputPos, boneTransform);
-	vNormal = mul(normal, (float3x3)boneTransform);
-	}*/
+	if (bone.x == -1) {
+		vWorldPos = vInputPos;
+	}
+	else 
+	{
+		matrix boneTransform = g_mConstBoneWorld[bone.x] * weight.x;
+		boneTransform += g_mConstBoneWorld[bone.y] * weight.y;
+		boneTransform += g_mConstBoneWorld[bone.z] * weight.z;
+		boneTransform += g_mConstBoneWorld[bone.w] * weight.w;
+		vWorldPos = mul(vInputPos, boneTransform);
+		vNormal = mul(normal, (float3x3)boneTransform);
+	}
 	GSInput result;
 	result.position = mul(vWorldPos, worldMatrix);
 	result.normal = mul(vNormal, (float3x3)worldInverse);
 	result.normal = normalize(result.normal);
 	result.tex = tex;
 	//tangent 
-	result.tangent = mul(tangent, worldInverse);
-
+	result.tangent = mul(tangent.xyz, (float3x3)worldInverse);
+	result.binormal = mul(binormal.xyz,(float3x3)worldInverse);
 
 	return result;
 }
@@ -204,6 +206,7 @@ void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
 		output.normal = input[i].normal;
 		output.tex = texCoord[i];
 		output.tangent = input[i].tangent;
+		output.binormal = input[i].binormal;
 		output.wsPosition = voxelPos.xyz * volumeDimension;
 		triStream.Append(output);
 	}
@@ -226,6 +229,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	{
 		textureColor = diffuseColor * txDiffuse.Sample(samLinear, input.tex);
 	}
+	float3 newNormal = 0;
 	//If material has a normal map, we can set it now
 	if (haveTexture.y != 0)
 	{
@@ -235,23 +239,19 @@ float4 PSMain(PSInput input) : SV_TARGET
 		//Change normal map range from [0, 1] to [-1, 1]
 		normalMap = (2.0f*normalMap) - 1.0f;
 
-		//Make sure tangent is completely orthogonal to normal
-		float3 newTangent = normalize(input.tangent.xyz - dot(input.tangent.xyz, input.normal)*input.normal);
-
-		//Create the biTangent
-		float3 biTangent = cross(input.normal.xyz, newTangent.xyz) * input.tangent.w;
-
-		//Create the "Texture Space"
-		float3x3 texSpace = float3x3(newTangent, biTangent.xyz, input.normal.xyz);
-
-		//Convert normal from normal map to texture space and store in input.normal
-		input.normal = mul(normalMap.xyz, texSpace);
+		newNormal = (normalMap.x* input.tangent) + (normalMap.y* input.binormal) + (normalMap.z * input.normal);
+		
+		newNormal = normalize(newNormal);
+	}
+	else
+	{
+		newNormal= normalize(input.normal);
 	}
 
 	float3 position = input.wsPosition;
 	// Store voxels which are inside voxel-space boundary.
 	baseColor[position] = textureColor;
-	normalColor[position] = float4(input.normal * 0.5 + 0.5, 1.0);
+	normalColor[position] = float4(newNormal * 0.5 + 0.5, 1.0);
 	// Normalize the specular power
 	float SpecPowerNorm = max(0.0001, (specExp - g_SpecPowerRange.x) / g_SpecPowerRange.y);
 	emissionColor[position] = float4(SpecPowerNorm, metallic, roughness, 1.0f);

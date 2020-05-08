@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CascadedMatrixSet.h" />
+    <ClInclude Include="CollisionObject.h" />
     <ClInclude Include="D3D11AmbientLightRender.h" />
     <ClInclude Include="D3D11Class.h" />
     <ClInclude Include="D3D11GBufferRenderThread.h" />
@@ -175,6 +176,9 @@
     <ClInclude Include="ObjSceneInF.h" />
     <ClInclude Include="OrthogonalCamera.h" />
     <ClInclude Include="PerspectiveCamera.h" />
+    <ClInclude Include="PhysicCallbackManager.h" />
+    <ClInclude Include="PhysicManager.h" />
+    <ClInclude Include="PhysicUserCallback.h" />
     <ClInclude Include="RenderInF.h" />
     <ClInclude Include="D3D11RenderThread.h" />
     <ClInclude Include="ScreenInF.h" />
@@ -189,6 +193,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CascadedMatrixSet.cpp" />
+    <ClCompile Include="CollisionObject.cpp" />
     <ClCompile Include="D3D11AmbientLightRender.cpp" />
     <ClCompile Include="D3D11Class.cpp" />
     <ClCompile Include="D3D11GBufferRenderThread.cpp" />
@@ -222,6 +227,9 @@
     <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="OrthogonalCamera.cpp" />
     <ClCompile Include="PerspectiveCamera.cpp" />
+    <ClCompile Include="PhysicCallbackManager.cpp" />
+    <ClCompile Include="PhysicManager.cpp" />
+    <ClCompile Include="PhysicUserCallback.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="ThreadHandle.cpp" />
     <ClCompile Include="WindowApplication.cpp" />

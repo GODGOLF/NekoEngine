@@ -156,7 +156,7 @@ float4 spotLightCommand(DS_OUTPUT In)
 	float3 finalColor = CalLightPBR(position, matPBR) ;
 	
 	// Cone attenuation
-	float cosAng = dot(SpotDirToLight, ToLight);
+	float cosAng = dot(SpotDirToLight, normalize(ToLight));
 	float conAtt = saturate((cosAng - SpotCosOuterCone) / SpotCosConeAttRange);
 	conAtt *= conAtt;
 	
@@ -165,7 +165,7 @@ float4 spotLightCommand(DS_OUTPUT In)
 	float DistToLight = length(SpotLightPos - position);
 	float DistToLightNorm = 1.0 - saturate(DistToLight * SpotLightRangeRcp);
 	float Attn = DistToLightNorm * DistToLightNorm;
-	finalColor *= SpotColor.rgb * Attn * conAtt;
+	finalColor *= Attn * conAtt;
 	
 	
 	// Return the final color

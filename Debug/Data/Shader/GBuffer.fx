@@ -29,19 +29,22 @@ struct GSInput
 	float4 position : SV_POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD0;
-	float4 tangent : TANGENT;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
 };
 struct PSInput
 {
 	float4 position : SV_POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXCOORD0;
-	float4 tangent : TANGENT;
+	float3 tangent : TANGENT;
+	float3 binormal : BINORMAL;
 };
 GSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
+	float4 binormal : BINORMAL,
 	uint4 bone : BONEINDICES,
 	float4 weight : WEIGHTS)
 {
@@ -66,8 +69,8 @@ GSInput VSMain(float3 position : POSITION,
 	result.normal = normalize(result.normal);
 	result.tex = tex;
 	//tangent 
-	result.tangent = mul(tangent, worldInverse);
-
+	result.tangent = mul(tangent.xyz, (float3x3)worldInverse);
+	result.binormal = mul(binormal.xyz,(float3x3)worldInverse);
 
 	return result;
 }
@@ -139,6 +142,7 @@ void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
 		output.normal =  input[j].normal;
 		output.tex = input[j].tex;
 		output.tangent = input[j].tangent;
+		output.binormal = input[j].binormal;
 		triStream.Append(output);
 		
 	}
@@ -169,11 +173,12 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 	PS_GBUFFER_OUT output;
 	float4 color;
 	float4 textureColor = diffuseColor;
+	float3 newNormal = 0;
 	if (haveTexture.x != 0) {
 		textureColor = diffuseColor*txDiffuse.Sample(samLinear, input.tex);
 	}
 
-	//If material has a normal map, we can set it now
+	//If material has a normal map, we can compute it now
 	if (haveTexture.y != 0)
 	{
 		//Load normal from normal map
@@ -182,19 +187,15 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 		//Change normal map range from [0, 1] to [-1, 1]
 		normalMap = (2.0f*normalMap) - 1.0f;
 
-		//Make sure tangent is completely orthogonal to normal
-		float3 newTangent = normalize(input.tangent.xyz - dot(input.tangent.xyz, input.normal)*input.normal);
-
-		//Create the biTangent
-		float3 biTangent = cross(input.normal.xyz, newTangent.xyz) * input.tangent.w;
-
-		//Create the "Texture Space"
-		float3x3 texSpace = float3x3(newTangent, biTangent.xyz, input.normal.xyz);
-
-		//Convert normal from normal map to texture space and store in input.normal
-		input.normal = mul(normalMap.xyz, texSpace);
+		newNormal = (normalMap.x* input.tangent) + (normalMap.y* input.binormal) + (normalMap.z * input.normal);
+		
+		newNormal = normalize(newNormal);
+	
+	}else
+	{
+		newNormal= normalize(input.normal);
 	}
-	output = PackGBuffer(textureColor.xyz, normalize(input.normal), specExp);
+	output = PackGBuffer(textureColor.xyz, newNormal, specExp);
 	return output;
 }
 

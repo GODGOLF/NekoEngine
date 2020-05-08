@@ -20,8 +20,6 @@ cbuffer MaterialBufferPS : register(b3)
 	float4 specularColor;
 	float3 haveTexture;
 	float specExp;
-	float alphaBlend;
-	float specIntensity;
 	float  metallic;
 	float roughness;
 }
@@ -54,23 +52,25 @@ GSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
+	float4 binormal : BINORMAL,
 	uint4 bone : BONEINDICES,
 	float4 weight : WEIGHTS)
 {
 	float4 vInputPos = float4(position, 1.f);
 	float4 vWorldPos = float4(0.f, 0.f, 0.f, 0.f);
 	float3 vNormal = normal.xyz;
-	//if (bone.x == NANI_IDENTIFY) {
-	vWorldPos = vInputPos;
-	/*}
-	else {
-	matrix boneTransform = g_mConstBoneWorld[bone.x] * weight.x;
-	boneTransform += g_mConstBoneWorld[bone.y] * weight.y;
-	boneTransform += g_mConstBoneWorld[bone.z] * weight.z;
-	boneTransform += g_mConstBoneWorld[bone.w] * weight.w;
-	vWorldPos = mul(vInputPos, boneTransform);
-	vNormal = mul(normal, (float3x3)boneTransform);
-	}*/
+	if (bone.x == -1) {
+		vWorldPos = vInputPos;
+	}
+	else 
+	{
+		matrix boneTransform = g_mConstBoneWorld[bone.x] * weight.x;
+		boneTransform += g_mConstBoneWorld[bone.y] * weight.y;
+		boneTransform += g_mConstBoneWorld[bone.z] * weight.z;
+		boneTransform += g_mConstBoneWorld[bone.w] * weight.w;
+		vWorldPos = mul(vInputPos, boneTransform);
+		vNormal = mul(normal, (float3x3)boneTransform);
+	}
 	GSInput result;
 	result.position = mul(vWorldPos, worldMatrix);
 	result.normal = mul(vNormal, (float3x3)worldInverse);

@@ -20,7 +20,7 @@ public:
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
-		DirectX::XMFLOAT3 rot,
+		DirectX::XMFLOAT4 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER) override;
 	void BindConstantMVP(
@@ -28,7 +28,7 @@ public:
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
-		DirectX::XMFLOAT3 rot,
+		DirectX::XMFLOAT4 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER);
 	void BindConstantMVP(
@@ -58,7 +58,7 @@ private:
 		Camera* pCamera,
 		DirectX::XMMATRIX defaultMatrix,
 		DirectX::XMFLOAT3 pos,
-		DirectX::XMFLOAT3 rot,
+		DirectX::XMFLOAT4 rot,
 		DirectX::XMFLOAT3 scale,
 		MVP_SHADER_INPUT::VALUE shaderInput = MVP_SHADER_INPUT::VERTEX_SHADER);
 	void SetConstantMVP(ID3D11DeviceContext* deviceContext, ID3D11Buffer* pBuffer,

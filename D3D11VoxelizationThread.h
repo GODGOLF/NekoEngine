@@ -35,6 +35,15 @@ public:
 
 	void SetGBufferRenderParameter(LightManager* pLightManager, ObjScene* pParameter, Camera* camera);
 
+	ID3D11Buffer* GetVoxelLightRenderCB() 
+	{
+		return m_voxelLightRenderCB;
+	}
+	ID3D11ShaderResourceView* GetVoxelLightPassSRV()
+	{
+		return m_voxelLightPassSRV;
+	}
+
 
 	void* operator new(size_t i)
 	{
@@ -49,6 +58,7 @@ private:
 	virtual void ThreadExcecute() override;
 
 	ID3D11Buffer * m_voxelCB;
+	ID3D11Buffer * m_voxelLightRenderCB;
 	//voxel GBuffer textures
 	ID3D11Texture3D* m_voxelColorRT;
 	ID3D11Texture3D* m_voxelNormalRT;
@@ -88,6 +98,9 @@ private:
 
 	//voxelization
 	D3D11Shader m_voxelShader;
+	//ansio
+	D3D11Shader m_ansioShader;
+	D3D11Shader m_injectPropagation;
 	
 	//cull 
 	ID3D11RasterizerState* m_RSCullBack;
@@ -112,7 +125,9 @@ private:
 	void RenderObj();
 	void GenerateVoxel();
 	void UpdateVoxelCB();
+	void UpdateVoxelLightPassCB();
 	void ComputeLightInjection();
-	
+	void ComputeAnisoMipMap();
+	void ComputeLightPropagation();
 };
 #endif // !_D3D11_VOXELIZATION_THREAD_H_

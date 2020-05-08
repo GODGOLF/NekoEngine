@@ -1,13 +1,16 @@
 #include "common.fx"
 #include "PBR.fx"
+#include "InDirectLight.fx"
 Texture2D<float> DepthTexture					: register(t0);
 Texture2D<float4> ColorSpecIntTexture			: register(t1);
 Texture2D<float3> NormalTexture					: register(t2);
 Texture2D<float4> SpecPowTexture				: register(t3);
 Texture2DArray<float> CascadeShadowMapTexture 	: register(t4);
+Texture3D<float4> VoxelTexture					: register(t5);
 SamplerState PointSampler						: register(s0);
 SamplerComparisonState PCFSampler 				: register(s1);		
-SamplerState BlockerSampler 					: register(s2); 	
+SamplerState BlockerSampler 					: register(s2);
+SamplerState ClampSampler 						: register(s3);
 
 cbuffer cbDirLight : register(b2)
 {
@@ -20,6 +23,17 @@ cbuffer cbDirLight : register(b2)
 	float4 ToCascadeScale		: packoffset(c8);
 	float ShadowMapPixelSize	: packoffset(c9.x);
 	float LightSize				: packoffset(c9.y);
+}
+
+cbuffer VoxelCB : register(b3)
+{
+	float3 worldMinPoint : packoffset(c0);
+	float3 worldMaxPoint : packoffset(c1);
+	float voxelScale : packoffset(c1.w);
+	uint volumeDimension : packoffset(c2.x);
+	float samplingFactor : packoffset(c2.y);
+	float boundStength : packoffset(c2.z);
+	float maxTracingDistanceGlobal : packoffset(c2.w);
 }
 
 struct VS_OUTPUT
@@ -158,6 +172,25 @@ float4 DirectionalLightCommand(VS_OUTPUT In)
 	// Reconstruct the world position
 	float3 position = CalcWorldPos(In.cpPos, gbd.LinearDepth);
 	
+	float3 finalColor = 0.f;
+	
+	//global illumination
+	InDirectLightParameter input;
+	input.voxelScale = voxelScale;
+	input.voxelDimension = volumeDimension;
+	input.maxTracingDistanceGlobal = maxTracingDistanceGlobal;
+	input.position = position;
+	input.normal = mat.normal;
+	input.diffuseColor = mat.diffuseColor.xyz;
+	input.samplingFactor = samplingFactor;
+	input.boundStength = boundStength;
+	input.worldMin = worldMinPoint;
+	input.worldMax = worldMaxPoint;
+	input.clampSampler = ClampSampler;
+	input.voxelTexture = VoxelTexture;
+	finalColor = CalInDirectLight(input).xyz;
+	
+	
 	// Calculate the directional light
 	MaterialPBR matPBR;
 	matPBR.normal = mat.normal;
@@ -168,7 +201,8 @@ float4 DirectionalLightCommand(VS_OUTPUT In)
 	matPBR.eyePosition = EyePosition;
 	matPBR.intensity = intensity;
 	matPBR.dirLightColor = DirLightColor.xyz;
-	float3 finalColor = CalLightPBR(position, matPBR) ;
+	finalColor += CalLightPBR(position, matPBR) ;
+	
 	
 	
 	//gamma correction

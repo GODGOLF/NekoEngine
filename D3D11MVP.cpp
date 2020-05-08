@@ -37,7 +37,7 @@ void D3D11MVP::BindConstantMVP(
 	Camera* pCamera,
 	DirectX::XMMATRIX defaultMatrix,
 	DirectX::XMFLOAT3 pos,
-	DirectX::XMFLOAT3 rot,
+	DirectX::XMFLOAT4 rot,
 	DirectX::XMFLOAT3 scale,
 	MVP_SHADER_INPUT::VALUE shaderInput)
 {
@@ -49,7 +49,7 @@ void D3D11MVP::BindConstantMVP(
 	Camera* pCamera,
 	DirectX::XMMATRIX defaultMatrix,
 	DirectX::XMFLOAT3 pos,
-	DirectX::XMFLOAT3 rot,
+	DirectX::XMFLOAT4 rot,
 	DirectX::XMFLOAT3 scale,
 	MVP_SHADER_INPUT::VALUE shaderInput)
 {
@@ -77,21 +77,16 @@ void D3D11MVP::UpdateContantMVP(ID3D11DeviceContext* deviceContext,
 	Camera* pCamera,
 	DirectX::XMMATRIX defaultMatrix,
 	DirectX::XMFLOAT3 pos,
-	DirectX::XMFLOAT3 rot,
+	DirectX::XMFLOAT4 rot,
 	DirectX::XMFLOAT3 scale,
 	MVP_SHADER_INPUT::VALUE shaderInput)
 {
 	ConMVPBuffer cMVP;
 	DirectX::XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
-
-	DirectX::XMMATRIX rotateQX = DirectX::XMMatrixRotationQuaternion(DirectXHelper::XMConvertToQuaternion(XMFLOAT3(1, 0, 0), rot.x));
-	DirectX::XMMATRIX rotateQY = DirectX::XMMatrixRotationQuaternion(DirectXHelper::XMConvertToQuaternion(XMFLOAT3(0, 1, 0), rot.y));
-	DirectX::XMMATRIX rotateQZ = DirectX::XMMatrixRotationQuaternion(DirectXHelper::XMConvertToQuaternion(XMFLOAT3(0, 0, 1), rot.z));
+	DirectX::XMMATRIX rotateQ = DirectX::XMMatrixRotationQuaternion(XMLoadFloat4(&rot));
 	DirectX::XMMATRIX mMatrix = defaultMatrix;
 	DirectX::XMMATRIX mulTrans = DirectX::XMMatrixIdentity();
-	mulTrans = XMMatrixMultiply(scaleMatrix, rotateQX);
-	mulTrans = XMMatrixMultiply(mulTrans, rotateQY);
-	mulTrans = XMMatrixMultiply(mulTrans, rotateQZ);
+	mulTrans = XMMatrixMultiply(scaleMatrix, rotateQ);
 	mulTrans = XMMatrixMultiply(mulTrans, XMMatrixTranslation(pos.x, pos.y, pos.z));
 	mMatrix = XMMatrixMultiply(mMatrix, mulTrans);
 
@@ -142,7 +137,7 @@ void D3D11MVP::BindConstantMVP(
 	BindConstantMVP(deviceContext, pCamera,
 		XMMatrixIdentity(),
 		XMFLOAT3(0, 0, 0),
-		XMFLOAT3(0, 0, 0),
-		XMFLOAT3(0, 0, 0),
+		XMFLOAT4(0, 0, 0,1),
+		XMFLOAT3(1, 1, 1),
 		shaderInput);
 }

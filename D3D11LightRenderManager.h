@@ -23,6 +23,8 @@ struct LightRenderParameter :Parameter
 	ID3D11ShaderResourceView* normalSRV;
 	ID3D11ShaderResourceView* specPowerSRV;
 	D3D11ShadowManagerThread* shadowManager;
+	ID3D11Buffer* voxelLightRenderCB;
+	ID3D11ShaderResourceView* voxelLightPassSRV;
 };
 
 
@@ -54,6 +56,7 @@ private:
 	ID3D11RasterizerState* m_pNoDepthClipFrontRS;
 	ID3D11RasterizerState* m_RSCullBack;
 	ID3D11RasterizerState* m_RSCullFont;
+	ID3D11SamplerState* m_clampSample;
 
 	TextureRecordInF* m_record;
 	//gBuffer

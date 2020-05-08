@@ -8,6 +8,9 @@
 #include "D3D11PointLightRender.h"
 #include "D3D11SpotLightRender.h"
 #define PREPARE_FOR_UNPACK_INDEX	1
+#define VOXEL_LIGHT_RENDER_CB_INDEX 3
+#define VOXEL_LIGHT_SRV_INDEX		5
+#define VOXEL_CLAMP_SAMPLER			3
 
 struct CB_GBUFFER_UNPACK
 {
@@ -179,6 +182,29 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return hr;
 	}
+
+	// Create the sample state
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sampDesc.MipLODBias = 0.0f;
+	sampDesc.MaxAnisotropy = 1;
+	sampDesc.BorderColor[0] = 0;
+	sampDesc.BorderColor[1] = 0;
+	sampDesc.BorderColor[2] = 0;
+	sampDesc.BorderColor[3] = 0;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = pD3D11Device->CreateSamplerState(&sampDesc, &m_clampSample);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	
 	return S_OK;
 }
@@ -228,6 +254,10 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 	{
 		if (DirectXHelper::instanceof<DirectionLightObj>(pRenderParameter->pLights->operator[](i)))
 		{
+			//set voxel Light render pass
+			pD3D11DeviceContext->PSSetConstantBuffers(VOXEL_LIGHT_RENDER_CB_INDEX, 1, &pRenderParameter->voxelLightRenderCB);
+			pD3D11DeviceContext->PSSetShaderResources(VOXEL_LIGHT_SRV_INDEX, 1, &pRenderParameter->voxelLightPassSRV);
+			pD3D11DeviceContext->PSSetSamplers(VOXEL_CLAMP_SAMPLER, 1, &m_clampSample);
 			// Set the depth state for the directional light
 			pD3D11DeviceContext->OMSetDepthStencilState(m_pNoDepthWriteGreatherStencilMaskState, 1);
 			pD3D11DeviceContext->RSSetState(m_RSCullBack);
@@ -239,6 +269,12 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			directionalRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
 			directionalRenderParameter.shadow = (DirectionalLightSahdow*)pRenderParameter->shadowManager->GetShadowData((int)pRenderParameter->pLights->operator[](i));
 			m_pDirectionLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &directionalRenderParameter);
+			ID3D11Buffer* nullBuffer = NULL;
+			pD3D11DeviceContext->PSSetConstantBuffers(VOXEL_LIGHT_RENDER_CB_INDEX, 1, &nullBuffer);
+			ID3D11ShaderResourceView* nullResource = NULL;
+			pD3D11DeviceContext->PSSetShaderResources(VOXEL_LIGHT_SRV_INDEX, 1, &nullResource);
+			ID3D11SamplerState* nullSample = NULL;
+			pD3D11DeviceContext->PSSetSamplers(VOXEL_CLAMP_SAMPLER, 1, &nullSample);
 		}
 		else if (DirectXHelper::instanceof<PointLightObj>(pRenderParameter->pLights->operator[](i)))
 		{
@@ -297,22 +333,27 @@ void D3D11LightRenderManager::Destroy()
 	if (m_pDirectionLight)
 	{
 		delete m_pDirectionLight;
+		m_pDirectionLight = NULL;
 	}
 	if (m_pAmbientLight)
 	{
 		delete m_pAmbientLight;
+		m_pAmbientLight = NULL;
 	}
 	if (m_pPointLight)
 	{
 		delete m_pPointLight;
+		m_pPointLight = NULL;
 	}
 	if (m_record)
 	{
 		delete m_record;
+		m_record = NULL;
 	}
 	if (m_pSpotLight)
 	{
 		delete m_pSpotLight;
+		m_pSpotLight = NULL;
 	}
 	SAFE_RELEASE(m_pDepthWriteLessStencilMaskState);
 	SAFE_RELEASE(m_pNoDepthWriteGreatherStencilMaskState);
@@ -322,6 +363,7 @@ void D3D11LightRenderManager::Destroy()
 	SAFE_RELEASE(m_pGBufferUnpackCB);
 	SAFE_RELEASE(m_RSCullBack);
 	SAFE_RELEASE(m_RSCullFont);
+	SAFE_RELEASE(m_clampSample);
 }
 void D3D11LightRenderManager::PrepareForUnpack(ID3D11DeviceContext* pd3dImmediateContext, Camera* camera)
 {

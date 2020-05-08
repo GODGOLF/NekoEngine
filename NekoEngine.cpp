@@ -36,6 +36,7 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	isSucessful = ((ObjManager*)*pObjScene)->Initial(m_pDirectXDevice);
 	if (!SUCCEEDED(isSucessful))
 	{
+		delete *pObjScene;
 		pObjScene = NULL;
 		return isSucessful;
 	}
@@ -175,6 +176,8 @@ void NekoEngine::MainRender(Camera* pCamera)
 	lightParameter.specPowerSRV = gBuffer->GetSpecPowerView();
 	lightParameter.pLights = ((LightManager*)m_lightObj)->GetLightArray();
 	lightParameter.shadowManager = (D3D11ShadowManagerThread*)m_renderThread[2];
+	lightParameter.voxelLightPassSRV = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightPassSRV();
+	lightParameter.voxelLightRenderCB = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightRenderCB();
 	//draw light!
 	m_pLightRender->Render(m_pDirectXDevice, &lightParameter);
 }
