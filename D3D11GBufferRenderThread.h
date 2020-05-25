@@ -8,8 +8,8 @@
 #include <map>
 #include "Camera.h"
 #include "D3D11MVP.h"
-#include "D3D11Shader.h"
 #include "FrustumCullling.h"
+#include "D3D11GBufferShaderManager.h"
 
 struct GBufferInitialParameter : Parameter
 {
@@ -88,12 +88,12 @@ private:
 	//nessary variable for main thread
 	GBufferRenderParameter* m_RenderParameter;
 
-	//Gbuffer shader
-	D3D11Shader m_GBufferShader;
 	//cull 
 	ID3D11RasterizerState* m_RSCullBack;
 
 	FrustumCulling m_culling;
+
+	D3D11GBufferShaderManager m_shaderManager;
 };
 
 

@@ -9,6 +9,15 @@ namespace DirectXHelper
 	bool instanceof(const T* ptr) {
 		return dynamic_cast<const Base*>(ptr) != nullptr;
 	}
+	template<typename T, typename K>
+	inline bool instantOfByTypeId(const K k)
+	{
+		if (typeid(T) == typeid(*k))
+		{
+			return true;
+		}
+		return false;
+	}
 	std::wstring ConvertStringToWstring(std::string text);
 	std::string ConvertWstringToString(std::wstring text);
 }

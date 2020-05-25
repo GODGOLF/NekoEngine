@@ -16,15 +16,15 @@ struct LightInitialParameter :Parameter
 };
 struct LightRenderParameter :Parameter
 {
-	Camera* pCamera;
-	std::vector<LightObjInF*>* pLights;
-	ID3D11ShaderResourceView* depthStencilDSV;
-	ID3D11ShaderResourceView* colorSRV;
-	ID3D11ShaderResourceView* normalSRV;
-	ID3D11ShaderResourceView* specPowerSRV;
-	D3D11ShadowManagerThread* shadowManager;
-	ID3D11Buffer* voxelLightRenderCB;
-	ID3D11ShaderResourceView* voxelLightPassSRV;
+	Camera* pCamera = NULL;
+	std::vector<LightObjInF*>* pLights = NULL;
+	ID3D11ShaderResourceView* depthStencilDSV = NULL;
+	ID3D11ShaderResourceView* colorSRV = NULL;
+	ID3D11ShaderResourceView* normalSRV = NULL;
+	ID3D11ShaderResourceView* specPowerSRV = NULL;
+	D3D11ShadowManagerThread* shadowManager = NULL;
+	ID3D11Buffer* voxelLightRenderCB = NULL;
+	ID3D11ShaderResourceView* voxelLightPassSRV = NULL;
 };
 
 

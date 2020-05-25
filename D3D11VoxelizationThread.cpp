@@ -6,6 +6,7 @@
 #include "FunctionHelper.h"
 #include "D3D11DirectionalLightRender.h"
 #include "FunctionHelper.h"
+#include "TerrainObj.h"
 #define VOXEL_TEXTURE_SIZE							128
 #define VOXEL_FILE									"Data/Shader/VoxelizationGBuffer.fx"
 #define VOXEL_LIGHT_INJECTION_FILE					"Data/Shader/VoxelInjectRadiance.fx"
@@ -469,10 +470,10 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 void D3D11VoxelizationThread::Render(DXInF* pDevice, Parameter* pParameter)
 {
 	D3D11RenderThread::Render(pDevice, pParameter);
-	GenerateVoxel();
-	ComputeLightInjection();
-	//use for light pass in Light render manager
-	UpdateVoxelLightPassCB();
+	//GenerateVoxel();
+	//ComputeLightInjection();
+	////use for light pass in Light render manager
+	//UpdateVoxelLightPassCB();
 }
 
 void D3D11VoxelizationThread::Update(DXInF* pDevice, Parameter* pParameter)
@@ -540,14 +541,21 @@ void D3D11VoxelizationThread::RenderObj()
 		{
 			continue;
 		}
+		//fixed it later
+		if (DirectXHelper::instantOfByTypeId<TerrainObj>(pModelInfo))
+		{
+			continue;
+		}
 		D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 
 		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
 		pRenderParameter->pCamera = m_RenderParameter->pCamera;
 		pRenderParameter->pModelInfo = pModelInfo;
 		pRenderParameter->pMVP = &m_mvp;
+		pRenderParameter->drawType = D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		pModel->Render(m_deviceContext, pRenderParameter);
 		delete pRenderParameter;
+		pRenderParameter = NULL;
 	}
 }
 void D3D11VoxelizationThread::SetGBufferRenderParameter(LightManager* pLightManager, ObjScene* pParameter, Camera* camera)
@@ -565,7 +573,7 @@ void D3D11VoxelizationThread::SetGBufferRenderParameter(LightManager* pLightMana
 }
 void D3D11VoxelizationThread::GenerateVoxel()
 {
-	D3D11_VIEWPORT prevVp;
+	D3D11_VIEWPORT prevVp = D3D11_VIEWPORT();
 	UINT prevViewPortNumber = 1;
 	//get prev View port
 	m_deviceContext->RSGetViewports(&prevViewPortNumber, &prevVp);

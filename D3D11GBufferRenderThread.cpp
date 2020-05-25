@@ -3,6 +3,11 @@
 #include "D3D11Class.h"
 #include "D3D11Model.h"
 #include "ObjManager.h"
+#include "FunctionHelper.h"
+#include "TerrainObj.h"
+#include "D3D11TerrainModel.h"
+#include "D3D11OceanModel.h"
+#include "OceanObj.h"
 
 #define G_BUFFER_FILE "Data/Shader/GBuffer.fx"
 #define FRUSTUM_CB_INDEX	4
@@ -237,19 +242,7 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return result;
 	}
-	D3D11ShaderLayout shaderLayout;
-	shaderLayout.layout = 
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 64, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 80,  D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-	//initial shader
-	result =m_GBufferShader.Initial(pDevice,(char*)G_BUFFER_FILE, &shaderLayout, SHADER_MODE::VS_PS_GS_MODE);
+	result = m_shaderManager.Initial(pDevice);
 	if (FAILED(result)) 
 	{
 		return result;
@@ -296,7 +289,6 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 		return;
 	}
 	D3D11RenderThread::Render(pDevice,pParameter);
-	m_GBufferShader.PreRender(m_deviceContext);
 	m_deviceContext->ClearRenderTargetView(m_ColorSpecIntensityRTV, CLEAR_RENDER);
 	m_deviceContext->ClearRenderTargetView(m_NormalRTV, CLEAR_RENDER);
 	m_deviceContext->ClearRenderTargetView(m_SpecPowerRTV, CLEAR_RENDER);
@@ -314,7 +306,6 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 	//set view port
 	m_deviceContext->RSSetViewports(1, &m_Vp);
 	RenderObj();
-	m_GBufferShader.PostRender(m_deviceContext);
 	ID3D11RenderTargetView* nullRT[3] = { NULL, NULL, NULL };
 	m_deviceContext->OMSetRenderTargets(3, nullRT, m_DepthStencilReadOnlyDSV);
 	m_deviceContext->RSSetViewports(prevViewPortNumber, &prevVp);
@@ -333,7 +324,7 @@ void D3D11GBufferRenderThread::Update(DXInF* pDevice, Parameter* pParameter)
 void D3D11GBufferRenderThread::Destroy()
 {
 	D3D11RenderThread::Destroy();
-	m_GBufferShader.Destroy();
+	m_shaderManager.Destroy();
 	SAFE_RELEASE(m_pGBufferUnpackCB);
 	SAFE_RELEASE(m_DepthStencilRT);
 	SAFE_RELEASE(m_ColorSpecIntensityRT);
@@ -356,6 +347,7 @@ void D3D11GBufferRenderThread::Destroy()
 		delete m_RenderParameter;
 		m_RenderParameter = NULL;
 	}
+	m_mvp.Destroy();
 	m_pDevice = NULL;
 }
 
@@ -382,30 +374,86 @@ void D3D11GBufferRenderThread::RenderObj()
 	CB_FRUSTUM* data = (CB_FRUSTUM*)MappedResource.pData;
 	for (int index = 0; index < 6; index++)
 	{
-		XMStoreFloat4(&data->frustumValues[index],m_culling.getPlane(index));
+		XMStoreFloat4(&data->frustumValues[index],m_culling.GetPlane(index));
 	}
 	m_deviceContext->Unmap(m_pFrustumCB, 0);
 
 	m_deviceContext->GSSetConstantBuffers(FRUSTUM_CB_INDEX, 1, &m_pFrustumCB);
 	for (unsigned int i = 0; i < m_RenderParameter->m_modelDataList->size(); i++)
 	{
+
 		ModelInF* pModelInfo = m_RenderParameter->m_modelDataList->operator[](i);
-		
 		if (m_RenderParameter->m_modelObjectList->count(pModelInfo->GetModelIndex().c_str()) ==0)
 		{
 			continue;
 		}
-		D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
-		
-		//bind MVP to geometric shader
-		m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::GEO_SHADER);
-		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
-		pRenderParameter->pCamera = m_RenderParameter->pCamera;
-		pRenderParameter->pModelInfo = pModelInfo;
-		pRenderParameter->pMVP = &m_mvp;
-		pModel->Render(m_deviceContext, pRenderParameter);
-		delete pRenderParameter;
-		m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::GEO_SHADER);
+		//get Current Shader that is used
+		D3DShaderInF* shader;
+
+		if (DirectXHelper::instantOfByTypeId<TerrainObj>(pModelInfo))
+		{
+			m_shaderManager.GetShader(SHADER_TYPE::TERRAIN_SHADER, &shader);
+			shader->PreRender(m_deviceContext);
+			//bind MVP to geometric shader
+			m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::DOMAIN_SHADER);
+			D3D11TerrainModelParameterRender* pRenderParameter = new D3D11TerrainModelParameterRender();
+			pRenderParameter->pCamera = m_RenderParameter->pCamera;
+			pRenderParameter->pModelInfo = pModelInfo;
+			pRenderParameter->pMVP = &m_mvp;
+			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
+			pModel->Render(m_deviceContext, pRenderParameter);
+			delete pRenderParameter;
+			pRenderParameter = NULL;
+			shader->PostRender(m_deviceContext);
+			m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::DOMAIN_SHADER);
+		}
+		else if (DirectXHelper::instantOfByTypeId<OceanObj>(pModelInfo))
+		{
+			m_shaderManager.GetShader(SHADER_TYPE::OCEAN_SHADER, &shader);
+			shader->PreRender(m_deviceContext);
+			//bind MVP to geometric shader
+			m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::DOMAIN_SHADER);
+			//input data to model
+			D3D11OceanModelParameterRender* pRenderParameter = new D3D11OceanModelParameterRender();
+			pRenderParameter->pCamera = m_RenderParameter->pCamera;
+			pRenderParameter->pModelInfo = pModelInfo;
+			pRenderParameter->pMVP = &m_mvp;
+			OceanObj* obj = (OceanObj*)pModelInfo;
+			pRenderParameter->time = obj->m_time;
+			for (int j = 0; j < WAVE_COUNT; j++)
+			{
+				pRenderParameter->waveInfo[j].direction = obj->m_waveInfo[j].direction;
+				pRenderParameter->waveInfo[j].steepness = obj->m_waveInfo[j].steepness;
+				pRenderParameter->waveInfo[j].waveLength = obj->m_waveInfo[j].waveLength;
+			}
+			
+			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
+			pModel->Render(m_deviceContext, pRenderParameter);
+			delete pRenderParameter;
+			pRenderParameter = NULL;
+			shader->PostRender(m_deviceContext);
+			m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::DOMAIN_SHADER);
+		}
+		else
+		{
+			m_shaderManager.GetShader(SHADER_TYPE::MODEL_SHADER, &shader);
+			shader->PreRender(m_deviceContext);
+			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
+			//bind MVP to geometric shader
+			m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::GEO_SHADER);
+			D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
+			pRenderParameter->pCamera = m_RenderParameter->pCamera;
+			pRenderParameter->pModelInfo = pModelInfo;
+			pRenderParameter->pMVP = &m_mvp;
+			pRenderParameter->drawType = D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+			pModel->Render(m_deviceContext, pRenderParameter);
+			delete pRenderParameter;
+			pRenderParameter = NULL;
+			//unbind mvp constant
+			m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::GEO_SHADER);
+			shader->PostRender(m_deviceContext);
+		}
+
 	}
 	ID3D11Buffer * nullCB = NULL;
 	m_deviceContext->GSSetConstantBuffers(FRUSTUM_CB_INDEX, 1, &nullCB);

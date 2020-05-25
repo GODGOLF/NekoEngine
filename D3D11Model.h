@@ -18,9 +18,12 @@ struct D3D11ModelParameterInitial : ModelExtraParameter
 };
 struct D3D11ModelParameterRender : ModelExtraParameter
 {
+	D3D11ModelParameterRender() : pCamera(NULL), pMVP(NULL), pModelInfo(NULL)
+	{}
 	Camera* pCamera;
 	D3D11MVP* pMVP;
 	ModelInF* pModelInfo;
+	D3D_PRIMITIVE_TOPOLOGY drawType;
 };
 
 class D3D11Model :public D3DModelInF
@@ -37,28 +40,20 @@ private:
 	{
 		Texture::TextureRSV diffuseTex;
 		Texture::TextureRSV normalTex;
+		Texture::TextureRSV displacementTex;
 	};
 	struct VertexBuffer
 	{
 		ID3D11Buffer* g_pVertexBuffer = nullptr;
 		ID3D11Buffer* g_pIndexBuffer = nullptr;
 	};
-	struct MaterialConstant
-	{
-		MaterialConstant();
-		XMFLOAT4 diffuseColor;
-		XMFLOAT4 specularColor;
-		XMFLOAT3 haveTexture;
-		float specExp;
-		float  metallic;
-		float roughness;
-		float pad[2];
-	};
-
+	
 	ID3D11Buffer*  m_pConstantLighting;
 
 	
 	ID3D11Buffer*  m_pConstantSkeleton;
+
+	ID3D11Buffer*  m_pConstantDisplacement;
 	
 	std::vector<VertexBuffer> m_modelBuffer;
 	std::map<std::string, MaterialTexture> m_textureSRV;
@@ -70,7 +65,7 @@ private:
 
 private:
 	void UpdateAnimation(ID3D11DeviceContext* pDeviceContext, ModelInF* pModelInfo);
-
+	void UpdateTesseration(ID3D11DeviceContext* pDeviceContext,D3D11ModelParameterRender* pParameter, float haveTexture);
 };
 
 

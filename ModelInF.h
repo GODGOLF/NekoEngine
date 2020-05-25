@@ -14,38 +14,37 @@ public:
 	DirectX::XMFLOAT3 scale;
 	std::string name;
 	bool haveAnimation;
-	struct AnimationStackInfo
-	{
-		std::string name;
-		long long start;
-		long long end;
-	};
-	void SetAnimationStackIndex(int index);
-	int GetAnimationStackIndex();
-	void SetAnimationTime(long long time);
-	long long GetAnimationTime();
 	float roughness;
 	float metallic;
+	//displacement mapping
+	float maxTessDistance;
+	float minTessDistance;
+	float maxTessFactor;
+	float minTessFactor;
+	float heightScale;
+	
+	
 public:
 	ModelInF() : 
 		position(0, 0, 0), 
 		rotation(0, 0, 0,1), 
 		scale(1, 1, 1), 
 		name(""), 
-		m_curAnimationStrackIndex(-1), 
-		m_curAnimationTime(-1), 
 		metallic(0.1f),
-		roughness(0.5f) {};
+		roughness(0.5f),
+		maxTessDistance(100.f),
+		minTessDistance(0.f),
+		maxTessFactor(1.f),
+		minTessFactor(1.f),
+		heightScale(0.f){};
 	virtual ~ModelInF() {};
-	AnimationStackInfo GetAnimationStack(unsigned int i) const;
-	unsigned int GetAnimationCount() const;
+	
 	std::string GetModelIndex() const;
+
+	
 private:
-	std::vector<AnimationStackInfo> m_animationStacks;
 	std::string m_modelIndex;
 	friend ObjManager;
-	int m_curAnimationStrackIndex;
-	long long m_curAnimationTime;
 };
 
 

@@ -6,6 +6,7 @@
 #include <string>
 #define DIFFUSE_TEXTURE_KEY "DiffuseColor"
 #define NORMAL_TEXTURE_KEY "NormalMap"
+#define DISPLACEMENT_TEXTURE_KEY "DisplacementColor"
 
 
 FBXLoader::FBXLoader() :m_scene(NULL)
@@ -722,6 +723,38 @@ void FBXLoader::LoadMaterial(FbxSurfaceMaterial* material, BufferData* modelUser
 		lKFbxDouble = ((FbxSurfacePhong *)material)->Shininess;
 		modelUser->material[id].mat.shiness = (float)lKFbxDouble;
 
+	}
+
+	//load displacement mapping
+	lProperty = material->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
+	if (lProperty.IsValid())
+	{
+		int lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
+		for (int j = 0; j < lTextureCount; ++j)
+		{
+			//Here we have to check if it's layeredtextures, or just textures:
+			FbxLayeredTexture *lLayeredTexture = lProperty.GetSrcObject<FbxLayeredTexture>(j);
+			if (lLayeredTexture)
+			{
+				//FbxLayeredTexture::EBlendMode lBlendMode;
+				// now it not support mutiple layer
+			}
+			else {
+				//no layered texture simply get on the property
+				FbxTexture* lTexture = lProperty.GetSrcObject<FbxTexture>(j);
+
+				if (lTexture)
+				{
+					FbxFileTexture *lFileTexture = FbxCast<FbxFileTexture>(lTexture);
+					if (std::strcmp(lProperty.GetName(), DISPLACEMENT_TEXTURE_KEY) == 0) {
+						const char* imageFile = lFileTexture->GetFileName();
+						strcpy_s(modelUser->material.back().mat.displacementTexture, sizeof(modelUser->material.back().mat.displacementTexture), imageFile);
+
+					}
+
+				}
+			}
+		}
 	}
 }
 void FBXLoader::LoadSkeletonHierarchyRecursive(FbxNode* inNode, int inDepth, int myIndex, int inParentIndex)

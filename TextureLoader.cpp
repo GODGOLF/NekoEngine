@@ -8,7 +8,7 @@
 
 using namespace DirectXHelper;
 
-HRESULT Texture::LoadTexture(DXInF* device, const char* file, TextureRSV &res) {
+HRESULT Texture::LoadTexture(DXInF* device, const char* file, TextureRSV &output) {
 	HRESULT hr = S_OK;
 	TexMetadata metadata;
 	DirectX::ScratchImage image;
@@ -21,11 +21,11 @@ HRESULT Texture::LoadTexture(DXInF* device, const char* file, TextureRSV &res) {
 		return hr;
 	}
 	D3D11Class* directX = (D3D11Class*)device;
-	hr = CreateShaderResourceView(directX->GetDevice(), image.GetImages(), image.GetImageCount(), metadata, &res.texture);
+	hr = CreateShaderResourceView(directX->GetDevice(), image.GetImages(), image.GetImageCount(), metadata, &output.texture);
 	image.Release();
 	if (FAILED(hr)) {
 		std::string sFile(file);
-		sFile += " Failed to download picture\n";
+		sFile += " Failed to create shader Resource\n";
 		OutputDebugString(sFile.c_str());
 		return hr;
 	}

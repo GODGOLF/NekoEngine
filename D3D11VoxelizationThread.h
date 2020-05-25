@@ -14,10 +14,10 @@
 #include "FrustumCullling.h"
 struct VoxelRenderParameter : Parameter
 {
-	std::vector<ModelInF*>* m_modelDataList;
-	std::map<std::string, D3DModelInF*>* m_modelObjectList;
-	Camera* pCamera;
-	LightManager* pLightManager;
+	std::vector<ModelInF*>* m_modelDataList = NULL;
+	std::map<std::string, D3DModelInF*>* m_modelObjectList = NULL;
+	Camera* pCamera = NULL;
+	LightManager* pLightManager = NULL;
 };
 class D3D11VoxelizationThread : public D3D11RenderThread, public VoxelRenderVariable
 {

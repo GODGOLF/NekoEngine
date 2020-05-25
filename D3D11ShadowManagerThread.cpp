@@ -4,6 +4,8 @@
 #include "FunctionHelper.h"
 #include "D3D11Class.h"
 #include "D3D11Model.h"
+#include "FunctionHelper.h"
+#include "TerrainObj.h"
 #define DIR_SHADOW_CB 3
 
 #define DIRECTIOAL_SHADOW_FILE "Data/Shader/DirectionalShadowGen.fx"
@@ -218,7 +220,7 @@ void D3D11ShadowManagerThread::Destroy()
 		}
 		i = m_dataArray.erase(i);
 	}
-	
+	m_DirectionalLightShadowShader.Destroy();
 	SAFE_RELEASE(m_RSCullBack);
 	SAFE_RELEASE(m_DepthStencilState);
 	SAFE_RELEASE(m_directionLightRS);
@@ -344,14 +346,21 @@ void D3D11ShadowManagerThread::RenderObj()
 		{
 			continue;
 		}
+		//fixed it later
+		if (!DirectXHelper::instantOfByTypeId<ModelInF>(pModelInfo))
+		{
+			continue;
+		}
 		D3DModelInF* pModel = m_shadowParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 
 		D3D11ModelParameterRender* pRenderParameter = new D3D11ModelParameterRender();
 		pRenderParameter->pCamera = m_shadowParameter->pCamera;
 		pRenderParameter->pModelInfo = pModelInfo;
 		pRenderParameter->pMVP = &m_mvp;
+		pRenderParameter->drawType = D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		pModel->Render(m_deviceContext, pRenderParameter);
 		delete pRenderParameter;
+		pRenderParameter = NULL;
 	}
 }
 void D3D11ShadowManagerThread::RenderDirectionalDepthTexture(DirectionalLightSahdow* pLightSource)

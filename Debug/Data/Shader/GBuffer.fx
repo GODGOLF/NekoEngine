@@ -1,6 +1,7 @@
 #include "common.fx"
 Texture2D txDiffuse : register(t0);
 Texture2D ObjNormMap: register(t1);
+Texture2D ObjDisplacementMap : register(t2);
 SamplerState samLinear : register(s0);
 
 #define FLT_MAX 3.402823e+38
@@ -24,14 +25,43 @@ cbuffer FrustumCulling : register(b4)
 {
 	float4 frustumPlanes[6];
 }
+cbuffer cbPerFrame : register(b5)
+{
+	float gMaxTessDistance		: packoffset(c0.x);
+	float gMinTessDistance		: packoffset(c0.y);
+	float gMaxTessFactor		: packoffset(c0.z);
+	float gMinTessFactor		: packoffset(c0.w);
+	float3 gCameraPosition		: packoffset(c1);
+	float gHeightScale			: packoffset(c1.w);
+	float haveDisplacementMap	: packoffset(c2.x);
+}
+struct HSInput
+{
+	float4 position 	: SV_POSITION;
+	float3 normal 		: NORMAL;
+	float2 tex 			: TEXCOORD0;
+	float3 tangent 		: TANGENT;
+	float3 binormal		: BINORMAL;
+	float  tessFactor  		: TESS;
+};
+struct DSInput
+{
+	float4 position 	: SV_POSITION;
+	float3 normal 		: NORMAL;
+	float2 tex 			: TEXCOORD0;
+	float3 tangent 		: TANGENT;
+	float3 binormal		: BINORMAL;
+};
 struct GSInput
 {
-	float4 position : SV_POSITION;
-	float3 normal : NORMAL;
-	float2 tex : TEXCOORD0;
-	float3 tangent : TANGENT;
-	float3 binormal : BINORMAL;
+	float4 position 	: SV_POSITION;
+	float3 normal 		: NORMAL;
+	float2 tex 			: TEXCOORD0;
+	float3 tangent 		: TANGENT;
+	float3 binormal		: BINORMAL;
 };
+
+
 struct PSInput
 {
 	float4 position : SV_POSITION;
@@ -40,7 +70,7 @@ struct PSInput
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
 };
-GSInput VSMain(float3 position : POSITION,
+HSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
 	float2 tex : TEXCOORD,
 	float4 tangent : TANGENT,
@@ -63,7 +93,7 @@ GSInput VSMain(float3 position : POSITION,
 		vWorldPos = mul(vInputPos, boneTransform);
 		vNormal = mul(normal, (float3x3)boneTransform);
 	}
-	GSInput result;
+	HSInput result;
 	result.position = mul(vWorldPos, worldMatrix);
 	result.normal = mul(vNormal, (float3x3)worldInverse);
 	result.normal = normalize(result.normal);
@@ -71,9 +101,81 @@ GSInput VSMain(float3 position : POSITION,
 	//tangent 
 	result.tangent = mul(tangent.xyz, (float3x3)worldInverse);
 	result.binormal = mul(binormal.xyz,(float3x3)worldInverse);
-
+	
+	float d = distance(result.position.xyz, gCameraPosition);
+	
+	//0 if d>= gMinTessDistance and 1 if d<=gMaxTessDistance
+	float tess = saturate((gMinTessDistance -d) / (gMinTessDistance - gMaxTessDistance));
+	//invern
+	tess = 1.0f - tess;	
+	result.tessFactor = gMinTessFactor + tess * (gMaxTessFactor - gMinTessFactor);
 	return result;
 }
+
+struct PatchTess 
+{ 
+	float EdgeTess[3] : SV_TessFactor; 
+	float InsideTess  : SV_InsideTessFactor; 
+}; 
+PatchTess PatchHS(InputPatch<HSInput,3> patch, uint patchID : SV_PrimitiveID) 
+{
+	PatchTess pt;
+	// Average vertex tessellation factors along edges. 
+	pt.EdgeTess[0] = 0.5f*(patch[1].tessFactor + patch[2].tessFactor); 
+	pt.EdgeTess[1] = 0.5f*(patch[2].tessFactor + patch[0].tessFactor); 
+	pt.EdgeTess[2] = 0.5f*(patch[0].tessFactor + patch[1].tessFactor); 
+	
+	// Pick an edge tessellation factor for the interior tessellation. 
+	pt.InsideTess = pt.EdgeTess[0]; 
+	return pt;
+}
+
+[domain("tri")]
+[partitioning("fractional_odd")]
+[outputtopology("triangle_cw")]
+[outputcontrolpoints(3)]
+[patchconstantfunc("PatchHS")]
+DSInput HSMain(InputPatch<HSInput,3> p, uint i : SV_OutputControlPointID,  uint PatchID : SV_PrimitiveID)
+{
+	DSInput Output;
+	
+	Output.position = p[i].position;
+	Output.normal 	= p[i].normal;
+	Output.tex 		= p[i].tex;
+	Output.tangent 	= p[i].tangent;
+	Output.binormal	= p[i].binormal;
+	return Output;
+}
+[domain("tri")]
+GSInput DSMain(PatchTess input, float3 location : SV_DomainLocation, const OutputPatch<DSInput, 3> tri)
+{
+	GSInput Output;
+	Output.position = location.x *tri[0].position + 
+					  location.y *tri[1].position +
+					  location.z *tri[2].position;
+	Output.normal 	= location.x *tri[0].normal + 
+					  location.y *tri[1].normal +
+					  location.z *tri[2].normal;
+	Output.tex 		= location.x *tri[0].tex + 
+					  location.y *tri[1].tex +
+					  location.z *tri[2].tex;
+	Output.tangent 	= location.x *tri[0].tangent + 
+					  location.y *tri[1].tangent +
+					  location.z *tri[2].tangent;
+	Output.binormal	= location.x *tri[0].binormal + 
+					  location.y *tri[1].binormal +
+					  location.z *tri[2].binormal;
+					  
+	Output.normal = normalize(Output.normal);
+	
+	if(haveDisplacementMap == 1)
+	{
+		float h = ObjDisplacementMap.SampleLevel(samLinear,Output.tex,0).r;
+		Output.position.xyz += (gHeightScale * (h-1.0f))*Output.normal;
+	}
+	return Output;
+}
+
 
 bool FrustumCulling(float3 position, float3 extent)
 {
@@ -191,7 +293,8 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 		
 		newNormal = normalize(newNormal);
 	
-	}else
+	}
+	else
 	{
 		newNormal= normalize(input.normal);
 	}

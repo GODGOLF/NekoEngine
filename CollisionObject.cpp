@@ -8,7 +8,7 @@ CollisionObject::CollisionObject() :m_rigidBody(NULL)
 CollisionObject::~CollisionObject()
 {
 }
-bool CollisionObject::InitialCollision(PhysicManager* pPhysicmanager, CollisionDesc &desc)
+bool CollisionObject::InitialCollision(ModelInF* modelInf,PhysicManager* pPhysicmanager, CollisionDesc &desc)
 {
 	if (m_rigidBody)
 	{
@@ -20,9 +20,9 @@ bool CollisionObject::InitialCollision(PhysicManager* pPhysicmanager, CollisionD
 	case RigidModel::SPHERE:
 	{
 		PxVec3 pxPos;
-		pxPos.x = position.x;
-		pxPos.y = position.y;
-		pxPos.z = position.z;
+		pxPos.x = modelInf->position.x;
+		pxPos.y = modelInf->position.y;
+		pxPos.z = modelInf->position.z;
 		if (desc.sphereDesc.rigidType == RigidType::STATIC)
 		{
 			
@@ -48,9 +48,9 @@ bool CollisionObject::InitialCollision(PhysicManager* pPhysicmanager, CollisionD
 	case RigidModel::BOX:
 	{
 		PxVec3 pxPos;
-		pxPos.x = position.x;
-		pxPos.y = position.y;
-		pxPos.z = position.z;
+		pxPos.x = modelInf->position.x;
+		pxPos.y = modelInf->position.y;
+		pxPos.z = modelInf->position.z;
 		PxVec3 pxHalfVec;
 		pxHalfVec.x = desc.boxDesc.haftDimension.x;
 		pxHalfVec.y = desc.boxDesc.haftDimension.y;
@@ -75,18 +75,18 @@ bool CollisionObject::InitialCollision(PhysicManager* pPhysicmanager, CollisionD
 	else
 		return false;
 }
-void CollisionObject::Update()
+void CollisionObject::Update(ModelInF* modelInf)
 {
 	PxTransform trans = m_rigidBody->getGlobalPose();
 	PxVec3 pos = trans.p;
-	position.x = pos.x;
-	position.y = pos.y;
-	position.z = pos.z;
+	modelInf->position.x = pos.x;
+	modelInf->position.y = pos.y;
+	modelInf->position.z = pos.z;
 	PxQuat pxRotation = trans.q;
-	rotation.x = pxRotation.x;
-	rotation.y = pxRotation.y;
-	rotation.z = pxRotation.z;
-	rotation.w = pxRotation.w;
+	modelInf->rotation.x = pxRotation.x;
+	modelInf->rotation.y = pxRotation.y;
+	modelInf->rotation.z = pxRotation.z;
+	modelInf->rotation.w = pxRotation.w;
 }
 void CollisionObject::Destroy()
 {

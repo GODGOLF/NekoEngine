@@ -1,12 +1,41 @@
 #include "DXInclude.h"
 #include "D3D11Model.h"
+#include "AnimeObj.h"
 #include "TextureLoader.h"
 #define DIFFUSE_TEXTURE_INDEX 0
 #define NORMAL_TEXTURE_INDEX 1
 #define TEXTURE_SAMPLE	0
 
 #define SKELETON_MATRIX_CB_INDEX	2
-#define MATERIAL_CB_INDEX	3
+#define MATERIAL_CB_INDEX			3
+
+#define DISPLACEMENT_CB_INDEX		5
+#define DISPLACEMENT_TEX_INDEX		2
+
+
+struct MaterialConstant
+{
+	MaterialConstant();
+	XMFLOAT4 diffuseColor;
+	XMFLOAT4 specularColor;
+	XMFLOAT3 haveTexture;
+	float specExp;
+	float  metallic;
+	float roughness;
+	float pad[2];
+};
+struct DisPlacementMapCB
+{
+	float gMaxTessDistance;
+	float gMinTessDistance;
+	float gMaxTessFactor;
+	float gMinTessFactor;
+	XMFLOAT3 gCameraPos;
+	float gHeightScale;
+	float haveDisplacementMap;
+	float pad[3];
+};
+
 
 D3D11Model::D3D11Model() : m_pConstantLighting(NULL),m_pConstantSkeleton(NULL), m_pSamplerState(NULL)
 {
@@ -73,6 +102,10 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 				{
 					Texture::LoadTexture(d3dParameter->pDevice, j.mat.normalTexture, m_textureSRV[j.name].normalTex);
 				}
+				if (strlen(j.mat.displacementTexture) != 0)
+				{
+					Texture::LoadTexture(d3dParameter->pDevice, j.mat.displacementTexture, m_textureSRV[j.name].displacementTex);
+				}
 			}
 		}
 	}
@@ -96,6 +129,15 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantSkeleton);
+	if (FAILED(hr))
+		return hr;
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(DisPlacementMapCB);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantDisplacement);
 	if (FAILED(hr))
 		return hr;
 
@@ -126,6 +168,8 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 	//if have animation,bind data into it;
 	UpdateAnimation(pDeviceContext, d3dParameter->pModelInfo);
 
+	
+
 	UINT stride = sizeof(VertexAnime);
 	UINT offset = 0;
 	for (unsigned int i = 0; i < list->size(); i++) {
@@ -134,7 +178,7 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 		pDeviceContext->IASetIndexBuffer(m_modelBuffer[i].g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 		// Set primitive topology
-		pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		pDeviceContext->IASetPrimitiveTopology(d3dParameter->drawType);
 
 		//bind MVP buffer
 		d3dParameter->pMVP->BindConstantMVP(pDeviceContext,d3dParameter->pCamera,
@@ -150,8 +194,17 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 			material.specExp = j.mat.shiness;
 			material.roughness = d3dParameter->pModelInfo->roughness;
 			material.metallic = d3dParameter->pModelInfo->metallic;
+			//bind Tesseration 
+			UpdateTesseration(pDeviceContext, d3dParameter, (m_textureSRV[j.name].displacementTex.texture != NULL)? 1.f : 0.f);
+			pDeviceContext->VSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &m_pConstantDisplacement);
+			pDeviceContext->DSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &m_pConstantDisplacement);
+			//bind Displacement texture
+			if (m_textureSRV[j.name].displacementTex.texture != NULL)
+			{
+				pDeviceContext->DSSetShaderResources(DISPLACEMENT_TEX_INDEX, 1, &m_textureSRV[j.name].displacementTex.texture);
+			}
+
 			XMFLOAT3 haveTex = XMFLOAT3(0, 0, 0);
-			 
 			if (m_textureSRV[j.name].diffuseTex.texture != NULL) {
 				pDeviceContext->PSSetShaderResources(DIFFUSE_TEXTURE_INDEX, 1, &m_textureSRV[j.name].diffuseTex.texture);
 				haveTex.x = 1;
@@ -167,19 +220,23 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 			pDeviceContext->UpdateSubresource(m_pConstantLighting, 0, nullptr, &material, 0, 0);
 			pDeviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &m_pConstantLighting);
 			pDeviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
+			pDeviceContext->DSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
 			//draw object
-
 			pDeviceContext->DrawIndexed(j.count, j.startIndex,0);
 			//unbind texture
 			ID3D11ShaderResourceView* texture = NULL;
 			pDeviceContext->PSSetShaderResources(DIFFUSE_TEXTURE_INDEX, 1, &texture);
 			pDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_INDEX, 1, &texture);
+			pDeviceContext->DSSetShaderResources(DISPLACEMENT_TEX_INDEX, 1, &texture);
 			//unbind buffer
 			ID3D11Buffer* nullBuffer = NULL;
 			pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &nullBuffer);
+			pDeviceContext->VSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &nullBuffer);
+			pDeviceContext->DSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &nullBuffer);
 			//unbind sampler
 			ID3D11SamplerState* nullSampler = NULL;
 			pDeviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &nullSampler);
+			pDeviceContext->DSSetSamplers(TEXTURE_SAMPLE, 1, &nullSampler);
 
 		}
 
@@ -203,8 +260,9 @@ void D3D11Model::Destroy()
 	SAFE_RELEASE(m_pConstantLighting);
 	SAFE_RELEASE(m_pConstantSkeleton);
 	SAFE_RELEASE(m_pSamplerState);
+	SAFE_RELEASE(m_pConstantDisplacement);
 }
-D3D11Model::MaterialConstant::MaterialConstant() :diffuseColor(0.f,0.f,0.f,0.f),
+MaterialConstant::MaterialConstant() :diffuseColor(0.f,0.f,0.f,0.f),
 specularColor(0.f,0.f,0.f,0.f),
 haveTexture(0.f,0.f,0.f),
 specExp(0),
@@ -217,8 +275,8 @@ void D3D11Model::UpdateAnimation(ID3D11DeviceContext* pDeviceContext, ModelInF* 
 {
 	if(m_model.haveAnimation)
 	{
-		int animStackIndex = pModelInfo->GetAnimationStackIndex();
-		long long animTime = pModelInfo->GetAnimationTime();
+		int animStackIndex = ((AnimeObj*)pModelInfo)->GetAnimationStackIndex();
+		long long animTime = ((AnimeObj*)pModelInfo)->GetAnimationTime();
 		//if don't selected animation stack, use first of animation stack,but animation is not run
 		if (animStackIndex == -1)
 		{
@@ -275,4 +333,18 @@ void D3D11Model::UpdateAnimation(ID3D11DeviceContext* pDeviceContext, ModelInF* 
 FBXLoader* D3D11Model::GetModelData()
 {
 	return &m_model;
+}
+void D3D11Model::UpdateTesseration(ID3D11DeviceContext* pDeviceContext,D3D11ModelParameterRender* pParameter, float haveTexture)
+{
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	pDeviceContext->Map(m_pConstantDisplacement, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+	DisPlacementMapCB* cb = (DisPlacementMapCB*)MappedResource.pData;
+	cb->gHeightScale = pParameter->pModelInfo->heightScale;
+	cb->gMaxTessDistance = pParameter->pModelInfo->maxTessDistance;
+	cb->gMinTessDistance = pParameter->pModelInfo->minTessDistance;
+	cb->gMinTessFactor = pParameter->pModelInfo->minTessFactor;
+	cb->gMaxTessFactor = pParameter->pModelInfo->maxTessFactor;
+	cb->haveDisplacementMap = haveTexture;
+	XMStoreFloat3(&cb->gCameraPos, pParameter->pCamera->GetPosition());
+	pDeviceContext->Unmap(m_pConstantDisplacement, 0);
 }

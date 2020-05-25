@@ -128,18 +128,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimeObj.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CascadedMatrixSet.h" />
     <ClInclude Include="CollisionObject.h" />
     <ClInclude Include="D3D11AmbientLightRender.h" />
     <ClInclude Include="D3D11Class.h" />
     <ClInclude Include="D3D11GBufferRenderThread.h" />
+    <ClInclude Include="D3D11GBufferShaderManager.h" />
     <ClInclude Include="D3D11ImGuiRender.h" />
     <ClInclude Include="D3D11Model.h" />
     <ClInclude Include="D3D11PointLightRender.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11ShadowManagerThread.h" />
     <ClInclude Include="D3D11SpotLightRender.h" />
+    <ClInclude Include="D3D11PlaneModel.h" />
+    <ClInclude Include="D3D11TerrainModel.h" />
     <ClInclude Include="D3D11TextureRecord.h" />
     <ClInclude Include="D3D11VoxelizationThread.h" />
     <ClInclude Include="D3DModelInF.h" />
@@ -170,18 +174,25 @@
     <ClInclude Include="ModelDataStructure.h" />
     <ClInclude Include="D3D11MVP.h" />
     <ClInclude Include="ModelInF.h" />
+    <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="MVPInF.h" />
     <ClInclude Include="ObjManager.h" />
     <ClInclude Include="NekoEngine.h" />
     <ClInclude Include="ObjSceneInF.h" />
+    <ClInclude Include="D3D11OceanModel.h" />
+    <ClInclude Include="OceanObj.h" />
     <ClInclude Include="OrthogonalCamera.h" />
     <ClInclude Include="PerspectiveCamera.h" />
     <ClInclude Include="PhysicCallbackManager.h" />
     <ClInclude Include="PhysicManager.h" />
     <ClInclude Include="PhysicUserCallback.h" />
+    <ClInclude Include="PlaneObj.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RenderInF.h" />
     <ClInclude Include="D3D11RenderThread.h" />
     <ClInclude Include="ScreenInF.h" />
+    <ClInclude Include="ShaderManagerInF.h" />
+    <ClInclude Include="TerrainObj.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureRecordInF.h" />
     <ClInclude Include="ThreadHandle.h" />
@@ -191,21 +202,26 @@
     <ClInclude Include="D3D11WindowRender.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimeObj.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CascadedMatrixSet.cpp" />
     <ClCompile Include="CollisionObject.cpp" />
     <ClCompile Include="D3D11AmbientLightRender.cpp" />
     <ClCompile Include="D3D11Class.cpp" />
     <ClCompile Include="D3D11GBufferRenderThread.cpp" />
+    <ClCompile Include="D3D11GBufferShaderManager.cpp" />
     <ClCompile Include="D3D11ImGUIRender.cpp" />
     <ClCompile Include="D3D11Model.cpp" />
     <ClCompile Include="D3D11MVP.cpp" />
+    <ClCompile Include="D3D11OceanModel.cpp" />
     <ClCompile Include="D3D11PointLightRender.cpp" />
     <ClCompile Include="D3D11RenderThread.cpp" />
     <ClCompile Include="D3D11Shader.cpp" />
     <ClCompile Include="D3D11DirectionalLightRender.cpp" />
     <ClCompile Include="D3D11ShadowManagerThread.cpp" />
     <ClCompile Include="D3D11SpotLightRender.cpp" />
+    <ClCompile Include="D3D11PlaneModel.cpp" />
+    <ClCompile Include="D3D11TerrainModel.cpp" />
     <ClCompile Include="D3D11TextureRecord.cpp" />
     <ClCompile Include="D3D11VoxelizationThread.cpp" />
     <ClCompile Include="DXInF.cpp" />
@@ -223,6 +239,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MenuBarEditor.cpp" />
     <ClCompile Include="ModelInF.cpp" />
+    <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="NekoEngine.cpp" />
     <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="OrthogonalCamera.cpp" />
@@ -230,6 +247,7 @@
     <ClCompile Include="PhysicCallbackManager.cpp" />
     <ClCompile Include="PhysicManager.cpp" />
     <ClCompile Include="PhysicUserCallback.cpp" />
+    <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="ThreadHandle.cpp" />
     <ClCompile Include="WindowApplication.cpp" />

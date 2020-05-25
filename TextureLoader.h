@@ -4,7 +4,7 @@
 #include "DXInF.h"
 namespace Texture {
 	struct TextureRSV {
-		ID3D11ShaderResourceView* texture;
+		ID3D11ShaderResourceView* texture = NULL;
 		TextureRSV() : texture(NULL) {};
 	};
 	struct TextureData {
@@ -18,8 +18,8 @@ namespace Texture {
 		int height;
 		DXGI_FORMAT format;
 	};
-	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &res);
-	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &res, TextureInfo* output);
+	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &output);
+	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &output, TextureInfo* outputInfo);
 	HRESULT LoadTexture(const char* file, TextureData* output);
 	HRESULT GenTextureCubeMap(DXInF* device, std::vector<const char*> file, TextureRSV &res, bool mipLevel = false);
 };

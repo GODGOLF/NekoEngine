@@ -9,7 +9,7 @@
 #include "MenuBarEditor.h"
 #include "KMInputManager.h"
 #include "PhysicManager.h"
-#include "CollisionObject.h"
+#include "ModelProperty.h"
 
 class MainEditor : public ScreenInF
 {
@@ -37,9 +37,11 @@ private:
 	SpotLightObj m_spotLight;
 
 	Camera* m_mainCamera;
-	ModelInF m_model;
-	CollisionObject m_model2;
-	CollisionObject m_model3;
+	ModelProperty m_model;
+	ModelProperty m_model2;
+	ModelProperty m_model3;
+	ModelProperty m_model4; 
+	ModelProperty m_model5;
 
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;

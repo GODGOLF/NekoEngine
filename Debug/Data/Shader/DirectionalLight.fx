@@ -175,20 +175,20 @@ float4 DirectionalLightCommand(VS_OUTPUT In)
 	float3 finalColor = 0.f;
 	
 	//global illumination
-	InDirectLightParameter input;
-	input.voxelScale = voxelScale;
-	input.voxelDimension = volumeDimension;
-	input.maxTracingDistanceGlobal = maxTracingDistanceGlobal;
-	input.position = position;
-	input.normal = mat.normal;
-	input.diffuseColor = mat.diffuseColor.xyz;
-	input.samplingFactor = samplingFactor;
-	input.boundStength = boundStength;
-	input.worldMin = worldMinPoint;
-	input.worldMax = worldMaxPoint;
-	input.clampSampler = ClampSampler;
-	input.voxelTexture = VoxelTexture;
-	finalColor = CalInDirectLight(input).xyz;
+	//InDirectLightParameter input;
+	//input.voxelScale = voxelScale;
+	//input.voxelDimension = volumeDimension;
+	//input.maxTracingDistanceGlobal = maxTracingDistanceGlobal;
+	//input.position = position;
+	//input.normal = mat.normal;
+	//input.diffuseColor = mat.diffuseColor.xyz;
+	//input.samplingFactor = samplingFactor;
+	//input.boundStength = boundStength;
+	//input.worldMin = worldMinPoint;
+	//input.worldMax = worldMaxPoint;
+	//input.clampSampler = ClampSampler;
+	//input.voxelTexture = VoxelTexture;
+	//finalColor = CalInDirectLight(input).xyz;
 	
 	
 	// Calculate the directional light

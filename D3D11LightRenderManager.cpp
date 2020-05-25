@@ -267,7 +267,14 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			directionalRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
 			directionalRenderParameter.normalSRV = pRenderParameter->normalSRV;
 			directionalRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
-			directionalRenderParameter.shadow = (DirectionalLightSahdow*)pRenderParameter->shadowManager->GetShadowData((int)pRenderParameter->pLights->operator[](i));
+			if (pRenderParameter->shadowManager != NULL)
+			{
+				directionalRenderParameter.shadow = (DirectionalLightSahdow*)pRenderParameter->shadowManager->GetShadowData((int)pRenderParameter->pLights->operator[](i));
+			}
+			else
+			{
+				directionalRenderParameter.shadow = NULL;
+			}
 			m_pDirectionLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &directionalRenderParameter);
 			ID3D11Buffer* nullBuffer = NULL;
 			pD3D11DeviceContext->PSSetConstantBuffers(VOXEL_LIGHT_RENDER_CB_INDEX, 1, &nullBuffer);

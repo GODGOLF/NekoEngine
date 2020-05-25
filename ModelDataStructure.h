@@ -12,6 +12,7 @@ struct Material
 	DirectX::XMFLOAT3 texIndentify;
 	char diffuseTexture[256];
 	char normalTexture[256];
+	char displacementTexture[256];
 	float shiness;
 };
 struct MaterialInfo {

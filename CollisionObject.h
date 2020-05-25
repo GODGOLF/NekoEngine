@@ -47,13 +47,13 @@ struct CollisionDesc
 
 };
 
-class CollisionObject : public ModelInF
+class CollisionObject
 {
 public:
 	CollisionObject();
 	virtual ~CollisionObject();
-	virtual bool InitialCollision(PhysicManager* pPhysicmanager, CollisionDesc &desc);
-	virtual void Update();
+	virtual bool InitialCollision(ModelInF* modelInf, PhysicManager* pPhysicmanager, CollisionDesc &desc);
+	virtual void Update(ModelInF* modelInf);
 	virtual void Destroy();
 private:
 	physx::PxRigidActor* m_rigidBody;

@@ -198,6 +198,30 @@ HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, S
 
 	}
 	break;
+	case SHADER_MODE::VS_PS_HS_DS_GS_MODE:
+	{
+		hr = LoadVertexShader(wFile.c_str(), pD3DDevice, pLayout->layout, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+		hr = LoadPixelShader(wFile.c_str(), pD3DDevice, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+		hr = LoadHullAndDomainShader(wFile.c_str(), pD3DDevice, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+		hr = LoadGeometricShader(wFile.c_str(), pD3DDevice, m_shader);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -316,13 +340,14 @@ HRESULT D3D11Shader::LoadHullAndDomainShader(const WCHAR* file, ID3D11Device* de
 	hr = device->CreateHullShader(pHSBlob->GetBufferPointer(), pHSBlob->GetBufferSize(), nullptr, &result.g_pHullShader);
 	message = DirectXHelper::ConvertWstringToString(std::wstring(file));
 	message += " file The HS file cannot be compiled.  Please run this executable from the directory that contains the FX file.";
+	pHSBlob->Release();
 	if (FAILED(hr))
 	{
 		MessageBox(nullptr,
 			message.c_str(), "Error", MB_OK);
 		return hr;
 	}
-	pHSBlob->Release();
+	
 
 	// Compile the domain shader
 	ID3DBlob* pDSBlob = nullptr;

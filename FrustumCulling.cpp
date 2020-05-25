@@ -284,7 +284,7 @@ bool FrustumCulling::CheckRectangle(float xCenter, float yCenter, float zCenter,
 
 	return true;
 }
-XMVECTOR FrustumCulling::getPlane(int i) {
+XMVECTOR FrustumCulling::GetPlane(int i) {
 	if (i>5) {
 		return XMVECTOR();
 	}

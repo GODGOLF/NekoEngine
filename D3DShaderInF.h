@@ -13,6 +13,7 @@ struct SHADER_MODE
 		PS_MODE,
 		VS_PS_MODE,
 		VS_PS_HS_DS_MODE,
+		VS_PS_HS_DS_GS_MODE,
 		VS_PS_GS_MODE,
 		VS_GS_MODE,
 		CS_MODE
@@ -26,6 +27,7 @@ struct ShaderLayout
 class D3DShaderInF
 {
 public:
+	virtual ~D3DShaderInF() {};
 	virtual void PreRender(DXInF* pDevice) =0;
 	virtual void PostRender(DXInF* pDevice) =0;
 	virtual void PreRender(void* pDeviceContext) = 0;

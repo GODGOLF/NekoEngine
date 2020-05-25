@@ -10,6 +10,7 @@
 #include "D3D11ImGuiRender.h"
 #include "D3D11VoxelizationThread.h"
 #include "D3D11ShadowManagerThread.h"
+#include <dxgidebug.h>
 NekoEngine::NekoEngine()
 {
 	m_pDirectXDevice = 0;

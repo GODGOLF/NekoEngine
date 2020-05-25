@@ -178,7 +178,10 @@ void D3D11DirectionalLightRender::Render(void* pDeviceContext, LightObjInF* obj,
 	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
 	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
 	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
-	pd3dDeviceContext->PSSetShaderResources(SHADOW_TEXTURE, 1, &parameter->shadow->depthStencilSRV);
+	if (parameter->shadow)
+	{
+		pd3dDeviceContext->PSSetShaderResources(SHADOW_TEXTURE, 1, &parameter->shadow->depthStencilSRV);
+	}
 	//update light info into buffer
 	UpdateDirCB(pd3dDeviceContext, obj,parameter);
 	pd3dDeviceContext->PSSetConstantBuffers(DIR_CB_INDEX, 1, &m_pDirLightCB);
@@ -240,11 +243,14 @@ void D3D11DirectionalLightRender::UpdateDirCB(void* pDeviceContext, LightObjInF*
 	pDirectionalValuesCB->vDirToLight = pDirObj->Direction;
 	pDirectionalValuesCB->vDirectionalColor = pDirObj->Color;
 	pDirectionalValuesCB->intensity = pDirObj->Intensity;
-	pDirectionalValuesCB->ToCascadeOffsetX = extraParameter->shadow->cascadedMatrix.GetToCascadeOffsetX();
-	pDirectionalValuesCB->ToCascadeOffsetY = extraParameter->shadow->cascadedMatrix.GetToCascadeOffsetY();
-	pDirectionalValuesCB->ToCascadeScale = extraParameter->shadow->cascadedMatrix.GetToCascadeScale();
-	pDirectionalValuesCB->ToShadowSpace = XMMatrixTranspose(*extraParameter->shadow->cascadedMatrix.GetWorldToShadowSpace());
-	pDirectionalValuesCB->ShadowMapPixelSize = 1.f / DIRECTIONAL_LIGHT_TEXTURE_SIZE;
-	pDirectionalValuesCB->LightSize = extraParameter->shadow->cascadedMatrix.GetTotalRange()*2;
+	if (extraParameter->shadow != NULL)
+	{
+		pDirectionalValuesCB->ToCascadeOffsetX = extraParameter->shadow->cascadedMatrix.GetToCascadeOffsetX();
+		pDirectionalValuesCB->ToCascadeOffsetY = extraParameter->shadow->cascadedMatrix.GetToCascadeOffsetY();
+		pDirectionalValuesCB->ToCascadeScale = extraParameter->shadow->cascadedMatrix.GetToCascadeScale();
+		pDirectionalValuesCB->ToShadowSpace = XMMatrixTranspose(*extraParameter->shadow->cascadedMatrix.GetWorldToShadowSpace());
+		pDirectionalValuesCB->ShadowMapPixelSize = 1.f / DIRECTIONAL_LIGHT_TEXTURE_SIZE;
+		pDirectionalValuesCB->LightSize = extraParameter->shadow->cascadedMatrix.GetTotalRange() * 2;
+	}
 	pd3dDeviceContext->Unmap(m_pDirLightCB, 0);
 }

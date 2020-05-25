@@ -128,6 +128,10 @@ void D3D11MVP::SetConstantMVP(ID3D11DeviceContext* deviceContext,ID3D11Buffer* p
 	{
 		deviceContext->CSSetConstantBuffers(MVP_VS_POS, 1, &pBuffer);
 	}
+	else if (shaderInput == MVP_SHADER_INPUT::DOMAIN_SHADER)
+	{
+		deviceContext->DSSetConstantBuffers(MVP_VS_POS, 1, &pBuffer);
+	}
 }
 void D3D11MVP::BindConstantMVP(
 	void* deviceContext,
