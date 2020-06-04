@@ -6,6 +6,8 @@
 struct D3D11OceanModelParameterInitial : public D3D11PlaneModelParameterInitial
 {
 	const char* normalTexture;
+	const char* roughnessTexture;
+	const char* metalTexture;
 };
 struct D3D11WaveInfo
 {
@@ -28,8 +30,18 @@ public:
 	virtual HRESULT Initial(char* file, ModelExtraParameter* parameter = NULL)  override;
 	virtual void Render(void* pDeviceContext, ModelExtraParameter* parameter = NULL)  override;
 	virtual void Destroy() override;
+	void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
 private:
 	Texture::TextureRSV m_normalTexture;
+	Texture::TextureRSV m_roughnessTexture;
+	Texture::TextureRSV m_metalTexture;
 	ID3D11SamplerState* m_pSamplerState;
 	ID3D11Buffer*  m_pConstantOceantMap;
 };

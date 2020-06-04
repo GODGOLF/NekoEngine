@@ -96,7 +96,7 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		TRUE,
 		D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD,
-		D3D11_BLEND_ONE, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD,
+		D3D11_BLEND_ONE, D3D11_BLEND_ZERO, D3D11_BLEND_OP_ADD,
 		D3D11_COLOR_WRITE_ENABLE_ALL,
 	};
 	for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
@@ -249,7 +249,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 	ambientParameter.upperLight = XMFLOAT3(0.2f, 0.2f, 0.2f);
 	pD3D11DeviceContext->OMSetDepthStencilState(m_pDepthWriteLessStencilMaskState, 1);
 	m_pAmbientLight->Render(pD3D11DeviceContext, NULL, NULL, &ambientParameter);
-
+	//do other light source
 	for (unsigned int i = 0; i < pRenderParameter->pLights->size(); i++)
 	{
 		if (DirectXHelper::instanceof<DirectionLightObj>(pRenderParameter->pLights->operator[](i)))

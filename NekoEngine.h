@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "LightManagementInF.h"
 #include "ImGuiIRenderInF.h"
+#include "TextureCombineInF.h"
 class DXInF;
 
 class ImGuiRenderInF;
@@ -33,10 +34,13 @@ private:
 	RenderInF* m_pWindowRender;
 	
 	RenderInF* m_pLightRender;
+	RenderInF* m_pLightAlphaRender;
 	LightManagementInF* m_lightObj;
 	bool isPreRender;
 
 	ImGuiRenderInF* m_imguiRender;
+
+	TextureCombineInF* m_textureCombine;
 private:
 	void PreRender(Camera* pCamera);
 	void MainRender(Camera* pCamera);

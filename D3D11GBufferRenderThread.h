@@ -56,7 +56,7 @@ public:
 private:
 	virtual void ThreadExcecute() override;
 
-	void RenderObj();
+	virtual void RenderObj();
 
 	ID3D11Buffer * m_pGBufferUnpackCB;
 	ID3D11Buffer * m_pFrustumCB;
@@ -94,6 +94,8 @@ private:
 	FrustumCulling m_culling;
 
 	D3D11GBufferShaderManager m_shaderManager;
+protected:
+	bool m_isTranparent;
 };
 
 

@@ -144,7 +144,7 @@ float4 pointLightCommand(DS_OUTPUT In)
 	float DistToLightNorm = 1.0 - saturate(DistToLight * PointLightRangeRcp);
 	float Attn = DistToLightNorm * DistToLightNorm;
 	
-	return float4(finalColor* Attn, 1.0f);
+	return float4(finalColor* Attn, mat.diffuseColor.w);
 }
 
 float4 PSMain(DS_OUTPUT In) : SV_TARGET

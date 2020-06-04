@@ -4,12 +4,14 @@
 #include "D3D11RenderThread.h"
 #include "ObjManager.h"
 #include "D3D11GBufferRenderThread.h"
+#include "D3D11AlphaGBufferRenderThread.h"
 #include "D3D11WindowRender.h"
 #include "D3D11LightRenderManager.h"
 #include "LightManager.h"
 #include "D3D11ImGuiRender.h"
 #include "D3D11VoxelizationThread.h"
 #include "D3D11ShadowManagerThread.h"
+#include "D3D11TextureCombine.h"
 #include <dxgidebug.h>
 NekoEngine::NekoEngine()
 {
@@ -17,6 +19,9 @@ NekoEngine::NekoEngine()
 	isPreRender = true;
 	m_pWindowRender = NULL;
 	m_imguiRender = NULL;
+	m_pLightAlphaRender = NULL;
+	m_pLightRender = NULL;
+	m_textureCombine = NULL;
 	
 }
 HRESULT NekoEngine::OnInitial(HWND *hwnd, 
@@ -55,13 +60,15 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	m_renderThread.push_back(new D3D11VoxelizationThread());
 	m_renderThread.back()->Initial(m_pDirectXDevice);
 
-
 	//light
 	m_pLightRender = new D3D11LightRenderManager();
 	LightInitialParameter lightParameter;
 	lightParameter.width = width;
 	lightParameter.height = height;
 	m_pLightRender->Initial(m_pDirectXDevice, &lightParameter);
+
+	m_pLightAlphaRender = new D3D11LightRenderManager();
+	m_pLightAlphaRender->Initial(m_pDirectXDevice, &lightParameter);
 
 	//create light manager that store light's info 
 	*pLightManager = new LightManager();
@@ -77,6 +84,15 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	shadowParameter.width = width;
 	shadowParameter.height = height;
 	m_renderThread.back()->Initial(m_pDirectXDevice, &shadowParameter);
+
+	//alpha Gbuffer
+	m_renderThread.push_back(new D3D11AlphaGBufferRenderThread());
+	m_renderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
+
+	//texture combination
+	m_textureCombine = new D3D11TextureCombine();
+	m_textureCombine->Initial(m_pDirectXDevice, width, height);
+
 
 	return S_OK;
 }
@@ -99,7 +115,15 @@ void NekoEngine::OnDestroy()
 	{
 		delete m_pLightRender;
 	}
+	if (m_pLightAlphaRender)
+	{
+		delete m_pLightAlphaRender;
+	}
 	m_imguiRender = NULL;
+	if (m_textureCombine)
+	{
+		delete m_textureCombine;
+	}
 	
 }
 void NekoEngine::OnRender(Camera* pCamera)
@@ -147,7 +171,7 @@ void NekoEngine::OnRender(Camera* pCamera)
 	device->BindMainRenderTarget(); 
 	//hard code
 	WindowRenderParameter rParamter;
-	rParamter.texture = ((D3D11LightRenderManager*)m_pLightRender)->GetLightSRV();
+	rParamter.texture = (ID3D11ShaderResourceView*)m_textureCombine->GetOutput();
 	m_pWindowRender->Render(m_pDirectXDevice, &rParamter);
 
 	//draw imGui
@@ -164,6 +188,7 @@ void NekoEngine::PreRender(Camera* pCamera)
 	((D3D11GBufferRenderThread*)m_renderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
 	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter((LightManager*)m_lightObj, m_pObjScene, pCamera);
 	((D3D11ShadowManagerThread*)m_renderThread[2])->SetShadowDepthRenderParameter(m_pObjScene, (LightManager*)m_lightObj, pCamera);
+	((D3D11AlphaGBufferRenderThread*)m_renderThread[3])->SetGBufferRenderParameter(m_pObjScene, pCamera);
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {
@@ -181,6 +206,28 @@ void NekoEngine::MainRender(Camera* pCamera)
 	lightParameter.voxelLightRenderCB = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightRenderCB();
 	//draw light!
 	m_pLightRender->Render(m_pDirectXDevice, &lightParameter);
+	
+	//do tranparent
+	ZeroMemory(&lightParameter, sizeof(lightParameter));
+	lightParameter.pCamera = pCamera;
+	D3D11GBufferRenderThread* alphaGBuffer = (D3D11GBufferRenderThread*)m_renderThread[3];
+	lightParameter.colorSRV = alphaGBuffer->GetColorView();
+	lightParameter.depthStencilDSV = alphaGBuffer->GetDepthView();
+	lightParameter.normalSRV = alphaGBuffer->GetNormalView();
+	lightParameter.specPowerSRV = alphaGBuffer->GetSpecPowerView();
+	lightParameter.pLights = ((LightManager*)m_lightObj)->GetLightArray();
+	lightParameter.shadowManager = (D3D11ShadowManagerThread*)m_renderThread[2];
+	lightParameter.voxelLightPassSRV = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightPassSRV();
+	lightParameter.voxelLightRenderCB = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightRenderCB();
+	//draw light!
+	m_pLightAlphaRender->Render(m_pDirectXDevice, &lightParameter);
+	
+	D3D11Class* pDevice = (D3D11Class*)m_pDirectXDevice;
+	//combine transparent texture and non transparent text
+	m_textureCombine->Render(pDevice->GetDeviceContext(),((D3D11LightRenderManager*)m_pLightRender)->GetLightSRV(),
+		((D3D11LightRenderManager*)m_pLightAlphaRender)->GetLightSRV(),
+		gBuffer->GetDepthView(), alphaGBuffer->GetDepthView());
+	
 }
 void NekoEngine::PostProcressRender()
 {

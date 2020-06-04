@@ -20,6 +20,15 @@ public:
 	virtual HRESULT Initial(char* file, ModelExtraParameter* parameter = NULL)  override;
 	virtual void Render(void* pDeviceContext, ModelExtraParameter* parameter = NULL)  override;
 	virtual void Destroy() override;
+
+	void* operator new(size_t i)
+	{
+		return _mm_malloc(i, 16);
+	}
+	void operator delete(void* p)
+	{
+		_mm_free(p);
+	}
 private:
 	Texture::TextureRSV m_diffuseTex;
 	Texture::TextureRSV m_normalTex;

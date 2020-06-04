@@ -17,7 +17,8 @@ struct CB_AMBIENT_LIGHT
 	float pad;
 	XMFLOAT3 vAmbientRange;
 	float pad2;
-	float pad3[8];
+	float tranparent;
+	float pad3[7];
 };
 
 struct Vertex {

@@ -92,9 +92,11 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	obj5Dsc.oceanDesc.arraySize = 3;
 	obj5Dsc.oceanDesc.ceilSize = 1;
 	obj5Dsc.oceanDesc.dimension = 128;
-	obj5Dsc.oceanDesc.diffuseColor = DirectX::XMFLOAT4(0, 1, 1, 1);
+	obj5Dsc.oceanDesc.diffuseColor = DirectX::XMFLOAT4(0, 1, 1, 0.5f);
 	obj5Dsc.oceanDesc.name = "ocean1";
-	obj5Dsc.oceanDesc.normalTexture = "Data/Ocean/waterNormal.jpg";
+	obj5Dsc.oceanDesc.normalTexture = "Data/Ocean/NormalMap.png";
+	obj5Dsc.oceanDesc.roughnessTexture = "Data/Ocean/roughness.jpg";
+	obj5Dsc.oceanDesc.metalTexture = "Data/Ocean/metallic.jpg";
 	m_objScene->AddObj(&m_model5.model, obj5Dsc);
 	m_model5.model->scale = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 	m_model5.model->position = DirectX::XMFLOAT3(0.0f, 6.f, 0.0f);
@@ -114,6 +116,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	ocean->m_waveInfo[2].waveLength = 3.f;
 	ocean->m_waveInfo[2].steepness = 0.25f;
 	((PlaneObj*)m_model5.model)->TextureScale = 10.f;
+	((PlaneObj*)m_model5.model)->alphaTranparent = true;
 	//create main camera
 	m_mainCamera = new EditorCamera((int)width, (int)height);
 	

@@ -114,6 +114,8 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 			parameter->diffuseColor = pDesc.oceanDesc.diffuseColor;
 			parameter->pDevice = (D3D11Class*)p_device;
 			parameter->normalTexture = pDesc.oceanDesc.normalTexture;
+			parameter->roughnessTexture = pDesc.oceanDesc.roughnessTexture;
+			parameter->metalTexture = pDesc.oceanDesc.metalTexture;
 			HRESULT hr = model->Initial(NULL, parameter);
 			delete parameter;
 			parameter = NULL;

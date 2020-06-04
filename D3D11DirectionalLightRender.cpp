@@ -14,6 +14,7 @@
 #define SHADOW_TEXTURE				4
 #define BLOCKER_SAMPLE_INDEX		2
 
+
 struct CB_DIRECTIONAL
 {
 	XMFLOAT3 vDirToLight;
@@ -25,7 +26,8 @@ struct CB_DIRECTIONAL
 	XMFLOAT4 ToCascadeScale;
 	float ShadowMapPixelSize;
 	float LightSize;
-	float pad[2];
+	float transparent;
+	float pad;
 };
 
 struct Vertex {

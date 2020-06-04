@@ -1,15 +1,18 @@
 #include "DXInclude.h"
 #include "D3D11OceanModel.h"
 
-#define WAVE_INFO_CB_INDEX	5
-#define NORMAL_TEXTURE_INDEX 0
-#define SAMPLE_INDEX 0
+#define WAVE_INFO_CB_INDEX				5
+#define NORMAL_TEXTURE_INDEX			0
+#define ROUGHNESS_TEXTURE_INDEX			1
+#define METAL_TEXTURE_INDEX				2
+#define SAMPLE_INDEX					0
 
 struct WaveInfoCB
 {
 	float time;
 	float haveNormalTexture;
-	float pad[2];
+	float haveRoughnessTexture;
+	float haveMetalTexture;
 	D3D11WaveInfo waveInfo[3];
 };
 D3D11OceanModel::D3D11OceanModel() 
@@ -46,6 +49,14 @@ HRESULT D3D11OceanModel::Initial(char* file, ModelExtraParameter* parameter)
 	if (FAILED(hr))
 		SAFE_RELEASE(m_normalTexture.texture);
 
+	hr = Texture::LoadTexture(pParamter->pDevice, pParamter->roughnessTexture, m_roughnessTexture);
+	if (FAILED(hr))
+		SAFE_RELEASE(m_roughnessTexture.texture);
+
+	hr = Texture::LoadTexture(pParamter->pDevice, pParamter->metalTexture, m_metalTexture);
+	if (FAILED(hr))
+		SAFE_RELEASE(m_metalTexture.texture);
+
 	// Create the sample state
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -77,8 +88,12 @@ void D3D11OceanModel::Render(void* pDeviceContext, ModelExtraParameter* paramete
 	}
 	cb->time = pParameter->time;
 	cb->haveNormalTexture = (m_normalTexture.texture != NULL) ? 1.f : 0.f;
+	cb->haveRoughnessTexture = (m_roughnessTexture.texture != NULL) ? 1.f : 0.f;
+	cb->haveMetalTexture = (m_metalTexture.texture != NULL) ? 1.f : 0.f;
 	d3dDevice->Unmap(m_pConstantOceantMap, 0);
 	d3dDevice->PSSetShaderResources(NORMAL_TEXTURE_INDEX, 1, &m_normalTexture.texture);
+	d3dDevice->PSSetShaderResources(ROUGHNESS_TEXTURE_INDEX, 1, &m_roughnessTexture.texture);
+	d3dDevice->PSSetShaderResources(METAL_TEXTURE_INDEX, 1, &m_metalTexture.texture);
 	d3dDevice->DSSetConstantBuffers(WAVE_INFO_CB_INDEX, 1, &m_pConstantOceantMap);
 	d3dDevice->PSSetConstantBuffers(WAVE_INFO_CB_INDEX, 1, &m_pConstantOceantMap);
 	d3dDevice->PSSetSamplers(SAMPLE_INDEX, 1, &m_pSamplerState);
@@ -88,6 +103,8 @@ void D3D11OceanModel::Render(void* pDeviceContext, ModelExtraParameter* paramete
 	d3dDevice->PSSetConstantBuffers(WAVE_INFO_CB_INDEX, 1, &nullBuffer);
 	ID3D11ShaderResourceView* nullSRV = NULL;
 	d3dDevice->PSSetShaderResources(NORMAL_TEXTURE_INDEX, 1, &nullSRV);	
+	d3dDevice->PSSetShaderResources(ROUGHNESS_TEXTURE_INDEX, 1, &nullSRV);
+	d3dDevice->PSSetShaderResources(METAL_TEXTURE_INDEX, 1, &nullSRV);
 	ID3D11SamplerState* nullSample = NULL;
 	d3dDevice->PSSetSamplers(SAMPLE_INDEX, 1, &nullSample);
 }
@@ -97,4 +114,6 @@ void D3D11OceanModel::Destroy()
 	SAFE_RELEASE(m_pConstantOceantMap);
 	SAFE_RELEASE(m_normalTexture.texture);
 	SAFE_RELEASE(m_pSamplerState);
+	SAFE_RELEASE(m_roughnessTexture.texture);
+	SAFE_RELEASE(m_metalTexture.texture);
 }

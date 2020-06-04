@@ -169,7 +169,7 @@ float4 spotLightCommand(DS_OUTPUT In)
 	
 	
 	// Return the final color
-	return float4(finalColor, 1.0f);
+	return float4(finalColor, mat.diffuseColor.w);
 }
 
 float4 PSMain(DS_OUTPUT In) : SV_TARGET

@@ -34,6 +34,8 @@ struct ObjDesc
 		int dimension;
 		DirectX::XMFLOAT4 diffuseColor;
 		const char* normalTexture;
+		const char* roughnessTexture;
+		const char* metalTexture;
 	};
 	OceanDesc oceanDesc;
 };

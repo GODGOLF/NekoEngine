@@ -279,7 +279,10 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 	if (haveTexture.x != 0) {
 		textureColor = diffuseColor*txDiffuse.Sample(samLinear, input.tex);
 	}
-
+	if(textureColor.w == 0.f)
+	{
+		discard;
+	}
 	//If material has a normal map, we can compute it now
 	if (haveTexture.y != 0)
 	{
@@ -290,7 +293,7 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 		normalMap = (2.0f*normalMap) - 1.0f;
 
 		newNormal = (normalMap.x* input.tangent) + (normalMap.y* input.binormal) + (normalMap.z * input.normal);
-		
+	
 		newNormal = normalize(newNormal);
 	
 	}

@@ -26,6 +26,7 @@ struct D3D11PlaneModelParameterRender : public ModelExtraParameter
 	Camera* pCamera;
 	D3D11MVP* pMVP;
 	ModelInF* pModelInfo;
+	bool tranparent = false;
 };
 
 class D3D11PlaneModel :public D3DModelInF

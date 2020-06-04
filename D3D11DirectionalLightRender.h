@@ -6,12 +6,12 @@
 
 struct DirectionalLightRenderParameter : LightParameter
 {
-	ID3D11ShaderResourceView* depthStencilDSV;
-	ID3D11ShaderResourceView* colorSRV;
-	ID3D11ShaderResourceView* normalSRV;
-	ID3D11ShaderResourceView* specPowerSRV;
-	ID3D11Buffer * GBufferUnpackCB;
-	DirectionalLightSahdow* shadow;
+	ID3D11ShaderResourceView* depthStencilDSV = NULL;
+	ID3D11ShaderResourceView* colorSRV = NULL;
+	ID3D11ShaderResourceView* normalSRV = NULL;
+	ID3D11ShaderResourceView* specPowerSRV = NULL;
+	ID3D11Buffer * GBufferUnpackCB = NULL;
+	DirectionalLightSahdow* shadow = NULL;
 };
 
 class D3D11DirectionalLightRender :public LightRenderInF

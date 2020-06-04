@@ -132,6 +132,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CascadedMatrixSet.h" />
     <ClInclude Include="CollisionObject.h" />
+    <ClInclude Include="D3D11AlphaGBufferRenderThread.h" />
     <ClInclude Include="D3D11AmbientLightRender.h" />
     <ClInclude Include="D3D11Class.h" />
     <ClInclude Include="D3D11GBufferRenderThread.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="D3D11SpotLightRender.h" />
     <ClInclude Include="D3D11PlaneModel.h" />
     <ClInclude Include="D3D11TerrainModel.h" />
+    <ClInclude Include="D3D11TextureCombine.h" />
     <ClInclude Include="D3D11TextureRecord.h" />
     <ClInclude Include="D3D11VoxelizationThread.h" />
     <ClInclude Include="D3DModelInF.h" />
@@ -193,6 +195,7 @@
     <ClInclude Include="ScreenInF.h" />
     <ClInclude Include="ShaderManagerInF.h" />
     <ClInclude Include="TerrainObj.h" />
+    <ClInclude Include="TextureCombineInF.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureRecordInF.h" />
     <ClInclude Include="ThreadHandle.h" />
@@ -206,6 +209,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CascadedMatrixSet.cpp" />
     <ClCompile Include="CollisionObject.cpp" />
+    <ClCompile Include="D3D11AlphaGBufferRenderThread.cpp" />
     <ClCompile Include="D3D11AmbientLightRender.cpp" />
     <ClCompile Include="D3D11Class.cpp" />
     <ClCompile Include="D3D11GBufferRenderThread.cpp" />
@@ -222,6 +226,7 @@
     <ClCompile Include="D3D11SpotLightRender.cpp" />
     <ClCompile Include="D3D11PlaneModel.cpp" />
     <ClCompile Include="D3D11TerrainModel.cpp" />
+    <ClCompile Include="D3D11TextureCombine.cpp" />
     <ClCompile Include="D3D11TextureRecord.cpp" />
     <ClCompile Include="D3D11VoxelizationThread.cpp" />
     <ClCompile Include="DXInF.cpp" />

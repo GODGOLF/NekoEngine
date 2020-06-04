@@ -65,7 +65,7 @@ float4 PSMain(VS_OUTPUT In) : SV_TARGET
 	
 	float3 finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb);
 	
-	return float4(finalColor,1.0f);
+	return float4(finalColor,mat.diffuseColor.a);
 }
 
 

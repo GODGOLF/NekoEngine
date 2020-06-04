@@ -1,7 +1,9 @@
 //https://catlikecoding.com/unity/tutorials/flow/waves/
 #include "common.fx"
-Texture2D normalTexture : register(t0);
-SamplerState samLinear : register(s0);
+Texture2D normalTexture 		: register(t0);
+Texture2D roughnessTexture 		: register(t1);
+Texture2D metalTexture			: register(t2);
+SamplerState samLinear 			: register(s0);
 
 #define FLT_MAX 3.402823e+38
 #define WAVE_COUNT	3
@@ -12,6 +14,7 @@ cbuffer MaterialBufferPS : register(b2)
 	float  metallic;
 	float roughness;
 	float textureScale;
+	float tranparent;
 }
 
 cbuffer FrustumCulling : register(b3)
@@ -37,6 +40,8 @@ cbuffer OceanInfo : register(b5)
 {
 	float time	: packoffset(c0.x);
 	float haveNormalTexture : packoffset(c0.y);
+	float haveRoughnessTexture : packoffset(c0.z);
+	float haveMetalTexture : packoffset(c0.w);
 	WaveData data[3]: packoffset(c1);
 }
 struct HSInput
@@ -157,7 +162,6 @@ PSInput DSMain(PatchTess input, float2 uv : SV_DomainLocation, const OutputPatch
 	float3 v1 = lerp(tri[0].position.xyz,tri[1].position.xyz,uv.x);
 	float3 v2 = lerp(tri[2].position.xyz, tri[3].position.xyz, uv.x);
 	float3 p = lerp(v1, v2, uv.y);
-	
 
 	float2 t1 = lerp(tri[0].tex, tri[1].tex, uv.x);
 	float2 t2 = lerp(tri[2].tex, tri[3].tex, uv.x);
@@ -196,14 +200,20 @@ struct PS_GBUFFER_OUT
 	float4 Normal : SV_TARGET1;
 	float4 SpecPow : SV_TARGET2;
 };
-PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal)
+PS_GBUFFER_OUT PackGBuffer(float4 BaseColor, float3 Normal, float metalValue, float roughnessValue)
 {
 	PS_GBUFFER_OUT Out;
-
 	// Pack all the data into the GBuffer structure
-	Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
+	if(tranparent == 1.f)
+	{
+		Out.ColorSpecInt = BaseColor;
+	}
+	else
+	{
+		Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
+	}
 	Out.Normal = float4(Normal * 0.5 + 0.5, 1.0);
-	Out.SpecPow = float4(0, metallic, roughness, 1.0);
+	Out.SpecPow = float4(0, metalValue, roughnessValue, 1.0);
 	return Out;
 }
 
@@ -215,16 +225,31 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 	float3 normal = input.normal;
 	if(haveNormalTexture == 1.f)
 	{
-		float3 normalVector = normalTexture.Sample(samLinear, input.tex*textureScale).xyz;
+		float3 normalVector = normalTexture.Sample(samLinear, (input.tex*textureScale)+ (time*0.01)).xyz;
+		float3 normal2Vector = normalTexture.Sample(samLinear, (input.tex*textureScale)- (time*0.01)).xyz;
+		//normalVector = normalVector + normal2Vector;
+		//normalVector = normalize(normalVector);
 		//Change normal map range from [0, 1] to [-1, 1]
 		normalVector = (2.0f*normalVector) - 1.0f;
-		normal = (normalVector.x * input.tangent) + (normalVector.y * input.binormal) + (normalVector.z * input.normal);
-		normal = normalize(normal);
 		
+		
+		normal = (normalVector.x * input.tangent) + (normalVector.y * input.binormal) + (normalVector.z * input.normal);
+		
+		
+		normal = normalize(normal);
+	}
+	float roughnessValue = roughness;
+	float metalValue = metallic;
+	if(haveRoughnessTexture == 1.0f)
+	{
+		roughnessValue = roughnessTexture.Sample(samLinear, (input.tex*textureScale) + (time*0.01)).r;
+	}
+	if(haveMetalTexture == 1.0f)
+	{
+		metalValue = metalTexture.Sample(samLinear, (input.tex*textureScale) +(time*0.01)).r;
 	}
 	
-	
-	output = PackGBuffer(diffuse.xyz, normal);
+	output = PackGBuffer(diffuse, normal,metalValue,roughnessValue);
 	return output;
 }
 

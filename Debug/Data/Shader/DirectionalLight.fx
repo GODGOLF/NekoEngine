@@ -212,7 +212,7 @@ float4 DirectionalLightCommand(VS_OUTPUT In)
 	float shadowAtt = clamp(CascadedShadow(position),0.2f,1.f);
 	
 	// Return the final color
-	return float4(finalColor*shadowAtt, 1.0f);
+	return float4(finalColor*shadowAtt, mat.diffuseColor.w);
 }
 float4 PSMain(VS_OUTPUT In) : SV_TARGET
 {

@@ -20,7 +20,7 @@ struct PlaneMaterialConstant
 	float  metallic;
 	float roughness;
 	float textureScale;
-	float pad;
+	float tranparent;
 };
 D3D11PlaneModel::D3D11PlaneModel()
 {
@@ -172,6 +172,7 @@ void D3D11PlaneModel::Render(void* pDeviceContext, ModelExtraParameter* paramete
 	material.diffuseColor = m_diffuseColor;
 	material.roughness = pParameter->pModelInfo->roughness;
 	material.metallic = pParameter->pModelInfo->metallic;
+	material.tranparent = (pParameter->tranparent == true) ? 1.f : 0.f;
 	if (DirectXHelper::instanceof<PlaneObj>(pParameter->pModelInfo))
 	{
 		PlaneObj* plane = (PlaneObj*)pParameter->pModelInfo;

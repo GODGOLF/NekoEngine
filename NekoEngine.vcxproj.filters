@@ -234,6 +234,15 @@
     <ClInclude Include="PlaneObj.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="D3D11AlphaGBufferRenderThread.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureCombineInF.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D11TextureCombine.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WindowApplication.cpp">
@@ -387,6 +396,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="D3D11OceanModel.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11AlphaGBufferRenderThread.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11TextureCombine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

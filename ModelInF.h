@@ -23,7 +23,6 @@ public:
 	float minTessFactor;
 	float heightScale;
 	
-	
 public:
 	ModelInF() : 
 		position(0, 0, 0), 

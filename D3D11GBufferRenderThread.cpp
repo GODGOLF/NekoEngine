@@ -8,6 +8,7 @@
 #include "D3D11TerrainModel.h"
 #include "D3D11OceanModel.h"
 #include "OceanObj.h"
+#include "AnimeObj.h"
 
 #define G_BUFFER_FILE "Data/Shader/GBuffer.fx"
 #define FRUSTUM_CB_INDEX	4
@@ -40,7 +41,8 @@ D3D11GBufferRenderThread::D3D11GBufferRenderThread() :
 	m_SpecPowerRTV(NULL),
 	m_DepthStencilDSV(NULL),
 	m_DepthStencilReadOnlyDSV(NULL),
-	m_RenderParameter(NULL)
+	m_RenderParameter(NULL),
+	m_isTranparent(false)
 {
 
 }
@@ -387,11 +389,24 @@ void D3D11GBufferRenderThread::RenderObj()
 		{
 			continue;
 		}
+		//transparent not support model from fbx file
+		if (DirectXHelper::instantOfByTypeId<ModelInF>(pModelInfo) || DirectXHelper::instantOfByTypeId<AnimeObj>(pModelInfo))
+		{
+			if (m_isTranparent)
+			{
+				continue;
+			}
+		}
+		
 		//get Current Shader that is used
 		D3DShaderInF* shader;
 
 		if (DirectXHelper::instantOfByTypeId<TerrainObj>(pModelInfo))
 		{
+			if (((PlaneObj*)pModelInfo)->alphaTranparent != m_isTranparent)
+			{
+				continue;
+			}
 			m_shaderManager.GetShader(SHADER_TYPE::TERRAIN_SHADER, &shader);
 			shader->PreRender(m_deviceContext);
 			//bind MVP to geometric shader
@@ -400,6 +415,7 @@ void D3D11GBufferRenderThread::RenderObj()
 			pRenderParameter->pCamera = m_RenderParameter->pCamera;
 			pRenderParameter->pModelInfo = pModelInfo;
 			pRenderParameter->pMVP = &m_mvp;
+			pRenderParameter->tranparent = m_isTranparent;
 			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 			pModel->Render(m_deviceContext, pRenderParameter);
 			delete pRenderParameter;
@@ -409,6 +425,10 @@ void D3D11GBufferRenderThread::RenderObj()
 		}
 		else if (DirectXHelper::instantOfByTypeId<OceanObj>(pModelInfo))
 		{
+			if (((PlaneObj*)pModelInfo)->alphaTranparent != m_isTranparent)
+			{
+				continue;
+			}
 			m_shaderManager.GetShader(SHADER_TYPE::OCEAN_SHADER, &shader);
 			shader->PreRender(m_deviceContext);
 			//bind MVP to geometric shader
@@ -418,6 +438,7 @@ void D3D11GBufferRenderThread::RenderObj()
 			pRenderParameter->pCamera = m_RenderParameter->pCamera;
 			pRenderParameter->pModelInfo = pModelInfo;
 			pRenderParameter->pMVP = &m_mvp;
+			pRenderParameter->tranparent = m_isTranparent;
 			OceanObj* obj = (OceanObj*)pModelInfo;
 			pRenderParameter->time = obj->m_time;
 			for (int j = 0; j < WAVE_COUNT; j++)
