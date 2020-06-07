@@ -409,6 +409,10 @@ void D3D11ShadowManagerThread::RenderDirectionalDepthTexture(DirectionalLightSah
 	m_DirectionalLightShadowShader.PostRender(m_deviceContext);
 	m_deviceContext->RSSetViewports(prevViewportNum, &prevViewport);
 	m_deviceContext->RSSetState(prevState);
+	if (prevState)
+	{
+		prevState->Release();
+	}
 
 	// Set the depth target to NULL
 	ID3D11DepthStencilView* nullDepth = NULL;

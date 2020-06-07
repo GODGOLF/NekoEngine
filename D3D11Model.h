@@ -48,7 +48,7 @@ private:
 		ID3D11Buffer* g_pIndexBuffer = nullptr;
 	};
 	
-	ID3D11Buffer*  m_pConstantLighting;
+	ID3D11Buffer*  m_pConstantMaterial;
 
 	
 	ID3D11Buffer*  m_pConstantSkeleton;

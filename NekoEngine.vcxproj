@@ -142,6 +142,7 @@
     <ClInclude Include="D3D11PointLightRender.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11ShadowManagerThread.h" />
+    <ClInclude Include="D3D11SkyBoxModel.h" />
     <ClInclude Include="D3D11SpotLightRender.h" />
     <ClInclude Include="D3D11PlaneModel.h" />
     <ClInclude Include="D3D11TerrainModel.h" />
@@ -194,6 +195,7 @@
     <ClInclude Include="D3D11RenderThread.h" />
     <ClInclude Include="ScreenInF.h" />
     <ClInclude Include="ShaderManagerInF.h" />
+    <ClInclude Include="SkyboxObj.h" />
     <ClInclude Include="TerrainObj.h" />
     <ClInclude Include="TextureCombineInF.h" />
     <ClInclude Include="TextureLoader.h" />
@@ -223,6 +225,7 @@
     <ClCompile Include="D3D11Shader.cpp" />
     <ClCompile Include="D3D11DirectionalLightRender.cpp" />
     <ClCompile Include="D3D11ShadowManagerThread.cpp" />
+    <ClCompile Include="D3D11SkyBoxModel.cpp" />
     <ClCompile Include="D3D11SpotLightRender.cpp" />
     <ClCompile Include="D3D11PlaneModel.cpp" />
     <ClCompile Include="D3D11TerrainModel.cpp" />

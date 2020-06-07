@@ -5,6 +5,7 @@
 #include "FunctionHelper.h"
 #define MATERIAL_CB_INDEX	2	
 #define TESSA_CB_INDEX		4
+#define SHADER_TYPE_ID		0
 struct DisPlacementMapCB
 {
 	float gMaxTessDistance;
@@ -21,6 +22,8 @@ struct PlaneMaterialConstant
 	float roughness;
 	float textureScale;
 	float tranparent;
+	float shaderTypeID;
+	float pad[3];
 };
 D3D11PlaneModel::D3D11PlaneModel()
 {
@@ -173,6 +176,7 @@ void D3D11PlaneModel::Render(void* pDeviceContext, ModelExtraParameter* paramete
 	material.roughness = pParameter->pModelInfo->roughness;
 	material.metallic = pParameter->pModelInfo->metallic;
 	material.tranparent = (pParameter->tranparent == true) ? 1.f : 0.f;
+	material.shaderTypeID = SHADER_TYPE_ID;
 	if (DirectXHelper::instanceof<PlaneObj>(pParameter->pModelInfo))
 	{
 		PlaneObj* plane = (PlaneObj*)pParameter->pModelInfo;

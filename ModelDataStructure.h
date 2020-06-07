@@ -29,10 +29,27 @@ struct Vertex
 	DirectX::XMFLOAT4 tangent;
 	DirectX::XMFLOAT4 biNormal;
 };
-struct VertexAnime : Vertex 
+struct VertexAnime : public Vertex 
 {
 	VertexAnime() : bones(-1,-1,-1,-1), width(-1,-1,-1,-1)
 	{
+
+	}
+	VertexAnime(DirectX::XMFLOAT3 pos, 
+		DirectX::XMFLOAT3 normal, 
+		DirectX::XMFLOAT2 tex, 
+		DirectX::XMFLOAT4 tangent, 
+		DirectX::XMFLOAT4 biNormal,
+		DirectX::XMUINT4 bones,
+		DirectX::XMFLOAT4 width) 
+	{
+		this->position = pos;
+		this->normal = normal;
+		this->tex = tex;
+		this->tangent = tangent;
+		this->biNormal = biNormal;
+		this->bones = bones;
+		this->width = width;
 
 	}
 	DirectX::XMUINT4 bones;

@@ -42,6 +42,7 @@ private:
 	ModelProperty m_model3;
 	ModelProperty m_model4; 
 	ModelProperty m_model5;
+	ModelProperty m_model6;
 
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;

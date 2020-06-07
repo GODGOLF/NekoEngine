@@ -26,6 +26,7 @@ struct SURFACE_DATA
 	float SpecIntensity;
 	float  metallic;
 	float roughness;
+	float shaderTypeID;
 };
 float ConvertZToLinearDepth(float depth)
 {
@@ -73,6 +74,7 @@ SURFACE_DATA UnpackGBuffer_Loc(int2 location,
 	Out.SpecPow = SpecPowTexture.Load(location3).x;
 	Out.metallic = SpecPowTexture.Load(location3).y;
 	Out.roughness = SpecPowTexture.Load(location3).z;
+	Out.shaderTypeID = SpecPowTexture.Load(location3).w;
 	return Out;
 }
 struct Material

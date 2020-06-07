@@ -164,10 +164,15 @@ float4 DirectionalLightCommand(VS_OUTPUT In)
 		NormalTexture,
 		SpecPowTexture,
 		PointSampler);
-
+	if(gbd.shaderTypeID !=0)
+	{
+		discard;
+	}
 	//// Convert the data into the material structure
 	Material mat;
 	MaterialFromGBuffer(gbd, mat);
+	
+	
 
 	// Reconstruct the world position
 	float3 position = CalcWorldPos(In.cpPos, gbd.LinearDepth);

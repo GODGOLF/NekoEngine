@@ -58,12 +58,20 @@ float4 PSMain(VS_OUTPUT In) : SV_TARGET
 		NormalTexture,
 		SpecPowTexture,
 		PointSampler);
-
+	
 	//// Convert the data into the material structure
 	Material mat;
 	MaterialFromGBuffer(gbd, mat);
+	float3 finalColor = 0;
 	
-	float3 finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb);
+	if(gbd.shaderTypeID !=0)
+	{
+		finalColor = mat.diffuseColor.rgb;
+	}
+	else
+	{
+		finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb);
+	}	
 	
 	return float4(finalColor,mat.diffuseColor.a);
 }

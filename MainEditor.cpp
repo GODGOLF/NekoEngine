@@ -117,6 +117,20 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	ocean->m_waveInfo[2].steepness = 0.25f;
 	((PlaneObj*)m_model5.model)->TextureScale = 10.f;
 	((PlaneObj*)m_model5.model)->alphaTranparent = true;
+
+
+	ObjDesc obj6Desc;
+	obj6Desc.type = ObjDesc::SKY_BOX_OBJECT;
+	obj6Desc.skyboxDesc.diffuseColor = DirectX::XMFLOAT4(1, 1, 1, 1);
+	obj6Desc.skyboxDesc.size = 500;
+	obj6Desc.skyboxDesc.name = "skyBox";
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
+	m_objScene->AddObj(&m_model6.model, obj6Desc);
 	//create main camera
 	m_mainCamera = new EditorCamera((int)width, (int)height);
 	
@@ -141,6 +155,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_spotLight.OuterAngle = 40.f;
 	m_spotLight.Direction = DirectX::XMFLOAT3(0, -1, 0);
 	m_light->AddLight(&m_spotLight);
+	
 
 	//add Gui
 	m_guiEditorManager->AddWindow(&m_menuEditor);

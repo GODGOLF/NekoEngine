@@ -11,6 +11,7 @@
 
 #define DISPLACEMENT_CB_INDEX		5
 #define DISPLACEMENT_TEX_INDEX		2
+#define SHADER_TYPE_ID				0
 
 
 struct MaterialConstant
@@ -22,7 +23,8 @@ struct MaterialConstant
 	float specExp;
 	float  metallic;
 	float roughness;
-	float pad[2];
+	float shaderTypeID;
+	float pad;
 };
 struct DisPlacementMapCB
 {
@@ -37,7 +39,7 @@ struct DisPlacementMapCB
 };
 
 
-D3D11Model::D3D11Model() : m_pConstantLighting(NULL),m_pConstantSkeleton(NULL), m_pSamplerState(NULL)
+D3D11Model::D3D11Model() : m_pConstantMaterial(NULL),m_pConstantSkeleton(NULL), m_pSamplerState(NULL)
 {
 
 }
@@ -118,7 +120,7 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 	bd.ByteWidth = sizeof(MaterialConstant);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantLighting);
+	hr = device->CreateBuffer(&bd, nullptr, &m_pConstantMaterial);
 	if (FAILED(hr))
 		return hr;
 
@@ -188,12 +190,13 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 			d3dParameter->pModelInfo->scale);
 		for (auto &j : list->operator[](i).material) {
 			
-			MaterialConstant material;
+			MaterialConstant material = MaterialConstant();
 			material.diffuseColor = j.mat.diffuseColor;
 			material.specularColor = j.mat.specularColor;
 			material.specExp = j.mat.shiness;
 			material.roughness = d3dParameter->pModelInfo->roughness;
 			material.metallic = d3dParameter->pModelInfo->metallic;
+			material.shaderTypeID = SHADER_TYPE_ID;
 			//bind Tesseration 
 			UpdateTesseration(pDeviceContext, d3dParameter, (m_textureSRV[j.name].displacementTex.texture != NULL)? 1.f : 0.f);
 			pDeviceContext->VSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &m_pConstantDisplacement);
@@ -217,8 +220,8 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 				pDeviceContext->VSSetConstantBuffers(SKELETON_MATRIX_CB_INDEX, 1, &m_pConstantSkeleton);
 			}
 			material.haveTexture = haveTex;
-			pDeviceContext->UpdateSubresource(m_pConstantLighting, 0, nullptr, &material, 0, 0);
-			pDeviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &m_pConstantLighting);
+			pDeviceContext->UpdateSubresource(m_pConstantMaterial, 0, nullptr, &material, 0, 0);
+			pDeviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &m_pConstantMaterial);
 			pDeviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
 			pDeviceContext->DSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
 			//draw object
@@ -257,7 +260,7 @@ void D3D11Model::Destroy()
 		SAFE_RELEASE(i.second.diffuseTex.texture);
 		SAFE_RELEASE(i.second.normalTex.texture);
 	}
-	SAFE_RELEASE(m_pConstantLighting);
+	SAFE_RELEASE(m_pConstantMaterial);
 	SAFE_RELEASE(m_pConstantSkeleton);
 	SAFE_RELEASE(m_pSamplerState);
 	SAFE_RELEASE(m_pConstantDisplacement);
@@ -267,7 +270,8 @@ specularColor(0.f,0.f,0.f,0.f),
 haveTexture(0.f,0.f,0.f),
 specExp(0),
 metallic(0.1f),
-roughness(0.5f)
+roughness(0.5f),
+shaderTypeID(0.f)
 {
 	
 }

@@ -20,12 +20,13 @@ cbuffer cbGBufferUnpack : register(b1)
 struct SURFACE_DATA
 {
 	float LinearDepth;
-	float3 Color;
+	float4 Color;
 	float3 Normal;
 	float SpecPow;
 	float SpecIntensity;
 	float  metallic;
 	float roughness;
+	float shaderTypeID;
 };
 float ConvertZToLinearDepth(float depth)
 {
@@ -44,7 +45,7 @@ SURFACE_DATA UnpackGBuffer(float2 UV,
 	float depth = DepthTexture.Sample(PointSampler, UV.xy).x;
 	Out.LinearDepth = ConvertZToLinearDepth(depth);
 	float4 baseColorSpecInt = ColorSpecIntTexture.Sample(PointSampler, UV.xy);
-	Out.Color = baseColorSpecInt.xyz;
+	Out.Color = baseColorSpecInt;
 	Out.SpecIntensity = baseColorSpecInt.w;
 	Out.Normal = NormalTexture.Sample(PointSampler, UV.xy).xyz;
 	Out.Normal = normalize(Out.Normal * 2.0 - 1.0);
@@ -66,13 +67,14 @@ SURFACE_DATA UnpackGBuffer_Loc(int2 location,
 	float depth = DepthTexture.Load(location3).x;
 	Out.LinearDepth = ConvertZToLinearDepth(depth);
 	float4 baseColorSpecInt = ColorSpecIntTexture.Load(location3);
-	Out.Color = baseColorSpecInt.xyz;
+	Out.Color = baseColorSpecInt;
 	Out.SpecIntensity = baseColorSpecInt.w;
 	Out.Normal = NormalTexture.Load(location3).xyz;
 	Out.Normal = normalize(Out.Normal * 2.0 - 1.0);
 	Out.SpecPow = SpecPowTexture.Load(location3).x;
 	Out.metallic = SpecPowTexture.Load(location3).y;
 	Out.roughness = SpecPowTexture.Load(location3).z;
+	Out.shaderTypeID = SpecPowTexture.Load(location3).w;
 	return Out;
 }
 struct Material
@@ -88,8 +90,7 @@ struct Material
 void MaterialFromGBuffer(SURFACE_DATA gbd, inout Material mat)
 {
 	mat.normal = gbd.Normal;
-	mat.diffuseColor.xyz = gbd.Color;
-	mat.diffuseColor.w = 1.0; // Fully opaque
+	mat.diffuseColor = gbd.Color;
 	mat.specPow = g_SpecPowerRange.x + g_SpecPowerRange.y * gbd.SpecPow;
 	mat.specIntensity = gbd.SpecIntensity;
 	mat.metallic = gbd.metallic;

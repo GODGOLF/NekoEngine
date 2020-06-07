@@ -21,6 +21,7 @@ namespace Texture {
 	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &output);
 	HRESULT LoadTexture(DXInF* device, const char* file, TextureRSV &output, TextureInfo* outputInfo);
 	HRESULT LoadTexture(const char* file, TextureData* output);
+	//right, left, top, bottom, front, back.
 	HRESULT GenTextureCubeMap(DXInF* device, std::vector<const char*> file, TextureRSV &res, bool mipLevel = false);
 };
 #endif // !_TEXTURE_H_

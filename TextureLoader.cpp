@@ -127,7 +127,7 @@ HRESULT Texture::LoadTexture(DXInF* device, const char* file, TextureRSV &res, T
 	}
 	return hr;
 }
-//right, left, top, bottom, front, back.
+
 HRESULT Texture::GenTextureCubeMap(DXInF* device, std::vector<const char*> file, TextureRSV &res, bool haveMipLevel) {
 	HRESULT hr = S_OK;
 	ID3D11Resource* srcTex[6];

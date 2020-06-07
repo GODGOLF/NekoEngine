@@ -2,6 +2,7 @@
 Texture2D txDiffuse : register(t0);
 Texture2D ObjNormMap: register(t1);
 Texture2D ObjDisplacementMap : register(t2);
+TextureCube txDiffuseCubeType : register(t3);
 SamplerState samLinear : register(s0);
 
 #define FLT_MAX 3.402823e+38
@@ -19,6 +20,7 @@ cbuffer MaterialBufferPS : register(b3)
 	float specExp;
 	float  metallic;
 	float roughness;
+	float shaderTypeID;
 }
 
 cbuffer FrustumCulling : register(b4)
@@ -69,6 +71,7 @@ struct PSInput
 	float2 tex : TEXCOORD0;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
+	float3 wPos : TEXCOORD1;
 };
 HSInput VSMain(float3 position : POSITION,
 	float3 normal : NORMAL,
@@ -245,6 +248,7 @@ void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
 		output.tex = input[j].tex;
 		output.tangent = input[j].tangent;
 		output.binormal = input[j].binormal;
+		output.wPos = output.position.xyz;
 		triStream.Append(output);
 		
 	}
@@ -266,7 +270,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal, float SpecPower)
 	// Pack all the data into the GBuffer structure
 	Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
 	Out.Normal = float4(Normal * 0.5 + 0.5, 1.0);
-	Out.SpecPow = float4(SpecPowerNorm, metallic, roughness, 1.0);
+	Out.SpecPow = float4(SpecPowerNorm, metallic, roughness, shaderTypeID);
 	return Out;
 }
 
@@ -276,8 +280,13 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 	float4 color;
 	float4 textureColor = diffuseColor;
 	float3 newNormal = 0;
-	if (haveTexture.x != 0) {
+	if (haveTexture.x == 1) {
 		textureColor = diffuseColor*txDiffuse.Sample(samLinear, input.tex);
+	}
+	//cube map for skyybox
+	else if(haveTexture.y == 2)
+	{
+		textureColor = diffuseColor*txDiffuseCubeType.Sample(samLinear, input.wPos);
 	}
 	if(textureColor.w == 0.f)
 	{

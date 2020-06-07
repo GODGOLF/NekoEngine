@@ -8,7 +8,8 @@ struct ObjDesc
 	{
 		MODEL_OBJECT,
 		TERRAIN_OBJECT,
-		OCEAN_OBJECT
+		OCEAN_OBJECT,
+		SKY_BOX_OBJECT
 	};
 	OBJ_TYPE type;
 	struct ModelDesc
@@ -38,6 +39,14 @@ struct ObjDesc
 		const char* metalTexture;
 	};
 	OceanDesc oceanDesc;
+	struct SkyBoxDesc
+	{
+		const char* name;
+		std::vector<const char*> textureFile;
+		float size;
+		DirectX::XMFLOAT4 diffuseColor;
+	};
+	SkyBoxDesc skyboxDesc;
 };
 
 class ObjScene

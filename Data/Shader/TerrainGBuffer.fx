@@ -14,6 +14,7 @@ cbuffer MaterialBufferPS : register(b2)
 	float  metallic;
 	float roughness;
 	float textureScale;
+	float shaderTypeID;
 }
 
 cbuffer FrustumCulling : register(b3)
@@ -208,7 +209,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 Normal)
 	// Pack all the data into the GBuffer structure
 	Out.ColorSpecInt = float4(BaseColor.rgb, 1.0f);
 	Out.Normal = float4(Normal * 0.5 + 0.5, 1.0);
-	Out.SpecPow = float4(0, metallic, roughness, 1.0);
+	Out.SpecPow = float4(0, metallic, roughness, shaderTypeID);
 	return Out;
 }
 

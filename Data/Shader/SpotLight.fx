@@ -135,10 +135,16 @@ float4 spotLightCommand(DS_OUTPUT In)
 		NormalTexture,
 		SpecPowTexture,
 		PointSampler);
+	
+	if(gbd.shaderTypeID !=0)
+	{
+		discard;
+	}
 
 	//// Convert the data into the material structure
 	Material mat;
 	MaterialFromGBuffer(gbd, mat);
+	
 	// Reconstruct the world position
 	float3 position = CalcWorldPos(In.PositionXYW.xy / In.PositionXYW.z, gbd.LinearDepth);
 

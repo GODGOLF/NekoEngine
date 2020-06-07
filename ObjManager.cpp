@@ -6,6 +6,8 @@
 #include "D3D11TerrainModel.h"
 #include "D3D11OceanModel.h"
 #include "OceanObj.h"
+#include "D3D11SkyBoxModel.h"
+#include "SkyboxObj.h"
 ObjManager::ObjManager() :p_device(NULL),p_fbxManager(NULL)
 {
 	
@@ -132,6 +134,36 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 		}
 		*pModelObj = new OceanObj();
 		(*pModelObj)->m_modelIndex = string(pDesc.oceanDesc.name);
+		m_modelDataList.push_back(*pModelObj);
+	}
+	break;
+	case ObjDesc::SKY_BOX_OBJECT:
+	{
+		D3DModelInF* model = NULL;
+		if (m_modelObjectList.find(pDesc.skyboxDesc.name) == m_modelObjectList.end())
+		{
+			model = new D3D11SkyBoxModel();
+			D3D11SkyBoxModelParameterInitial *parameter = new D3D11SkyBoxModelParameterInitial();
+			parameter->size = pDesc.skyboxDesc.size;
+			parameter->pDevice = (D3D11Class*)p_device;
+			parameter->diffuseColor = pDesc.skyboxDesc.diffuseColor;
+			parameter->textureFile = pDesc.skyboxDesc.textureFile;
+			HRESULT hr = model->Initial(NULL, parameter);
+			delete parameter;
+			parameter = NULL;
+			if (FAILED(hr))
+			{
+				delete model;
+				return false;
+			}
+			m_modelObjectList[pDesc.skyboxDesc.name] = model;
+		}
+		else
+		{
+			model = m_modelObjectList[pDesc.skyboxDesc.name];
+		}
+		*pModelObj = new SkyBoxObj();
+		(*pModelObj)->m_modelIndex = string(pDesc.skyboxDesc.name);
 		m_modelDataList.push_back(*pModelObj);
 	}
 	break;
