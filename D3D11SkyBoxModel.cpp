@@ -7,7 +7,7 @@
 #define DISPLACEMENT_CB_INDEX		5
 #define DISPLACEMENT_TEX_INDEX		2
 #define SHADER_TYPE_ID				1
-#define TEXTURE_SAMPLE	0
+#define TEXTURE_SAMPLE				0
 
 struct MaterialConstant
 {
@@ -33,11 +33,13 @@ struct DisPlacementMapCB
 	float pad[3];
 };
 
-D3D11SkyBoxModel::D3D11SkyBoxModel() : m_pConstantMaterial(NULL), 
-m_pConstantTessa(NULL), 
-m_pSamplerState(NULL),
-m_pVertexBuffer(NULL),
-m_pIndexBuffer(NULL)
+D3D11SkyBoxModel::D3D11SkyBoxModel() : 
+	m_pConstantMaterial(NULL), 
+	m_pConstantTessa(NULL), 
+	m_pSamplerState(NULL),
+	m_pVertexBuffer(NULL),
+	m_pIndexBuffer(NULL),
+	m_cullFrontRS(NULL)
 {
 
 }
@@ -438,6 +440,7 @@ void D3D11SkyBoxModel::Render(void* pDeviceContext, ModelExtraParameter* paramet
 	material.shaderTypeID = SHADER_TYPE_ID;
 	material.haveTexture = XMFLOAT3(2,0,0);
 
+	deviceContext->UpdateSubresource(m_pConstantMaterial, 0, nullptr, &material, 0, 0);
 	UINT stride = sizeof(VertexAnime);
 	UINT offset = 0;
 
@@ -445,7 +448,6 @@ void D3D11SkyBoxModel::Render(void* pDeviceContext, ModelExtraParameter* paramet
 	deviceContext->DSSetConstantBuffers(DISPLACEMENT_CB_INDEX, 1, &m_pConstantTessa);
 	deviceContext->PSSetShaderResources(DIFFUSE_TEXTURE_INDEX, 1, &m_diffuseTex.texture);
 
-	deviceContext->UpdateSubresource(m_pConstantMaterial, 0, nullptr, &material, 0, 0);
 	deviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &m_pConstantMaterial);
 	deviceContext->PSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
 	deviceContext->DSSetSamplers(TEXTURE_SAMPLE, 1, &m_pSamplerState);
@@ -467,6 +469,8 @@ void D3D11SkyBoxModel::Render(void* pDeviceContext, ModelExtraParameter* paramet
 	{
 		prevState->Release();
 	}
+	ID3D11Buffer* nullBuffer = NULL;
+	deviceContext->PSSetConstantBuffers(MATERIAL_CB_INDEX, 1, &nullBuffer);
 }
 void D3D11SkyBoxModel::Destroy()
 {

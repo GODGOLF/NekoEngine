@@ -10,6 +10,8 @@
 #include "OceanObj.h"
 #include "AnimeObj.h"
 #include "SkyboxObj.h"
+#include "ParticleObj.h"
+#include "D3D11ParticleModel.h"
 
 #define G_BUFFER_FILE "Data/Shader/GBuffer.fx"
 #define FRUSTUM_CB_INDEX	4
@@ -400,19 +402,19 @@ void D3D11GBufferRenderThread::RenderObj()
 				continue;
 			}
 		}
+		if (pModelInfo->alphaTranparent != m_isTranparent)
+		{
+			continue;
+		}
 		
 		//get Current Shader that is used
 		D3DShaderInF* shader;
 
 		if (DirectXHelper::instantOfByTypeId<TerrainObj>(pModelInfo))
 		{
-			if (((PlaneObj*)pModelInfo)->alphaTranparent != m_isTranparent)
-			{
-				continue;
-			}
 			m_shaderManager.GetShader(SHADER_TYPE::TERRAIN_SHADER, &shader);
 			shader->PreRender(m_deviceContext);
-			//bind MVP to geometric shader
+			//bind MVP to domain shader
 			m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::DOMAIN_SHADER);
 			D3D11TerrainModelParameterRender* pRenderParameter = new D3D11TerrainModelParameterRender();
 			pRenderParameter->pCamera = m_RenderParameter->pCamera;
@@ -428,13 +430,10 @@ void D3D11GBufferRenderThread::RenderObj()
 		}
 		else if (DirectXHelper::instantOfByTypeId<OceanObj>(pModelInfo))
 		{
-			if (((PlaneObj*)pModelInfo)->alphaTranparent != m_isTranparent)
-			{
-				continue;
-			}
+			
 			m_shaderManager.GetShader(SHADER_TYPE::OCEAN_SHADER, &shader);
 			shader->PreRender(m_deviceContext);
-			//bind MVP to geometric shader
+			//bind MVP to domain shader
 			m_mvp.BindConstantMVP(m_deviceContext, m_RenderParameter->pCamera, MVP_SHADER_INPUT::DOMAIN_SHADER);
 			//input data to model
 			D3D11OceanModelParameterRender* pRenderParameter = new D3D11OceanModelParameterRender();
@@ -458,8 +457,23 @@ void D3D11GBufferRenderThread::RenderObj()
 			shader->PostRender(m_deviceContext);
 			m_mvp.UnbindConstantMVP(m_deviceContext, MVP_SHADER_INPUT::DOMAIN_SHADER);
 		}
+		else if (DirectXHelper::instantOfByTypeId<ParticleObj>(pModelInfo))
+		{
+			m_shaderManager.GetShader(SHADER_TYPE::PARTICLE_SHADER, &shader);
+			shader->PreRender(m_deviceContext);
+			//input data to model
+			D3D11ParticleModelParameterRender* pRenderParameter = new D3D11ParticleModelParameterRender();
+			pRenderParameter->pCamera = m_RenderParameter->pCamera;
+			pRenderParameter->pModelInfo = pModelInfo;
+			pRenderParameter->pMVP = &m_mvp;
+			//pRenderParameter->tranparent = m_isTranparent;
+			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
+			pModel->Render(m_deviceContext, pRenderParameter);
+			shader->PostRender(m_deviceContext);
+		}
 		else
 		{
+			
 			m_shaderManager.GetShader(SHADER_TYPE::MODEL_SHADER, &shader);
 			shader->PreRender(m_deviceContext);
 			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());

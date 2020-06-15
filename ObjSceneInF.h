@@ -9,7 +9,8 @@ struct ObjDesc
 		MODEL_OBJECT,
 		TERRAIN_OBJECT,
 		OCEAN_OBJECT,
-		SKY_BOX_OBJECT
+		SKY_BOX_OBJECT,
+		PARTICLE_OBJECT
 	};
 	OBJ_TYPE type;
 	struct ModelDesc
@@ -47,6 +48,13 @@ struct ObjDesc
 		DirectX::XMFLOAT4 diffuseColor;
 	};
 	SkyBoxDesc skyboxDesc;
+	struct ParticleDesc
+	{
+		const char* name;
+		const char* diffuseTextureFile;
+		int particleCount;
+	};
+	ParticleDesc particleDesc;
 };
 
 class ObjScene

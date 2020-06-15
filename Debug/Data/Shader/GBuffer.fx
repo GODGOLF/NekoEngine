@@ -284,7 +284,7 @@ PS_GBUFFER_OUT PSMain(PSInput input) : SV_TARGET
 		textureColor = diffuseColor*txDiffuse.Sample(samLinear, input.tex);
 	}
 	//cube map for skyybox
-	else if(haveTexture.y == 2)
+	else if(haveTexture.x == 2)
 	{
 		textureColor = diffuseColor*txDiffuseCubeType.Sample(samLinear, input.wPos);
 	}

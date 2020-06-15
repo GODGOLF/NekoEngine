@@ -43,7 +43,7 @@ private:
 	ModelProperty m_model4; 
 	ModelProperty m_model5;
 	ModelProperty m_model6;
-
+	ModelProperty m_particle;
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;
 

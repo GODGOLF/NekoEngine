@@ -2,6 +2,7 @@
 #include "EditorCamera.h"
 #include "AnimeObj.h"
 #include "OceanObj.h"
+#include "ParticleObj.h"
 
 MainEditor::MainEditor() :m_mainCamera(NULL)
 {
@@ -131,6 +132,21 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
 	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
 	m_objScene->AddObj(&m_model6.model, obj6Desc);
+
+	//Particle
+	ObjDesc particleDesc;
+	particleDesc.type = ObjDesc::PARTICLE_OBJECT;
+	particleDesc.particleDesc.diffuseTextureFile = "Data/Particle/light-effects.png";
+	particleDesc.particleDesc.name = "particle0";
+	particleDesc.particleDesc.particleCount = 50;
+	m_objScene->AddObj(&m_particle.model, particleDesc);
+	((ParticleObj*)m_particle.model)->size = 10.f;
+	((ParticleObj*)m_particle.model)->speed = 2.f;
+	((ParticleObj*)m_particle.model)->lifeTime = 5.f;
+	m_particle.model->alphaTranparent = true;
+
+
+
 	//create main camera
 	m_mainCamera = new EditorCamera((int)width, (int)height);
 	
@@ -210,8 +226,9 @@ void MainEditor::OnDestroy() {
 	m_model.Destroy();
 	m_model2.Destroy();
 	m_model3.Destroy();
+	m_particle.Destroy();
 	m_engine.OnDestroy();
-
+	
 	if (m_guiEditorManager)
 	{
 		delete m_guiEditorManager;
@@ -232,6 +249,7 @@ void MainEditor::OnDestroy() {
 		delete m_light;
 		m_light = NULL;
 	}
+	
 	m_inputManager.Shudown();
 
 	m_physicManager.Destroy();

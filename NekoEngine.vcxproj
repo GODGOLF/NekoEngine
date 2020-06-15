@@ -139,6 +139,7 @@
     <ClInclude Include="D3D11GBufferShaderManager.h" />
     <ClInclude Include="D3D11ImGuiRender.h" />
     <ClInclude Include="D3D11Model.h" />
+    <ClInclude Include="D3D11ParticleModel.h" />
     <ClInclude Include="D3D11PointLightRender.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11ShadowManagerThread.h" />
@@ -185,6 +186,7 @@
     <ClInclude Include="D3D11OceanModel.h" />
     <ClInclude Include="OceanObj.h" />
     <ClInclude Include="OrthogonalCamera.h" />
+    <ClInclude Include="ParticleObj.h" />
     <ClInclude Include="PerspectiveCamera.h" />
     <ClInclude Include="PhysicCallbackManager.h" />
     <ClInclude Include="PhysicManager.h" />
@@ -220,6 +222,7 @@
     <ClCompile Include="D3D11Model.cpp" />
     <ClCompile Include="D3D11MVP.cpp" />
     <ClCompile Include="D3D11OceanModel.cpp" />
+    <ClCompile Include="D3D11ParticleModel.cpp" />
     <ClCompile Include="D3D11PointLightRender.cpp" />
     <ClCompile Include="D3D11RenderThread.cpp" />
     <ClCompile Include="D3D11Shader.cpp" />
@@ -251,6 +254,7 @@
     <ClCompile Include="NekoEngine.cpp" />
     <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="OrthogonalCamera.cpp" />
+    <ClCompile Include="ParticleObj.cpp" />
     <ClCompile Include="PerspectiveCamera.cpp" />
     <ClCompile Include="PhysicCallbackManager.cpp" />
     <ClCompile Include="PhysicManager.cpp" />

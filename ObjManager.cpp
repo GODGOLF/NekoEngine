@@ -8,6 +8,7 @@
 #include "OceanObj.h"
 #include "D3D11SkyBoxModel.h"
 #include "SkyboxObj.h"
+#include "D3D11ParticleModel.h"
 ObjManager::ObjManager() :p_device(NULL),p_fbxManager(NULL)
 {
 	
@@ -164,6 +165,36 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 		}
 		*pModelObj = new SkyBoxObj();
 		(*pModelObj)->m_modelIndex = string(pDesc.skyboxDesc.name);
+		m_modelDataList.push_back(*pModelObj);
+	}
+	break;
+	case ObjDesc::PARTICLE_OBJECT:
+	{
+		D3DModelInF* model = NULL;
+		if (m_modelObjectList.find(pDesc.particleDesc.name) == m_modelObjectList.end())
+		{
+			model = new D3D11ParticleModel();
+
+			D3D11ParticleModelParameterInitial *parameter = new D3D11ParticleModelParameterInitial();
+			parameter->particleCount = pDesc.particleDesc.particleCount;
+			parameter->pDevice= (D3D11Class*)p_device;
+			parameter->textureFile = pDesc.particleDesc.diffuseTextureFile;
+			HRESULT hr = model->Initial(NULL, parameter);
+			delete parameter;
+			parameter = NULL;
+			if (FAILED(hr))
+			{
+				delete model;
+				return false;
+			}
+			m_modelObjectList[pDesc.particleDesc.name] = model;
+		}
+		else
+		{
+			model = m_modelObjectList[pDesc.particleDesc.name];
+		}
+		*pModelObj = new ParticleObj();
+		(*pModelObj)->m_modelIndex = string(pDesc.particleDesc.name);
 		m_modelDataList.push_back(*pModelObj);
 	}
 	break;

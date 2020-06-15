@@ -5,6 +5,7 @@
 #define G_BUFFER_FILE				"Data/Shader/GBuffer.fx"
 #define G_BUFFER_TERRAIN_FILE		"Data/Shader/TerrainGBuffer.fx"
 #define G_BUFFER_OCEAN_FILE			"Data/Shader/OceanGBuffer.fx"		
+#define G_BUFFER_PARTICLE_FILE		"Data/Shader/ParticleGBuffer.fx"		
 
 D3D11GBufferShaderManager::D3D11GBufferShaderManager()
 {
@@ -59,6 +60,17 @@ HRESULT D3D11GBufferShaderManager::Initial(DXInF* pDevice)
 	};
 	m_pShader[SHADER_TYPE::OCEAN_SHADER] = new D3D11Shader();
 	hr = m_pShader[SHADER_TYPE::OCEAN_SHADER]->Initial(pDevice, (char*)G_BUFFER_OCEAN_FILE, &shaderLayout, SHADER_MODE::VS_PS_HS_DS_MODE);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	ZeroMemory(&shaderLayout, sizeof(D3D11ShaderLayout));
+	shaderLayout.layout =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	m_pShader[SHADER_TYPE::PARTICLE_SHADER] = new D3D11Shader();
+	hr = m_pShader[SHADER_TYPE::PARTICLE_SHADER]->Initial(pDevice, (char*)G_BUFFER_PARTICLE_FILE, &shaderLayout, SHADER_MODE::VS_PS_GS_MODE);
 	if (FAILED(hr))
 	{
 		return hr;

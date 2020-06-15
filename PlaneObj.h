@@ -6,10 +6,9 @@
 class PlaneObj : public ModelInF
 {
 public:
-	PlaneObj() : TextureScale(1.0f), alphaTranparent(false) {};
+	PlaneObj() : TextureScale(1.0f) {};
 	virtual ~PlaneObj() {};
 	float TextureScale;
-	bool alphaTranparent;
 private:
 
 };

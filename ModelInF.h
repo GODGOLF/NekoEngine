@@ -22,7 +22,7 @@ public:
 	float maxTessFactor;
 	float minTessFactor;
 	float heightScale;
-	
+	bool alphaTranparent;
 public:
 	ModelInF() : 
 		position(0, 0, 0), 
@@ -35,6 +35,7 @@ public:
 		minTessDistance(0.f),
 		maxTessFactor(1.f),
 		minTessFactor(1.f),
+		alphaTranparent(false),
 		heightScale(0.f){};
 	virtual ~ModelInF() {};
 	
