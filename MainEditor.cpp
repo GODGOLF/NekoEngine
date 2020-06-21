@@ -4,6 +4,7 @@
 #include "OceanObj.h"
 #include "ParticleObj.h"
 
+
 MainEditor::MainEditor() :m_mainCamera(NULL)
 {
 	
@@ -18,24 +19,24 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	{
 		OutputDebugString("Fail to initial Engine\n");
 		m_engine.OnDestroy();
-		return S_FALSE;
+		return E_FAIL;
 	}
 	result = m_engine.CreateImGUIManager(&m_guiEditorManager, hwnd, width, height);
 	if (FAILED(result))
 	{
 		OutputDebugString("Fail to create ImGUI editor\n");
-		return S_FALSE;
+		return E_FAIL;
 
 	}
 	bool r = m_inputManager.Initialize(hInstance, hwnd, width, height);
 	if (r == false)
 	{
-		return S_FALSE;
+		return E_FAIL;
 	}
 	r = m_physicManager.Initial();
 	if (r == false)
 	{
-		return S_FALSE;
+		return E_FAIL;
 	}
 	ObjDesc obj1Dsc;
 	obj1Dsc.type = ObjDesc::MODEL_OBJECT;
@@ -46,6 +47,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_model.model->position.z += 5.f;
 	m_model.model->scale = DirectX::XMFLOAT3(1.f, 1.f, 1.f);
 	((AnimeObj*)m_model.model)->SetAnimationStackIndex(0);
+	m_models.push_back(m_model);
 
 	////test
 	ObjDesc obj2Dsc;
@@ -57,6 +59,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	desc.rigidModel = RigidModel::PLANE;
 	desc.planeDesc.normal = DirectX::XMFLOAT4(0.f, 1.f, 0.f,1.0f);
 	m_model2.collision.InitialCollision(m_model2.model,&m_physicManager, desc);
+	m_models.push_back(m_model2);
 
 	ObjDesc obj3Dsc;
 	obj3Dsc.type = ObjDesc::MODEL_OBJECT;
@@ -69,6 +72,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	desc.sphereDesc.radius = 13.f;
 	desc.sphereDesc.rigidType = RigidType::DYNAMIC;
 	m_model3.collision.InitialCollision(m_model3.model, &m_physicManager, desc);
+	m_models.push_back(m_model3);
 
 	ObjDesc obj4Dsc;
 	obj4Dsc.type = ObjDesc::TERRAIN_OBJECT;
@@ -87,6 +91,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_model4.model->maxTessDistance = 50;
 	m_model4.model->minTessDistance = 0;
 	((PlaneObj*)m_model4.model)->TextureScale = 3.f;
+	m_models.push_back(m_model4);
 
 	ObjDesc obj5Dsc;
 	obj5Dsc.type = ObjDesc::OCEAN_OBJECT;
@@ -118,7 +123,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	ocean->m_waveInfo[2].steepness = 0.25f;
 	((PlaneObj*)m_model5.model)->TextureScale = 10.f;
 	((PlaneObj*)m_model5.model)->alphaTranparent = true;
-
+	m_models.push_back(m_model5);
 
 	ObjDesc obj6Desc;
 	obj6Desc.type = ObjDesc::SKY_BOX_OBJECT;
@@ -132,6 +137,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
 	obj6Desc.skyboxDesc.textureFile.push_back("Data/Skybox/SkyBox.jpg");
 	m_objScene->AddObj(&m_model6.model, obj6Desc);
+	m_models.push_back(m_model6);
 
 	//Particle
 	ObjDesc particleDesc;
@@ -144,7 +150,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	((ParticleObj*)m_particle.model)->speed = 2.f;
 	((ParticleObj*)m_particle.model)->lifeTime = 5.f;
 	m_particle.model->alphaTranparent = true;
-
+	m_models.push_back(m_particle);
 
 
 	//create main camera
@@ -175,6 +181,8 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 
 	//add Gui
 	m_guiEditorManager->AddWindow(&m_menuEditor);
+	m_guiEditorManager->AddWindow(&m_ModelHierachyEditor);
+	m_ModelHierachyEditor.Initial(&m_models, m_objScene);
 	return S_OK;
 }
 static long long time = 0;
@@ -191,9 +199,10 @@ void MainEditor::OnUpdate()
 	m_inputManager.GetMouseLocation(x,y);
 	m_guiEditorManager->Update(&mouseButton[0], m_inputManager.GetMouseWheel(), DirectX::XMFLOAT2((float)x, (float)y));
 	
-	//update model
-	DirectX::XMStoreFloat4(&m_model.model->rotation,DirectX::XMQuaternionRotationRollPitchYaw(0.f, radius, 0.f));
-	radius += 0.01f;
+	if (radius >= (3.14f))
+	{
+		radius = 0;
+	}
 	
 	AnimeObj* anime = ((AnimeObj*)m_model.model);
 	anime->SetAnimationTime(time);

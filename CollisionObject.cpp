@@ -83,10 +83,7 @@ void CollisionObject::Update(ModelInF* modelInf)
 	modelInf->position.y = pos.y;
 	modelInf->position.z = pos.z;
 	PxQuat pxRotation = trans.q;
-	modelInf->rotation.x = pxRotation.x;
-	modelInf->rotation.y = pxRotation.y;
-	modelInf->rotation.z = pxRotation.z;
-	modelInf->rotation.w = pxRotation.w;
+	modelInf->SetRotation(DirectX::XMFLOAT4(pxRotation.x, pxRotation.y, pxRotation.z, pxRotation.w));
 }
 void CollisionObject::Destroy()
 {

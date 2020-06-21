@@ -20,7 +20,7 @@ D3D11WindowRender::~D3D11WindowRender()
 
 HRESULT D3D11WindowRender::Initial(DXInF* pDevice, Parameter* pParameter)
 {
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 	ID3D11Device* device = ((D3D11Class*)pDevice)->GetDevice();
 
 	D3D11ShaderLayout shaderLayout;

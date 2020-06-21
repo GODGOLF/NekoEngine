@@ -31,6 +31,7 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 			parameter->pDevice = (D3D11Class*)p_device;
 			parameter->pFbxManager = p_fbxManager;
 			HRESULT hr = model->Initial((char*)pDesc.modelDesc.file, parameter);
+			int a = (int)hr;
 			delete parameter;
 			parameter = NULL;
 			if (FAILED(hr))
@@ -135,6 +136,7 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 		}
 		*pModelObj = new OceanObj();
 		(*pModelObj)->m_modelIndex = string(pDesc.oceanDesc.name);
+		(*pModelObj)->name = string(pDesc.oceanDesc.name);
 		m_modelDataList.push_back(*pModelObj);
 	}
 	break;
@@ -165,6 +167,7 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 		}
 		*pModelObj = new SkyBoxObj();
 		(*pModelObj)->m_modelIndex = string(pDesc.skyboxDesc.name);
+		(*pModelObj)->name = string(pDesc.skyboxDesc.name);
 		m_modelDataList.push_back(*pModelObj);
 	}
 	break;
@@ -204,15 +207,35 @@ bool ObjManager::AddObj(ModelInF** pModelObj,ObjDesc pDesc)
 
 	return true;
 }
-bool ObjManager::AddObj(ModelInF* pModelObj)
-{
 
-	return false;
-}
 bool ObjManager::RemoveObj(ModelInF* pModelObj)
 {
-
-	return false;
+	int index = -1;
+	int count = 0;
+	for (unsigned int i = 0; i < m_modelDataList.size(); i++)
+	{
+		if (pModelObj->m_modelIndex == m_modelDataList[i]->m_modelIndex)
+		{
+			count++;
+		}
+		if (pModelObj == m_modelDataList[i])
+		{
+			index = i;
+		}
+	}
+	if (index == -1 || count == 0)
+	{
+		return false;
+	}
+	if (count <= 1)
+	{
+		delete m_modelObjectList[pModelObj->m_modelIndex];
+		m_modelObjectList.erase(pModelObj->m_modelIndex);
+	}
+	delete m_modelDataList[index];
+	m_modelDataList.erase(m_modelDataList.begin() + index);
+	pModelObj = NULL;
+	return true;
 }
 HRESULT ObjManager::Initial(DXInF* pDevice)
 {
@@ -220,13 +243,13 @@ HRESULT ObjManager::Initial(DXInF* pDevice)
 	p_fbxManager = FbxManager::Create();
 	if (p_fbxManager == NULL) 
 	{
-		return S_FALSE;
+		return E_FAIL;
 	}
 	//Create an IOSettings object. This object holds all import/export settings.
 	FbxIOSettings* ios = FbxIOSettings::Create(p_fbxManager, IOSROOT);
 	if (ios == NULL)
 	{
-		return S_FALSE;
+		return E_FAIL;
 	}
 	p_fbxManager->SetIOSettings(ios);
 

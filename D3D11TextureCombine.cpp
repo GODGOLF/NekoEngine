@@ -24,7 +24,7 @@ D3D11TextureCombine::~D3D11TextureCombine()
 }
 HRESULT D3D11TextureCombine::Initial(DXInF* pD3Device, int width, int height)
 {
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 	hr = m_record.Initial(pD3Device, width, height);
 	if (FAILED(hr))
 	{

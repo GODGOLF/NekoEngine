@@ -93,7 +93,7 @@ HRESULT Texture::LoadTexture(const char* file,
 			break;
 		}
 		if (next == 0) {
-			return S_FALSE;
+			return E_FAIL;
 		}
 	}
 	image.Release();

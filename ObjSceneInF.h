@@ -62,7 +62,6 @@ class ObjScene
 public:
 	virtual ~ObjScene() {};
 	virtual bool AddObj(ModelInF** pModelObj, ObjDesc desc)=0;
-	virtual bool AddObj(ModelInF* pModelObj) = 0;
 	virtual bool RemoveObj(ModelInF* pModelObj) = 0;
 	virtual void Destroy() = 0;
 };

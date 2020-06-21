@@ -20,4 +20,5 @@ namespace DirectXHelper
 	}
 	std::wstring ConvertStringToWstring(std::string text);
 	std::string ConvertWstringToString(std::wstring text);
+	DirectX::XMFLOAT3 ConvertQuaternionToEulerAngle(DirectX::XMFLOAT4 quaterion);
 }

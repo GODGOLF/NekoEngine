@@ -15,7 +15,11 @@ FBXLoader::FBXLoader() :m_scene(NULL)
 }
 FBXLoader::~FBXLoader()
 {
-	m_scene->Destroy();
+	if (m_scene)
+	{
+		m_scene->Destroy();
+	}
+	
 }
 bool FBXLoader::LoadFBX(FbxManager* pFBXManager, char* file, AnimationFrame::VALUE frameRate)
 {

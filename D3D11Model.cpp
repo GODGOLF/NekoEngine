@@ -58,7 +58,7 @@ HRESULT D3D11Model::Initial(char* file, ModelExtraParameter* parameter)
 	result = m_model.LoadFBX(d3dParameter->pFbxManager, file);
 	if (!result)
 	{
-		return S_FALSE;
+		return E_FAIL;
 	}
 	std::vector<FBXModelData>* list = m_model.GetModelList();
 	ID3D11Device* device = d3dParameter->pDevice->GetDevice();
@@ -183,10 +183,10 @@ void D3D11Model::Render(void* pd3dDeviceContext, ModelExtraParameter* parameter)
 		pDeviceContext->IASetPrimitiveTopology(d3dParameter->drawType);
 
 		//bind MVP buffer
-		d3dParameter->pMVP->BindConstantMVP(pDeviceContext,d3dParameter->pCamera,
-			list->operator[](i).DefaultMatrix, 
-			d3dParameter->pModelInfo->position, 
-			d3dParameter->pModelInfo->rotation, 
+		d3dParameter->pMVP->BindConstantMVP(pDeviceContext, d3dParameter->pCamera,
+			list->operator[](i).DefaultMatrix,
+			d3dParameter->pModelInfo->position,
+			d3dParameter->pModelInfo->GetQuaternion(), 
 			d3dParameter->pModelInfo->scale);
 		for (auto &j : list->operator[](i).material) {
 			

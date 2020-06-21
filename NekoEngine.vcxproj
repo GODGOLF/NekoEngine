@@ -177,6 +177,7 @@
     <ClInclude Include="MenuBarEditor.h" />
     <ClInclude Include="ModelDataStructure.h" />
     <ClInclude Include="D3D11MVP.h" />
+    <ClInclude Include="ModelHierachyUI.h" />
     <ClInclude Include="ModelInF.h" />
     <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="MVPInF.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RenderInF.h" />
     <ClInclude Include="D3D11RenderThread.h" />
+    <ClInclude Include="SaveLoadManager.h" />
     <ClInclude Include="ScreenInF.h" />
     <ClInclude Include="ShaderManagerInF.h" />
     <ClInclude Include="SkyboxObj.h" />
@@ -249,6 +251,7 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MenuBarEditor.cpp" />
+    <ClCompile Include="ModelHierachyUI.cpp" />
     <ClCompile Include="ModelInF.cpp" />
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="NekoEngine.cpp" />

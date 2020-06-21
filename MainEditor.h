@@ -10,6 +10,7 @@
 #include "KMInputManager.h"
 #include "PhysicManager.h"
 #include "ModelProperty.h"
+#include "ModelHierachyUI.h"
 
 class MainEditor : public ScreenInF
 {
@@ -36,6 +37,7 @@ private:
 	PointLightObj m_pointLight;
 	SpotLightObj m_spotLight;
 
+	std::vector<ModelProperty> m_models;
 	Camera* m_mainCamera;
 	ModelProperty m_model;
 	ModelProperty m_model2;
@@ -46,6 +48,7 @@ private:
 	ModelProperty m_particle;
 	ImGuiRenderInF* m_guiEditorManager;
 	MenuBarEditor m_menuEditor;
+	ModelHierachyUI m_ModelHierachyEditor;
 
 	KMInputManager m_inputManager;
 

@@ -123,7 +123,7 @@ HRESULT D3D11VoxelizationThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	m_Vp.Width = (float)VOXEL_TEXTURE_SIZE;
 	m_Vp.Height = (float)VOXEL_TEXTURE_SIZE;
 
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 	//transfer data first before send to super data
 	RenderThreadInitialParameter superClassParameter;
 	superClassParameter.width = VOXEL_TEXTURE_SIZE;

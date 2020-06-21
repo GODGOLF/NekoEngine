@@ -10,7 +10,6 @@ class ModelInF
 {
 public:
 	DirectX::XMFLOAT3 position;
-	DirectX::XMFLOAT4 rotation;
 	DirectX::XMFLOAT3 scale;
 	std::string name;
 	bool haveAnimation;
@@ -26,7 +25,8 @@ public:
 public:
 	ModelInF() : 
 		position(0, 0, 0), 
-		rotation(0, 0, 0,1), 
+		m_quaternion(0, 0, 0,1), 
+		m_rotation(0,0,0),
 		scale(1, 1, 1), 
 		name(""), 
 		metallic(0.1f),
@@ -40,11 +40,16 @@ public:
 	virtual ~ModelInF() {};
 	
 	std::string GetModelIndex() const;
-
-	
+	DirectX::XMFLOAT3 GetRotation();
+	DirectX::XMFLOAT4 GetQuaternion();
+	void SetRotation(DirectX::XMFLOAT4 quaternion);
+	void SetRotation(DirectX::XMFLOAT3 axis,float angle);
+	void SetRotation(float x, float y, float z);
 private:
 	std::string m_modelIndex;
 	friend ObjManager;
+	DirectX::XMFLOAT3 m_rotation;
+	DirectX::XMFLOAT4 m_quaternion;
 };
 
 

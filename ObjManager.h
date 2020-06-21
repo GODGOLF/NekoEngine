@@ -16,7 +16,6 @@ public:
 	ObjManager();
 	virtual ~ObjManager();
 	bool AddObj(ModelInF** pModelObj, ObjDesc desc) override;
-	bool AddObj(ModelInF* pModelObj) override;
 	bool RemoveObj(ModelInF* pModelObj) override;
 	HRESULT Initial(DXInF* pDevice);
 	void Destroy() override;

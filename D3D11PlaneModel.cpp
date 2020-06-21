@@ -157,7 +157,7 @@ void D3D11PlaneModel::Render(void* pDeviceContext, ModelExtraParameter* paramete
 	pParameter->pMVP->BindConstantMVP(pDeviceContext, pParameter->pCamera,
 		XMMatrixIdentity(),
 		pParameter->pModelInfo->position,
-		pParameter->pModelInfo->rotation,
+		pParameter->pModelInfo->GetQuaternion(),
 		pParameter->pModelInfo->scale);
 	
 	//get Index of vertex buffer;

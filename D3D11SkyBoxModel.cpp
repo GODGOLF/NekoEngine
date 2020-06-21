@@ -428,7 +428,7 @@ void D3D11SkyBoxModel::Render(void* pDeviceContext, ModelExtraParameter* paramet
 	d3dParameter->pMVP->BindConstantMVP(pDeviceContext, d3dParameter->pCamera,
 		XMMatrixIdentity(),
 		d3dParameter->pModelInfo->position,
-		d3dParameter->pModelInfo->rotation,
+		d3dParameter->pModelInfo->GetQuaternion(),
 		d3dParameter->pModelInfo->scale);
 
 	MaterialConstant material = MaterialConstant();

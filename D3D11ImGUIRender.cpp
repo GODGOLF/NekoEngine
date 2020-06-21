@@ -70,7 +70,7 @@ HRESULT D3D11ImGUIRender::Initial(DXInF* d3d, HWND hwnd, int width, int height)
 	io.KeyMap[ImGuiKey_Y] = DIK_Y;
 	io.KeyMap[ImGuiKey_Z] = DIK_Z;
 
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 	D3D11ShaderLayout shaderLayout;
 	shaderLayout.layout =
 	{
@@ -176,7 +176,7 @@ HRESULT D3D11ImGUIRender::CreateFontTexture(ID3D11Device* d3d)
 	int width, height;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 	// Upload texture to graphics system
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));

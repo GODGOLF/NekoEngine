@@ -137,13 +137,13 @@ void D3D11ParticleModel::Render(void* pDeviceContext, ModelExtraParameter* param
 	d3dParameter->pMVP->BindConstantMVP(pDeviceContext, d3dParameter->pCamera,
 		XMMatrixIdentity(),
 		d3dParameter->pModelInfo->position,
-		d3dParameter->pModelInfo->rotation,
+		d3dParameter->pModelInfo->GetQuaternion(),
 		d3dParameter->pModelInfo->scale);
 	//bind MVP buffer
 	d3dParameter->pMVP->BindConstantMVP(pDeviceContext, d3dParameter->pCamera,
 		XMMatrixIdentity(),
 		d3dParameter->pModelInfo->position,
-		d3dParameter->pModelInfo->rotation,
+		d3dParameter->pModelInfo->GetQuaternion(),
 		d3dParameter->pModelInfo->scale,MVP_SHADER_INPUT::GEO_SHADER);
 
 	deviceContext->PSSetShaderResources(DIFFUSE_TEXTURE_INDEX, 1, &m_diffuseTex.texture);

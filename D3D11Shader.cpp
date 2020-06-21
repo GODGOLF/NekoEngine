@@ -100,7 +100,7 @@ void D3D11Shader::Destroy()
 }
 HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, SHADER_MODE::VALUE mode)
 {
-	HRESULT hr = S_FALSE;
+	HRESULT hr = E_FAIL;
 
 	ID3D11Device* pD3DDevice = ((D3D11Class*)pDevice)->GetDevice();
 
@@ -112,7 +112,7 @@ HRESULT D3D11Shader::Initial(DXInF* pDevice, char* file, ShaderLayout* layout, S
 			|| mode == SHADER_MODE::VS_PS_HS_DS_MODE
 			|| mode == SHADER_MODE::VS_PS_GS_MODE)
 		{
-			return S_FALSE;
+			return E_FAIL;
 		}
 		
 	}
