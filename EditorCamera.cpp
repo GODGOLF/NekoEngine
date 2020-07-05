@@ -34,6 +34,8 @@ void EditorCamera::Update(KMInputManager* key)
 		move.z -= m_moveSpeed;
 	//update camera's rotation
 
+
+
 	XMFLOAT2 frameMouse(0, 0);
 
 	if (key->GetMouseMiddleClick()) {

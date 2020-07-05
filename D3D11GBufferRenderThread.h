@@ -96,6 +96,8 @@ private:
 	D3D11GBufferShaderManager m_shaderManager;
 protected:
 	bool m_isTranparent;
+
+	std::string shaderFile;
 };
 
 

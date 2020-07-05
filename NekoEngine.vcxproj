@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -74,8 +74,8 @@
     <LibraryPath>D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\OpenAL\lib\Win32;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015\x86\debug;D:\directx\Direct3DLearning\GameEngine_base\DirectTex\lib\x32;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.15063.0\um\x86;C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.15063.0\um\arm;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\assimp\lib\x86;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\PhysixSDK\Debug\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\assimp\include;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\include;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\DirectTex\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\um;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\PhysixSDK\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\OpenAL\lib\Win32;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015\x86\debug;D:\directx\Direct3DLearning\GameEngine_base\DirectTex\lib\x32;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.15063.0\um\x86;C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.15063.0\um\arm;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\assimp\lib\x86;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\PhysixSDK\Debug\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\directx\Direct3DLearning\NekoEngine\NekoEngine\assimp\include;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\include;D:\directx\Direct3DLearning\NekoEngine\NekoEngine\DirectTex\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\shared;C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\um;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\PhysixSDK\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\directx\Direct3DLearning\NekoEngine\NekoEngine\OpenAL\lib\Win32;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015\x86\debug;D:\directx\Direct3DLearning\GameEngine_base\DirectTex\lib\x32;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.15063.0\um\x86;C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.15063.0\um\arm;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\assimp\lib\x86;D:\directx\Direct3DLearning\GameEngineEditor\GameEngine_base\PhysixSDK\Debug\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -86,6 +86,7 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ProgramDataBaseFileName>$(IntDir)$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;dxgi.lib;dinput8.lib;DWrite.lib;DirectXTex.lib;libfbxsdk.lib;LowLevel_static_32.lib;LowLevelAABB_static_32.lib;LowLevelDynamics_static_32.lib;PhysX_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCommon_32.lib;PhysXCooking_32.lib;PhysXFoundation_32.lib;PhysXPvdSDK_static_32.lib;PhysXTask_static_32.lib;PhysXVehicle_static_32.lib;PhysXExtensions_static_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -168,6 +169,7 @@
     <ClInclude Include="imGUI\imstb_rectpack.h" />
     <ClInclude Include="imGUI\imstb_textedit.h" />
     <ClInclude Include="imGUI\imstb_truetype.h" />
+    <ClInclude Include="JSON\json.hpp" />
     <ClInclude Include="KMInputManager.h" />
     <ClInclude Include="LightManagementInF.h" />
     <ClInclude Include="LightManager.h" />
@@ -263,6 +265,7 @@
     <ClCompile Include="PhysicManager.cpp" />
     <ClCompile Include="PhysicUserCallback.cpp" />
     <ClCompile Include="QuadTree.cpp" />
+    <ClCompile Include="SaveLoadManager.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="ThreadHandle.cpp" />
     <ClCompile Include="WindowApplication.cpp" />

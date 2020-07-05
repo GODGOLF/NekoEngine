@@ -1,0 +1,72 @@
+﻿  AnimeObj.cpp
+  Camera.cpp
+  CascadedMatrixSet.cpp
+  CollisionObject.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  D3D11AlphaGBufferRenderThread.cpp
+  D3D11AmbientLightRender.cpp
+  D3D11Class.cpp
+  D3D11GBufferRenderThread.cpp
+  D3D11GBufferShaderManager.cpp
+  D3D11ImGUIRender.cpp
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\um\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
+  D3D11Model.cpp
+  D3D11MVP.cpp
+  D3D11OceanModel.cpp
+  D3D11ParticleModel.cpp
+  D3D11PointLightRender.cpp
+  D3D11RenderThread.cpp
+  D3D11Shader.cpp
+  D3D11DirectionalLightRender.cpp
+  D3D11ShadowManagerThread.cpp
+  D3D11SkyBoxModel.cpp
+  コンパイル中...
+  D3D11SpotLightRender.cpp
+  D3D11PlaneModel.cpp
+  D3D11TerrainModel.cpp
+  D3D11TextureCombine.cpp
+  D3D11TextureRecord.cpp
+  D3D11VoxelizationThread.cpp
+  DXInF.cpp
+  EditorCamera.cpp
+  FBXLoader.cpp
+  FrustumCulling.cpp
+  FunctionHelper.cpp
+FunctionHelper.cpp(42): warning C4101: 'xAxis': ローカル変数は 1 度も使われていません。
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_widgets.cpp
+  D3D11LightRenderManager.cpp
+  KMInputManager.cpp
+  LightManager.cpp
+  Main.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  MenuBarEditor.cpp
+  コンパイル中...
+  ModelHierachyUI.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  ModelInF.cpp
+  ModelProperty.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  NekoEngine.cpp
+  ObjManager.cpp
+  OrthogonalCamera.cpp
+  ParticleObj.cpp
+  PerspectiveCamera.cpp
+  PhysicCallbackManager.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  PhysicManager.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  PhysicUserCallback.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  QuadTree.cpp
+  SaveLoadManager.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  TextureLoader.cpp
+  ThreadHandle.cpp
+  WindowApplication.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  MainEditor.cpp
+d:\directx\direct3dlearning\gameengineeditor\gameengine_base\physixsdk\include\foundation/PxPreprocessor.h(462): fatal error C1189: #error:  Exactly one of NDEBUG and _DEBUG needs to be defined!
+  D3D11WindowRender.cpp

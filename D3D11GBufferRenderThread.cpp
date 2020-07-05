@@ -13,7 +13,6 @@
 #include "ParticleObj.h"
 #include "D3D11ParticleModel.h"
 
-#define G_BUFFER_FILE "Data/Shader/GBuffer.fx"
 #define FRUSTUM_CB_INDEX	4
 const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const UINT8 STENCIL_VALUE = 1;
@@ -56,6 +55,7 @@ D3D11GBufferRenderThread::~D3D11GBufferRenderThread()
 HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 {
 	GBufferInitialParameter* parameter = (GBufferInitialParameter*)pParameter;
+
 	//transfer data first before send to super data
 	RenderThreadInitialParameter superClassParameter;
 	superClassParameter.width = parameter->width;
@@ -139,14 +139,13 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 	{
 		return result;
 	}
-
+	
 	// Create the render target views
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd =
-	{
-		depthStencilRenderViewFormat,
-		D3D11_DSV_DIMENSION_TEXTURE2D,
-		0
-	};
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
+	ZeroMemory(&dsvd, sizeof(dsvd));
+	dsvd.Format = depthStencilRenderViewFormat;
+	dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvd.Texture2D.MipSlice = 0;
 
 	result = device->CreateDepthStencilView(m_DepthStencilRT, &dsvd, &m_DepthStencilDSV);
 	if (FAILED(result)) 
@@ -160,11 +159,13 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 		return result;
 	}
 
-	D3D11_RENDER_TARGET_VIEW_DESC rtsvd =
-	{
-		basicColorRenderViewFormat,
-		D3D11_RTV_DIMENSION_TEXTURE2D
-	};
+	D3D11_RENDER_TARGET_VIEW_DESC rtsvd;
+	ZeroMemory(&rtsvd, sizeof(rtsvd));
+	rtsvd.Format = basicColorRenderViewFormat;
+	rtsvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtsvd.Texture2D.MipSlice = 0;
+	
+	
 	result = device->CreateRenderTargetView(m_ColorSpecIntensityRT, &rtsvd, &m_ColorSpecIntensityRTV);
 	if (FAILED(result)) 
 	{
@@ -183,14 +184,13 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 		return result;
 	}
 	// Create the resource views
-	D3D11_SHADER_RESOURCE_VIEW_DESC dsrvd =
-	{
-		depthStencilResourceViewFormat,
-		D3D11_SRV_DIMENSION_TEXTURE2D,
-		0,
-		0
-	};
+	D3D11_SHADER_RESOURCE_VIEW_DESC dsrvd;
+	ZeroMemory(&dsrvd, sizeof(dsrvd));
+	dsrvd.Format = depthStencilResourceViewFormat;
+	dsrvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	dsrvd.Texture2D.MipLevels = 1;
+	dsrvd.Texture2D.MostDetailedMip = 0;
+	
 	result = device->CreateShaderResourceView(m_DepthStencilRT, &dsrvd, &m_DepthStencilSRV);
 	if (FAILED(result)) 
 	{
@@ -215,6 +215,7 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 		return result;
 	}
 	D3D11_DEPTH_STENCIL_DESC descDepth;
+	ZeroMemory(&descDepth, sizeof(descDepth));
 	descDepth.DepthEnable = TRUE;
 	descDepth.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	descDepth.DepthFunc = D3D11_COMPARISON_LESS;

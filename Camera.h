@@ -16,6 +16,9 @@ public:
 	DirectX::XMVECTOR GetWorldUp()		const;
 	DirectX::XMVECTOR GetWorldAhead()	const;
 
+	void SetView(DirectX::XMMATRIX val);
+	void SetProjection(DirectX::XMMATRIX val);
+	
 protected:
 	DirectX::XMMATRIX m_view;
 	DirectX::XMMATRIX m_projection;

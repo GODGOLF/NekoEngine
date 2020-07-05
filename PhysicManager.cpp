@@ -1,13 +1,35 @@
 #include "PhysicManager.h"
 #define PVD_HOST "Localhost"
 
+
 using namespace physx;
+
+ControlledActorDesc::ControlledActorDesc() :
+	mType(PxControllerShapeType::eFORCE_DWORD),
+	mPosition(PxExtendedVec3(0, 0, 0)),
+	mSlopeLimit(0.0f),
+	mContactOffset(0.0f),
+	mStepOffset(0.0f),
+	mInvisibleWallHeight(0.0f),
+	mMaxJumpHeight(0.0f),
+	mRadius(0.0f),
+	mHeight(0.0f),
+	mCrouchHeight(0.0f),
+	mProxyDensity(10.0f),
+	//	mProxyScale			(0.8f)
+	mProxyScale(0.9f),
+	mVolumeGrowth(1.5f),
+	mReportCallback(NULL),
+	mBehaviorCallback(NULL)
+{
+}
 
 PhysicManager::PhysicManager():
 m_NbThreads(1),
 m_Foundation(0),
 m_DebugRenderScale(1.0f),
-m_recordMemoryAllocations(true)
+m_recordMemoryAllocations(true),
+m_controllerManager(NULL)
 {
 	
 }
@@ -128,6 +150,11 @@ bool PhysicManager::Initial()
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
+	m_controllerManager = PxCreateControllerManager(*m_Scene);
+	if (!m_controllerManager)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -144,6 +171,11 @@ void PhysicManager::Update(float dt)
 }
 void PhysicManager::Destroy()
 {
+	if (m_controllerManager)
+	{
+		m_controllerManager->release();
+		m_controllerManager = NULL;
+	}
 	if (m_Material) 
 	{
 		m_Material->release();
@@ -189,6 +221,7 @@ void PhysicManager::Destroy()
 		m_Foundation->release();
 		m_Foundation = NULL;
 	}
+	
 
 }
 PX_FORCE_INLINE void SetupDefaultRigidDynamic(PxRigidDynamic& body, bool kinematic = false)
@@ -272,4 +305,63 @@ void PhysicManager::onRelease(const PxBase* observed, void* userData, PxDeletion
 	if (!observed->isReleasable()) {
 		//OutputDebugString(L"e\n");
 	}
+}
+physx::PxController* PhysicManager::CreateCharacterController(ControlledActorDesc &desc)
+{
+	const float radius = desc.mRadius;
+	float height = desc.mHeight;
+	float crouchHeight = desc.mCrouchHeight;
+
+	PxControllerDesc* cDesc;
+	PxBoxControllerDesc boxDesc;
+	PxCapsuleControllerDesc capsuleDesc;
+
+	if (desc.mType == PxControllerShapeType::eBOX)
+	{
+		height *= 0.5f;
+		height += radius;
+		crouchHeight *= 0.5f;
+		crouchHeight += radius;
+		boxDesc.halfHeight = height;
+		boxDesc.halfSideExtent = radius;
+		boxDesc.halfForwardExtent = radius;
+		cDesc = &boxDesc;
+	}
+	else
+	{
+		PX_ASSERT(desc.mType == PxControllerShapeType::eCAPSULE);
+		capsuleDesc.height = height;
+		capsuleDesc.radius = radius;
+		capsuleDesc.climbingMode = PxCapsuleClimbingMode::eCONSTRAINED;
+		cDesc = &capsuleDesc;
+	}
+
+	cDesc->density = desc.mProxyDensity;
+	cDesc->scaleCoeff = desc.mProxyScale;
+	cDesc->material = m_Material;
+	cDesc->position = desc.mPosition;
+	cDesc->slopeLimit = desc.mSlopeLimit;
+	cDesc->contactOffset = desc.mContactOffset;
+	cDesc->stepOffset = desc.mStepOffset;
+	cDesc->invisibleWallHeight = desc.mInvisibleWallHeight;
+	cDesc->maxJumpHeight = desc.mMaxJumpHeight;
+	//	cDesc->nonWalkableMode		= PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+	cDesc->reportCallback = desc.mReportCallback;
+	cDesc->behaviorCallback = desc.mBehaviorCallback;
+	cDesc->volumeGrowth = desc.mVolumeGrowth;
+	PxController* c = m_controllerManager->createController(*cDesc);
+	if (!c)
+	{
+		return NULL;
+	}
+	return c;
+}
+physx::PxMaterial* PhysicManager::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
+{
+	PxMaterial* material = m_Physics->createMaterial(staticFriction, dynamicFriction, restitution);
+	if (!material)
+	{
+		return NULL;
+	}
+	return material;
 }

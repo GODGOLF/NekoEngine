@@ -42,7 +42,7 @@ bool CollisionObject::InitialCollision(ModelInF* modelInf,PhysicManager* pPhysic
 		pxNormal.y = desc.planeDesc.normal.y;
 		pxNormal.z = desc.planeDesc.normal.z;
 		pxNormal.w = desc.planeDesc.normal.w;
-		m_rigidBody = pPhysicmanager->CreateStaticPlane(pxNormal, desc.sphereDesc.radius);
+		m_rigidBody = pPhysicmanager->CreateStaticPlane(pxNormal, true);
 		break;
 	}
 	case RigidModel::BOX:

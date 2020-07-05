@@ -60,3 +60,17 @@ DirectX::XMVECTOR Camera::GetWorldAhead() const
 	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
 	return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._31));
 }
+void Camera::SetView(DirectX::XMMATRIX val)
+{
+	m_view = val;
+	DirectX::XMFLOAT4X4 vCameraWorld; // World matrix of the camera (inverse of the view matrix)
+	DirectX::XMMATRIX mCameraWorld;
+	DirectXHelper::InverseMatrix(m_view, mCameraWorld);
+	XMStoreFloat4x4(&vCameraWorld, mCameraWorld);
+	m_camPos = DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&vCameraWorld._41));
+
+}
+void Camera::SetProjection(DirectX::XMMATRIX val)
+{
+	m_projection = val;
+}
