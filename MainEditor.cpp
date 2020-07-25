@@ -52,7 +52,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	////test
 	ObjDesc obj2Dsc;
 	obj2Dsc.type = ObjDesc::MODEL_OBJECT;
-	obj2Dsc.modelDesc.file = "Data/Models/uploads_files_2118487_SM_Floor.fbx";
+	obj2Dsc.modelDesc.file = "Data/Models/plane.fbx";
 	m_objScene->AddObj(&m_model2.model, obj2Dsc);
 	m_model2.model->scale = DirectX::XMFLOAT3(1.f, 1.f, 1.f);
 	CollisionDesc desc;

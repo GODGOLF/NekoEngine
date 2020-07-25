@@ -14,7 +14,7 @@ struct D3D11ParticleModelParameterInitial : public ModelExtraParameter
 };
 struct D3D11ParticleModelParameterRender : public ModelExtraParameter
 {
-	D3D11ParticleModelParameterRender() : pCamera(NULL), pMVP(NULL), pModelInfo(NULL)
+	D3D11ParticleModelParameterRender() : pCamera(NULL), pMVP(NULL), pModelInfo(NULL),particleSize(0.f)
 	{}
 
 	Camera* pCamera;
@@ -60,6 +60,15 @@ private:
 
 private:
 	virtual void ComputeTransformation(ID3D11DeviceContext* deviceContext,D3D11ParticleModelParameterRender* data);
+	//inner class for sorting
+	class Sorter
+	{
+	private:
+		XMVECTOR m_camPos;
+	public:
+		Sorter(DirectX::XMVECTOR camPos);
+		bool operator()(VertexParticleBuffer a, VertexParticleBuffer b);
+	};
 protected:
 	float FRand(float fMin, float fMax);
 	

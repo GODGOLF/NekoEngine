@@ -1,6 +1,7 @@
 #define MAX_BONE_MATRICES 200
 #define PI 3.14159265359
 #define HALF_PI 3.14159265359/2.f
+#define LAYER_SIZE	18
 static const float2 g_SpecPowerRange = { 1.0, 250.0 };
 cbuffer cbPerObjectVS : register(b0)
 {
@@ -77,6 +78,31 @@ SURFACE_DATA UnpackGBuffer_Loc(int2 location,
 	Out.shaderTypeID = SpecPowTexture.Load(location3).w;
 	return Out;
 }
+
+SURFACE_DATA UnpackGBuffer_Loc(int2 location,
+	Texture3D<float> DepthTexture,
+	Texture3D<float4> ColorSpecIntTexture,
+	Texture3D<float3> NormalTexture,
+	Texture3D<float4> SpecPowTexture,
+	int layerIndex)
+{
+	SURFACE_DATA Out;
+	int4 location3 = int4(location, layerIndex, 0);
+	float depth = DepthTexture.Load(location3).x;
+	Out.LinearDepth = ConvertZToLinearDepth(depth);
+	float4 baseColorSpecInt = ColorSpecIntTexture.Load(location3);
+	Out.Color = baseColorSpecInt;
+	Out.SpecIntensity = baseColorSpecInt.w;
+	Out.Normal = NormalTexture.Load(location3).xyz;
+	Out.Normal = normalize(Out.Normal * 2.0 - 1.0);
+	Out.SpecPow = SpecPowTexture.Load(location3).x;
+	Out.metallic = SpecPowTexture.Load(location3).y;
+	Out.roughness = SpecPowTexture.Load(location3).z;
+	Out.shaderTypeID = SpecPowTexture.Load(location3).w;
+	return Out;
+}
+
+
 struct Material
 {
 	float3 normal;

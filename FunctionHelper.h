@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <string>
+#include <typeinfo>
 namespace DirectXHelper
 {
 	void InverseMatrix(DirectX::XMMATRIX Input, DirectX::XMMATRIX &output);
@@ -9,7 +10,7 @@ namespace DirectXHelper
 	bool instanceof(const T* ptr) {
 		return dynamic_cast<const Base*>(ptr) != nullptr;
 	}
-	template<typename T, typename K>
+	template<class T, class K>
 	inline bool instantOfByTypeId(const K k)
 	{
 		if (typeid(T) == typeid(*k))

@@ -12,6 +12,11 @@
 #define Spot_LIGHT_CB_INDEX			2
 #define VIEW_PROJECTION_MATRIX		3
 
+#define DEPTH_TEXTURE_3D			4
+#define COLOR_SPEC_TEXTURE_3D		5
+#define NORMAL_TEXTURE_3D			6
+#define SPEC_POWER_TEXTURE_3D		7
+
 struct CBSpotLightPixel
 {
 	XMFLOAT3 spotLightPos;
@@ -21,7 +26,8 @@ struct CBSpotLightPixel
 	XMFLOAT3 spotColor;
 	float sspotCosConeAttRange;
 	float Intensity;
-	float pad[3];
+	float transparent;
+	float pad[2];
 };
 
 struct CBSpotLightDomain
@@ -128,6 +134,7 @@ void D3D11SpotLightRender::Render(void* pDeviceContext,
 	pSpotLightValuesCB->spotCosOuterCone = fCosOuterAngle;
 	pSpotLightValuesCB->sspotCosConeAttRange = fCosInnerAngle - fCosOuterAngle;
 	pSpotLightValuesCB->Intensity = pDirObj->Intensity;
+	pSpotLightValuesCB->transparent = parameter->isTransparent ? 1.f : 0.f;
 	pd3dDeviceContext->Unmap(m_pSpotLightCB, 0);
 	//Fill the projection view matrix
 	pd3dDeviceContext->Map(m_pProjectionLightCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
@@ -164,11 +171,23 @@ void D3D11SpotLightRender::Render(void* pDeviceContext,
 
 	//add shader
 	m_shader.PreRender(pDeviceContext);
-	//add texture
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
+	if (parameter->isTransparent)
+	{
+		//add texture
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &parameter->specPowerSRV);
+	}
+	else
+	{
+		//add texture
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
+	}
+	
 
 	pd3dDeviceContext->PSSetConstantBuffers(Spot_LIGHT_CB_INDEX, 1, &m_pSpotLightCB);
 	pd3dDeviceContext->DSSetConstantBuffers(VIEW_PROJECTION_MATRIX, 1, &m_pProjectionLightCB);
@@ -180,10 +199,21 @@ void D3D11SpotLightRender::Render(void* pDeviceContext,
 
 	//clear texture and package
 	ID3D11ShaderResourceView* textureNULL = NULL;
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	if (parameter->isTransparent)
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &textureNULL);
+	}
+	else
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	}
+	
 
 	ID3D11Buffer* bufferNull = NULL;
 	pd3dDeviceContext->PSSetConstantBuffers(Spot_LIGHT_CB_INDEX, 1, &bufferNull);

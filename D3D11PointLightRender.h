@@ -11,6 +11,7 @@ struct PointLightRenderParameter : LightParameter
 	ID3D11Buffer * GBufferUnpackCB;
 	XMFLOAT3 upperLight;
 	XMFLOAT3 LowerLight;
+	bool transparent =false;
 };
 
 class D3D11PointLightRender :public LightRenderInF

@@ -2,7 +2,7 @@
 #ifndef _D3D11_SHADER_H_
 #define _D3D11_SHADER_H_
 #include "D3DShaderInF.h"
-
+#include <string>
 struct Shader {
 	Shader() :g_pVertexShader(NULL), 
 		g_pPixelShader(NULL), 
@@ -39,10 +39,10 @@ public:
 	virtual void PostRender(void* pDeviceContext) override;
 	virtual void Destroy() override;
 private:
-	HRESULT LoadVertexShader(const WCHAR* file, ID3D11Device* pDevice, std::vector<D3D11_INPUT_ELEMENT_DESC> layout, Shader &output, string mainName = "VSMain");
-	HRESULT LoadPixelShader(const WCHAR* file, ID3D11Device* pDevice, Shader &output, string mainName = "PSMain");
-	HRESULT LoadGeometricShader(const WCHAR* file, ID3D11Device* pDevice, Shader &output, string mainName = "GSMain");
-	HRESULT LoadCSShader(const WCHAR* file, ID3D11Device* device, Shader &output, string mainName = "CSMain");
+	HRESULT LoadVertexShader(const WCHAR* file, ID3D11Device* pDevice, std::vector<D3D11_INPUT_ELEMENT_DESC> layout, Shader &output, std::string mainName = "VSMain");
+	HRESULT LoadPixelShader(const WCHAR* file, ID3D11Device* pDevice, Shader &output, std::string mainName = "PSMain");
+	HRESULT LoadGeometricShader(const WCHAR* file, ID3D11Device* pDevice, Shader &output, std::string mainName = "GSMain");
+	HRESULT LoadCSShader(const WCHAR* file, ID3D11Device* device, Shader &output, std::string mainName = "CSMain");
 	HRESULT LoadHullAndDomainShader(const WCHAR* file, ID3D11Device* device, Shader &output);
 	HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 

@@ -36,6 +36,7 @@ public:
 		maxTessFactor(1.f),
 		minTessFactor(1.f),
 		alphaTranparent(false),
+		haveAnimation(false),
 		heightScale(0.f){};
 	virtual ~ModelInF() {};
 	

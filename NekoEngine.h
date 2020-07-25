@@ -29,6 +29,7 @@ public:
 private:
 	DXInF* m_pDirectXDevice;
 	std::vector<RenderInF*> m_renderThread;
+	std::vector<RenderInF*> m_secondRenderThread;
 	ObjScene* m_pObjScene;
 	//render result of drawing
 	RenderInF* m_pWindowRender;

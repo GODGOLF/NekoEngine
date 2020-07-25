@@ -11,6 +11,11 @@
 #define DIR_CB_INDEX				2
 #define SAMPLE_INDEX				0
 
+#define DEPTH_TEXTURE_3D			4
+#define COLOR_SPEC_TEXTURE_3D		5
+#define NORMAL_TEXTURE_3D			6
+#define SPEC_POWER_TEXTURE_3D		7
+
 struct CB_AMBIENT_LIGHT
 {
 	XMFLOAT3 vAmbientLower;
@@ -142,11 +147,20 @@ void D3D11AmbientLightRender::Render(void* pDeviceContext,
 
 	m_shader.PreRender(pd3dDeviceContext);
 
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
-
+	if (parameter->tranparent)
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &parameter->specPowerSRV);
+	}
+	else
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
+	}
 	pd3dDeviceContext->PSSetConstantBuffers(DIR_CB_INDEX, 1, &m_pAmbientLightCB);
 
 	UpdateAmbientCB(pd3dDeviceContext, NULL, parameter);
@@ -170,10 +184,21 @@ void D3D11AmbientLightRender::Render(void* pDeviceContext,
 	pd3dDeviceContext->PSSetSamplers(SAMPLE_INDEX, 1, &nullSamplerState);
 
 	ID3D11ShaderResourceView* textureNULL = NULL;
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	if (parameter->tranparent)
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &textureNULL);
+	}
+	else
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	}
+	
 
 	//clear buffer
 	ID3D11Buffer* nullBuffer = NULL;
@@ -207,5 +232,6 @@ void D3D11AmbientLightRender::UpdateAmbientCB(void* pDeviceContext, LightObjInF*
 	vAmbientRange.y -= vLowerColor.y;
 	vAmbientRange.z -= vLowerColor.z;
 	pAmbientValuesCB->vAmbientRange = vAmbientRange;
+	pAmbientValuesCB->tranparent = extraParameter->tranparent ? 1.f : 0.f;
 	pd3dDeviceContext->Unmap(m_pAmbientLightCB, 0);
 }

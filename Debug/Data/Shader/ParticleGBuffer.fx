@@ -69,7 +69,7 @@ void GSMain(point GSInput input[1], inout TriangleStream<PSInput> triStream)
 {
 	float3 pos = mul(input[0].position,worldMatrix).xyz ;
 	float3 toCamera = camPos - pos;
-	toCamera = normalize(toCamera);
+	//toCamera = normalize(toCamera);
 	//rotate xz axis
 	toCamera.y = 0.0f;
 	float3 up = float3(0.0, 1.0f, 0.0);

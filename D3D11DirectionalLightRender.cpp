@@ -13,6 +13,12 @@
 #define PCF_SAMPLE_INDEX			1
 #define SHADOW_TEXTURE				4
 #define BLOCKER_SAMPLE_INDEX		2
+//texture3D
+#define DEPTH_TEXTURE_3D			6
+#define COLOR_SPEC_TEXTURE_3D		7
+#define NORMAL_TEXTURE_3D			8
+#define SPEC_POWER_TEXTURE_3D		9
+
 
 
 struct CB_DIRECTIONAL
@@ -36,9 +42,9 @@ struct Vertex {
 };
 D3D11DirectionalLightRender::D3D11DirectionalLightRender()
 	:m_indexBuffer(NULL),m_pDirLightCB(NULL),m_pSamplerState(NULL),
-	m_vertBuffer(NULL)
+	m_vertBuffer(NULL),m_BlockerSampler(NULL),m_PCFSamplerState(NULL)
 {
-
+	
 }
 D3D11DirectionalLightRender::~D3D11DirectionalLightRender()
 {
@@ -176,10 +182,22 @@ void D3D11DirectionalLightRender::Render(void* pDeviceContext, LightObjInF* obj,
 	m_shader.PreRender(pDeviceContext);
 	DirectionalLightRenderParameter* parameter = (DirectionalLightRenderParameter*)extraParameter;
 
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
+	if (parameter->transparent)
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &parameter->specPowerSRV);
+	}
+	else
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &parameter->depthStencilDSV);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &parameter->colorSRV);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &parameter->normalSRV);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &parameter->specPowerSRV);
+	}
+	
+
 	if (parameter->shadow)
 	{
 		pd3dDeviceContext->PSSetShaderResources(SHADOW_TEXTURE, 1, &parameter->shadow->depthStencilSRV);
@@ -213,10 +231,21 @@ void D3D11DirectionalLightRender::Render(void* pDeviceContext, LightObjInF* obj,
 	pd3dDeviceContext->PSSetConstantBuffers(DIR_CB_INDEX, 1, &nullBuffer);
 	//clear texture and package
 	ID3D11ShaderResourceView* textureNULL = NULL;
-	pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
-	pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	if (parameter->transparent)
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE_3D, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE_3D, 1, &textureNULL);
+	}
+	else
+	{
+		pd3dDeviceContext->PSSetShaderResources(DEPTH_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(COLOR_SPEC_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(NORMAL_TEXTURE, 1, &textureNULL);
+		pd3dDeviceContext->PSSetShaderResources(SPEC_POWER_TEXTURE, 1, &textureNULL);
+	}
+	
 	pd3dDeviceContext->PSSetShaderResources(SHADOW_TEXTURE, 1, &textureNULL);
 	ID3D11SamplerState* nullSamplerState = NULL;
 	pd3dDeviceContext->PSSetSamplers(SAMPLE_INDEX, 1, &nullSamplerState);
@@ -245,6 +274,7 @@ void D3D11DirectionalLightRender::UpdateDirCB(void* pDeviceContext, LightObjInF*
 	pDirectionalValuesCB->vDirToLight = pDirObj->Direction;
 	pDirectionalValuesCB->vDirectionalColor = pDirObj->Color;
 	pDirectionalValuesCB->intensity = pDirObj->Intensity;
+	pDirectionalValuesCB->transparent = extraParameter->transparent? 1.f: 0.f;
 	if (extraParameter->shadow != NULL)
 	{
 		pDirectionalValuesCB->ToCascadeOffsetX = extraParameter->shadow->cascadedMatrix.GetToCascadeOffsetX();

@@ -23,10 +23,6 @@ struct CB_GBUFFER_UNPACK
 	XMFLOAT4 PerspectiveValues;
 	XMMATRIX  ViewInv;
 };
-struct CB_FRUSTUM
-{
-	XMFLOAT4 frustumValues[6];
-};
 D3D11GBufferRenderThread::D3D11GBufferRenderThread() :
 	m_pGBufferUnpackCB(NULL),
 	m_DepthStencilRT(NULL),
@@ -44,7 +40,10 @@ D3D11GBufferRenderThread::D3D11GBufferRenderThread() :
 	m_DepthStencilDSV(NULL),
 	m_DepthStencilReadOnlyDSV(NULL),
 	m_RenderParameter(NULL),
-	m_isTranparent(false)
+	m_culling(),
+	m_RSCullBack(NULL),
+	m_Vp(),
+	m_pFrustumCB(NULL)
 {
 
 }
@@ -56,12 +55,8 @@ HRESULT D3D11GBufferRenderThread::Initial(DXInF* pDevice, Parameter* pParameter)
 {
 	GBufferInitialParameter* parameter = (GBufferInitialParameter*)pParameter;
 
-	//transfer data first before send to super data
-	RenderThreadInitialParameter superClassParameter;
-	superClassParameter.width = parameter->width;
-	superClassParameter.height = parameter->height;
 	HRESULT hr;
-	hr = D3D11RenderThread::Initial(pDevice, &superClassParameter);
+	hr = D3D11RenderThread::Initial(pDevice, parameter);
 	if (FAILED(hr)) 
 	{
 		return hr;
@@ -393,21 +388,10 @@ void D3D11GBufferRenderThread::RenderObj()
 		{
 			continue;
 		}
-		//transparent not support model from fbx file
-		if (DirectXHelper::instantOfByTypeId<ModelInF>(pModelInfo) 
-			|| DirectXHelper::instantOfByTypeId<AnimeObj>(pModelInfo)
-			|| DirectXHelper::instantOfByTypeId<SkyBoxObj>(pModelInfo))
-		{
-			if (m_isTranparent)
-			{
-				continue;
-			}
-		}
-		if (pModelInfo->alphaTranparent != m_isTranparent)
+		if (pModelInfo->alphaTranparent)
 		{
 			continue;
 		}
-		
 		//get Current Shader that is used
 		D3DShaderInF* shader;
 
@@ -421,7 +405,7 @@ void D3D11GBufferRenderThread::RenderObj()
 			pRenderParameter->pCamera = m_RenderParameter->pCamera;
 			pRenderParameter->pModelInfo = pModelInfo;
 			pRenderParameter->pMVP = &m_mvp;
-			pRenderParameter->tranparent = m_isTranparent;
+			pRenderParameter->tranparent = false;
 			D3DModelInF* pModel = m_RenderParameter->m_modelObjectList->operator[](pModelInfo->GetModelIndex().c_str());
 			pModel->Render(m_deviceContext, pRenderParameter);
 			delete pRenderParameter;
@@ -441,7 +425,7 @@ void D3D11GBufferRenderThread::RenderObj()
 			pRenderParameter->pCamera = m_RenderParameter->pCamera;
 			pRenderParameter->pModelInfo = pModelInfo;
 			pRenderParameter->pMVP = &m_mvp;
-			pRenderParameter->tranparent = m_isTranparent;
+			pRenderParameter->tranparent = false;
 			OceanObj* obj = (OceanObj*)pModelInfo;
 			pRenderParameter->time = obj->m_time;
 			for (int j = 0; j < WAVE_COUNT; j++)

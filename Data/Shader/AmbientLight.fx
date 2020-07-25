@@ -1,15 +1,23 @@
 #include "common.fx"
 #include "PBR.fx"
+
 Texture2D<float> DepthTexture					: register(t0);
 Texture2D<float4> ColorSpecIntTexture			: register(t1);
 Texture2D<float3> NormalTexture					: register(t2);
 Texture2D<float4> SpecPowTexture				: register(t3);
+
+Texture3D<float> DepthTexture3D					: register(t4);
+Texture3D<float4> ColorSpecIntTexture3D			: register(t5);
+Texture3D<float3> NormalTexture3D				: register(t6);
+Texture3D<float4> SpecPowTexture3D				: register(t7);
+
 SamplerState PointSampler						: register(s0);
 
 cbuffer cbDirLight : register(b2)
 {
 	float3 AmbientDown			: packoffset(c0);
 	float3 AmbientRange			: packoffset(c1);
+	float isTransparent			: packoffset(c2.x);
 }
 
 struct VS_OUTPUT
@@ -51,29 +59,62 @@ float3 CalcAmbient(float3 normal, float3 color)
 
 float4 PSMain(VS_OUTPUT In) : SV_TARGET
 {
-	// Unpack the GBuffer
-	SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
-		DepthTexture,
-		ColorSpecIntTexture,
-		NormalTexture,
-		SpecPowTexture,
-		PointSampler);
-	
-	//// Convert the data into the material structure
-	Material mat;
-	MaterialFromGBuffer(gbd, mat);
-	float3 finalColor = 0;
-	
-	if(gbd.shaderTypeID !=0)
+	float3 finalColor = 0.f;
+	float totalAlpha = 0.f;
+	if (isTransparent == 1.f)
 	{
-		finalColor = mat.diffuseColor.rgb;
+		for (int i = 0; i < LAYER_SIZE; i++)
+		{
+			// Unpack the GBuffer
+			SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
+				DepthTexture3D,
+				ColorSpecIntTexture3D,
+				NormalTexture3D,
+				SpecPowTexture3D,
+				i);
+			//// Convert the data into the material structure
+			Material mat;
+			MaterialFromGBuffer(gbd, mat);
+			if (mat.diffuseColor.w <=0.f)
+			{
+				break;
+			}
+			if (gbd.shaderTypeID != 0)
+			{
+				finalColor = lerp(finalColor, mat.diffuseColor.rgb, mat.diffuseColor.w);
+			}
+			else
+			{
+				finalColor = lerp(finalColor, CalcAmbient(mat.normal, mat.diffuseColor.rgb), mat.diffuseColor.w);
+			}
+			totalAlpha += mat.diffuseColor.w;
+		}
+		totalAlpha = saturate(totalAlpha);
 	}
 	else
 	{
-		finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb);
-	}		
-	
-	return float4(finalColor,mat.diffuseColor.a);
+		// Unpack the GBuffer
+		SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
+			DepthTexture,
+			ColorSpecIntTexture,
+			NormalTexture,
+			SpecPowTexture,
+			PointSampler);
+		//// Convert the data into the material structure
+		Material mat;
+		MaterialFromGBuffer(gbd, mat);
+
+		if (gbd.shaderTypeID != 0)
+		{
+			finalColor = mat.diffuseColor.rgb;
+		}
+		else
+		{
+			finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb);
+		}
+		totalAlpha = mat.diffuseColor.a;
+	}
+	return float4(finalColor, totalAlpha);
 }
 
 

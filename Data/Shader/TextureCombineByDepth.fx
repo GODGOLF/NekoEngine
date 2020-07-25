@@ -35,6 +35,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 	{
 		color = float4(lerp(color1.xyz,color2.xyz,color2.w),1.f);
 	}
+	color = float4(lerp(color1.xyz, color2.xyz, color2.w), 1.f);
+	//color = color1;
 	return color;
 }
 

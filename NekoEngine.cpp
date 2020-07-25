@@ -86,8 +86,8 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 	m_renderThread.back()->Initial(m_pDirectXDevice, &shadowParameter);
 
 	//alpha Gbuffer
-	m_renderThread.push_back(new D3D11AlphaGBufferRenderThread());
-	m_renderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
+	m_secondRenderThread.push_back(new D3D11AlphaGBufferRenderThread());
+	m_secondRenderThread.back()->Initial(m_pDirectXDevice, &gBufferParameter);
 
 	//texture combination
 	m_textureCombine = new D3D11TextureCombine();
@@ -98,13 +98,19 @@ HRESULT NekoEngine::OnInitial(HWND *hwnd,
 }
 void NekoEngine::OnDestroy()
 {
-	if (m_pDirectXDevice) 
+	if (m_pDirectXDevice)
 	{
 		delete m_pDirectXDevice;
 	}
-	for (auto &i : m_renderThread)
+	for (auto& i : m_renderThread)
 	{
 		delete i;
+		i = NULL;
+	}
+	for (auto& i : m_secondRenderThread)
+	{
+		delete i;
+		i = NULL;
 	}
 	if (m_pWindowRender)
 	{
@@ -133,6 +139,9 @@ void NekoEngine::OnRender(Camera* pCamera)
 		PreRender(pCamera);
 		isPreRender = false;
 	}
+	D3D11Class* device = (D3D11Class*)m_pDirectXDevice;
+	/////////////////////////////////////////////////////////////////////////////////
+	//draw multi-thread for first time 
 	//create empty array to store Handle
 	std::vector<HANDLE> handleArray;
 	handleArray.resize(m_renderThread.size());
@@ -153,14 +162,40 @@ void NekoEngine::OnRender(Camera* pCamera)
 	//clear handle array;
 	ZeroMemory(&handleArray, sizeof(handleArray));
 
-	D3D11Class* device = (D3D11Class*)m_pDirectXDevice;
 	//Execute all CommandList from the thread
 	for (auto &threadObj : m_renderThread)
 	{
 		D3D11RenderThread* pGBufferRender = (D3D11RenderThread*)threadObj;
 		pGBufferRender->ExecuteAndReleaseCommandList(device);
 	}
-	
+	/////////////////////////////////////////////////////////////////////////////////////
+	//draw for mult-thread for second time
+	handleArray.clear();
+	handleArray.resize(m_secondRenderThread.size());
+	i = 0;
+	for (auto& threadObj : m_secondRenderThread)
+	{
+		D3D11RenderThread* pGBufferRender = (D3D11RenderThread*)threadObj;
+		//signal ready for scene kickoff
+		pGBufferRender->BindBeginEventHandle();
+		handleArray[i] = pGBufferRender->GetEndThreadHandle();
+		i++;
+	}
+	// wait for completion
+	WaitForMultipleObjects(handleArray.size(),
+		&handleArray[0],
+		TRUE,
+		INFINITE);
+	//clear handle array;
+	ZeroMemory(&handleArray, sizeof(handleArray));
+
+	//Execute all CommandList from the thread
+	for (auto& threadObj : m_secondRenderThread)
+	{
+		D3D11RenderThread* pGBufferRender = (D3D11RenderThread*)threadObj;
+		pGBufferRender->ExecuteAndReleaseCommandList(device);
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////
 	//draw Scene in the main Thread(lighting)
 	MainRender(pCamera);
 
@@ -188,7 +223,10 @@ void NekoEngine::PreRender(Camera* pCamera)
 	((D3D11GBufferRenderThread*)m_renderThread[0])->SetGBufferRenderParameter(m_pObjScene,pCamera);
 	((D3D11VoxelizationThread*)m_renderThread[1])->SetGBufferRenderParameter((LightManager*)m_lightObj, m_pObjScene, pCamera);
 	((D3D11ShadowManagerThread*)m_renderThread[2])->SetShadowDepthRenderParameter(m_pObjScene, (LightManager*)m_lightObj, pCamera);
-	((D3D11AlphaGBufferRenderThread*)m_renderThread[3])->SetGBufferRenderParameter(m_pObjScene, pCamera);
+	AlphaGBufferRenderParameter alphaRenderParameter;
+	alphaRenderParameter.nonTranparentDepthSRV = ((D3D11GBufferRenderThread*)m_renderThread[0])->GetDepthView();
+	((D3D11AlphaGBufferRenderThread*)m_secondRenderThread[0])->SetGBufferRenderParameter(m_pObjScene, pCamera);
+	((D3D11AlphaGBufferRenderThread*)m_secondRenderThread[0])->SetAlphaGBufferRenderParameter(alphaRenderParameter);
 }
 void NekoEngine::MainRender(Camera* pCamera)
 {
@@ -204,13 +242,14 @@ void NekoEngine::MainRender(Camera* pCamera)
 	lightParameter.shadowManager = (D3D11ShadowManagerThread*)m_renderThread[2];
 	lightParameter.voxelLightPassSRV = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightPassSRV();
 	lightParameter.voxelLightRenderCB = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightRenderCB();
+	lightParameter.transparent = false;
 	//draw light!
 	m_pLightRender->Render(m_pDirectXDevice, &lightParameter);
 	
-	//do tranparent
+	////do tranparent
 	ZeroMemory(&lightParameter, sizeof(lightParameter));
 	lightParameter.pCamera = pCamera;
-	D3D11GBufferRenderThread* alphaGBuffer = (D3D11GBufferRenderThread*)m_renderThread[3];
+	D3D11GBufferRenderThread* alphaGBuffer = (D3D11GBufferRenderThread*)m_secondRenderThread[0];
 	lightParameter.colorSRV = alphaGBuffer->GetColorView();
 	lightParameter.depthStencilDSV = alphaGBuffer->GetDepthView();
 	lightParameter.normalSRV = alphaGBuffer->GetNormalView();
@@ -219,9 +258,10 @@ void NekoEngine::MainRender(Camera* pCamera)
 	lightParameter.shadowManager = (D3D11ShadowManagerThread*)m_renderThread[2];
 	lightParameter.voxelLightPassSRV = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightPassSRV();
 	lightParameter.voxelLightRenderCB = ((D3D11VoxelizationThread*)m_renderThread[1])->GetVoxelLightRenderCB();
+	lightParameter.transparent = true;
 	//draw light!
 	m_pLightAlphaRender->Render(m_pDirectXDevice, &lightParameter);
-	
+	//
 	D3D11Class* pDevice = (D3D11Class*)m_pDirectXDevice;
 	//combine transparent texture and non transparent text
 	m_textureCombine->Render(pDevice->GetDeviceContext(),((D3D11LightRenderManager*)m_pLightRender)->GetLightSRV(),

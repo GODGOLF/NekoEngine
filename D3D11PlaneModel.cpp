@@ -25,11 +25,19 @@ struct PlaneMaterialConstant
 	float shaderTypeID;
 	float pad[3];
 };
-D3D11PlaneModel::D3D11PlaneModel()
+D3D11PlaneModel::D3D11PlaneModel() : 
+	m_arraySize(0),
+	m_vertexDataIndex(NULL),
+	m_pConstantLighting(NULL),
+	m_pConstantTessa(NULL),
+	m_celSize(0),
+	m_culling(),
+	m_diffuseColor(0,0,0,0),
+	m_dimension(0),
+	m_arraySizePow(0)
 {
-	m_vertexDataIndex = NULL;
-	m_pConstantLighting = NULL;
-	m_pConstantTessa = NULL;
+	
+
 }
 D3D11PlaneModel::~D3D11PlaneModel()
 {
@@ -39,7 +47,7 @@ HRESULT D3D11PlaneModel::Initial(char* file, ModelExtraParameter* parameter)
 {
 	D3D11PlaneModelParameterInitial* pParameter = (D3D11PlaneModelParameterInitial* )parameter;
 	m_dimension = pParameter->dimension;
-	m_arraySizePow = (int)std::pow((double)pParameter->arraySize,2.0);
+	m_arraySizePow = (int)pow((double)pParameter->arraySize,2.0);
 	m_arraySize = pParameter->arraySize;
 	m_celSize = pParameter->celSize;
 

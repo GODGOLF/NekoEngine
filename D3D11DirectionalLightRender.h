@@ -12,6 +12,7 @@ struct DirectionalLightRenderParameter : LightParameter
 	ID3D11ShaderResourceView* specPowerSRV = NULL;
 	ID3D11Buffer * GBufferUnpackCB = NULL;
 	DirectionalLightSahdow* shadow = NULL;
+	bool transparent = false;
 };
 
 class D3D11DirectionalLightRender :public LightRenderInF

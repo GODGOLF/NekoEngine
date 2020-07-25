@@ -611,7 +611,7 @@ void D3D11VoxelizationThread::GenerateVoxel()
 	ID3D11UnorderedAccessView* nullUAV[3] = { NULL, NULL, NULL };
 	const UINT count = 0;
 	ID3D11RenderTargetView* nullRTV = NULL;
-	m_deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &nullRTV, NULL, 3, 3, nullUAV, count);
+	m_deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &nullRTV, NULL, 3, 3, nullUAV, &count);
 }
 void D3D11VoxelizationThread::UpdateVoxelCB()
 {
@@ -717,7 +717,7 @@ void D3D11VoxelizationThread::ComputeLightInjection()
 	m_deviceContext->CSSetShaderResources(VOXEL_INJECT_RADIANCE_EMISSION, 1, &m_voxelSpecPowerSRV);
 	m_deviceContext->CSSetUnorderedAccessViews(VOXEL_INJECT_RADIANCE_LIGHTPASS, 1, &m_voxelLightPassUAV, NULL);
 
-	UINT numThreat = (UINT)std::ceil(m_volumeDimension / 8.0f);
+	UINT numThreat = (UINT)ceil(m_volumeDimension / 8.0f);
 	m_deviceContext->Dispatch(numThreat, numThreat, numThreat);
 
 	ID3D11Buffer* pNullCB = NULL;

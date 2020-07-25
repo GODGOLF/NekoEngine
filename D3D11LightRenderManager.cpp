@@ -50,7 +50,10 @@ HRESULT D3D11LightRenderManager::Initial(DXInF* pDevice, Parameter* pParameter)
 	}
 	m_pPointLight = new D3D11PointLightRender();
 	hr = m_pPointLight->Initial(pDevice);
-	
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	m_pSpotLight = new D3D11SpotLightRender();
 	hr = m_pSpotLight->Initial(pDevice);
 	if (FAILED(hr))
@@ -244,6 +247,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 	ambientParameter.normalSRV = pRenderParameter->normalSRV;
 	ambientParameter.specPowerSRV = pRenderParameter->specPowerSRV;
 	ambientParameter.GBufferUnpackCB = m_pGBufferUnpackCB;
+	ambientParameter.tranparent = pRenderParameter->transparent;
 	//hard code
 	ambientParameter.LowerLight = XMFLOAT3(0.2f, 0.2f, 0.2f);
 	ambientParameter.upperLight = XMFLOAT3(0.2f, 0.2f, 0.2f);
@@ -267,6 +271,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			directionalRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
 			directionalRenderParameter.normalSRV = pRenderParameter->normalSRV;
 			directionalRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
+			directionalRenderParameter.transparent = pRenderParameter->transparent;
 			if (pRenderParameter->shadowManager != NULL)
 			{
 				directionalRenderParameter.shadow = (DirectionalLightSahdow*)pRenderParameter->shadowManager->GetShadowData((int)pRenderParameter->pLights->operator[](i));
@@ -293,6 +298,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			pointRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
 			pointRenderParameter.normalSRV = pRenderParameter->normalSRV;
 			pointRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
+			pointRenderParameter.transparent = pRenderParameter->transparent;
 			m_pPointLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &pointRenderParameter);
 		}
 		else if (DirectXHelper::instanceof<SpotLightObj>(pRenderParameter->pLights->operator[](i)))
@@ -305,6 +311,7 @@ void D3D11LightRenderManager::Render(DXInF* pDevice, Parameter* pParameter)
 			spotRenderParameter.depthStencilDSV = pRenderParameter->depthStencilDSV;
 			spotRenderParameter.normalSRV = pRenderParameter->normalSRV;
 			spotRenderParameter.specPowerSRV = pRenderParameter->specPowerSRV;
+			spotRenderParameter.isTransparent = pRenderParameter->transparent;
 			m_pSpotLight->Render(pD3D11DeviceContext, pRenderParameter->pLights->operator[](i), pRenderParameter->pCamera, &spotRenderParameter);
 		}
 		

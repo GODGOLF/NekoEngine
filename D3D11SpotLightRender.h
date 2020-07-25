@@ -11,6 +11,7 @@ struct SpotLightRenderParameter : LightParameter
 	ID3D11Buffer * GBufferUnpackCB;
 	XMFLOAT3 upperLight;
 	XMFLOAT3 LowerLight;
+	bool isTransparent = false;
 };
 
 class D3D11SpotLightRender :public LightRenderInF

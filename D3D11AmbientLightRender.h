@@ -11,6 +11,7 @@ struct AmbientLightRenderParameter : LightParameter
 	ID3D11Buffer * GBufferUnpackCB;
 	XMFLOAT3 upperLight;
 	XMFLOAT3 LowerLight;
+	bool tranparent = false;
 };
 
 class D3D11AmbientLightRender :public LightRenderInF

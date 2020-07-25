@@ -1,5 +1,6 @@
 #include "DXInclude.h"
 #include "D3D11ParticleModel.h"
+#include <algorithm>
 
 #define TIME_DELTA	0.01f
 #define SHADER_TYPE_ID				1
@@ -183,6 +184,26 @@ float D3D11ParticleModel::FRand(float fMin, float fMax)
 	float f = (float)rand() / RAND_MAX;
 	return fMin + f * (fMax - fMin);
 }
+
+D3D11ParticleModel::Sorter::Sorter(DirectX::XMVECTOR camPos)
+{
+	m_camPos = camPos;
+}
+bool D3D11ParticleModel::Sorter::operator()(VertexParticleBuffer a, VertexParticleBuffer b)
+{
+	XMVECTOR aPoint = XMLoadFloat3(&XMFLOAT3(a.pos.x, a.pos.y, a.pos.z));
+	XMVECTOR bPoint = XMLoadFloat3(&XMFLOAT3(b.pos.x, b.pos.y, b.pos.z));
+	XMVECTOR vA = aPoint - m_camPos;
+	XMVECTOR vB = bPoint - m_camPos;
+	XMVECTOR vALength = XMVector3Length(vA);
+	XMVECTOR vBLength = XMVector3Length(vB);
+	float aLength = 0;
+	XMStoreFloat(&aLength, vALength);
+	float bLength = 0;
+	XMStoreFloat(&bLength, vBLength);
+	return aLength < bLength;
+}
+
 void D3D11ParticleModel::ComputeTransformation(ID3D11DeviceContext* deviceContext,D3D11ParticleModelParameterRender* data)
 {
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
@@ -216,6 +237,7 @@ void D3D11ParticleModel::ComputeTransformation(ID3D11DeviceContext* deviceContex
 		m_vertexData[i].pos.y += m_particles[i].direction.y* m_particles[i].speedMax * TIME_DELTA;
 		m_vertexData[i].pos.z += m_particles[i].direction.z* m_particles[i].speedMax * TIME_DELTA;
 	}
+	std::sort(m_vertexData.begin(), m_vertexData.end(), Sorter(data->pCamera->GetPosition()));
 	memcpy_s(MappedResource.pData, sizeof(m_vertexData) * m_particleCount, &m_vertexData[0], sizeof(m_vertexData)* m_particleCount);
 	deviceContext->Unmap(m_pVertexBuffer, 0);
 }

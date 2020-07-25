@@ -33,8 +33,7 @@ public:
 	virtual void PreRender(void* pDeviceContext) = 0;
 	virtual void PostRender(void* pDeviceContext) = 0;
 
-	virtual	 HRESULT Initial(DXInF* pDevice, char* file, ShaderLayout* layout, SHADER_MODE::VALUE mode) =0;
+	virtual	HRESULT Initial(DXInF* pDevice, char* file, ShaderLayout* layout, SHADER_MODE::VALUE mode) =0;
 	virtual void Destroy() = 0;
-	
 };
 #endif // !_SCENE_DEFFER_SHADER_H_

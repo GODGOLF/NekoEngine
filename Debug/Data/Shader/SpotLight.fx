@@ -1,9 +1,16 @@
 #include "common.fx"
 #include "PBR.fx"
-Texture2D<float> DepthTexture         : register(t0);
-Texture2D<float4> ColorSpecIntTexture : register(t1);
-Texture2D<float3> NormalTexture       : register(t2);
-Texture2D<float4> SpecPowTexture      : register(t3);
+
+Texture2D<float> DepthTexture			: register(t0);
+Texture2D<float4> ColorSpecIntTexture	: register(t1);
+Texture2D<float3> NormalTexture			: register(t2);
+Texture2D<float4> SpecPowTexture		: register(t3);
+
+Texture3D<float> DepthTexture3D         : register(t4);
+Texture3D<float4> ColorSpecIntTexture3D : register(t5);
+Texture3D<float3> NormalTexture3D		: register(t6);
+Texture3D<float4> SpecPowTexture3D		: register(t7);
+
 SamplerState PointSampler             : register(s0);
 /////////////////////////////////////////////////////////////////////////////
 // Shadow sampler
@@ -19,6 +26,7 @@ cbuffer cbSpotLightPixel : register(b2)
 	float3 SpotColor					: packoffset(c2);
 	float SpotCosConeAttRange 			: packoffset(c2.w);
 	float Intensity						: packoffset(c3.x);
+	float isTransparent					: packoffset(c3.y);
 }
 
 cbuffer cbSpotLightDomain: register(b3)
@@ -126,25 +134,9 @@ DS_OUTPUT DSMain(HS_CONSTANT_DATA_OUTPUT input, float2 UV : SV_DomainLocation, c
 // Pixel shaders
 /////////////////////////////////////////////////////////////////////////////
 
-float4 spotLightCommand(DS_OUTPUT In)
+float3 CalculateSpotLight(in DS_OUTPUT In,in Material mat, in SURFACE_DATA gbd)
 {
-	// Unpack the GBuffer
-	SURFACE_DATA gbd = UnpackGBuffer_Loc(In.Position.xy,
-		DepthTexture,
-		ColorSpecIntTexture,
-		NormalTexture,
-		SpecPowTexture,
-		PointSampler);
-	
-	if(gbd.shaderTypeID !=0)
-	{
-		discard;
-	}
-
-	//// Convert the data into the material structure
-	Material mat;
-	MaterialFromGBuffer(gbd, mat);
-	
+	float3 finalColor = 0;
 	// Reconstruct the world position
 	float3 position = CalcWorldPos(In.PositionXYW.xy / In.PositionXYW.z, gbd.LinearDepth);
 
@@ -159,23 +151,76 @@ float4 spotLightCommand(DS_OUTPUT In)
 	matPBR.eyePosition = EyePosition;
 	matPBR.intensity = Intensity;
 	matPBR.dirLightColor = SpotColor.xyz;
-	float3 finalColor = CalLightPBR(position, matPBR) ;
-	
+	finalColor = CalLightPBR(position, matPBR);
+
 	// Cone attenuation
 	float cosAng = dot(SpotDirToLight, normalize(ToLight));
 	float conAtt = saturate((cosAng - SpotCosOuterCone) / SpotCosConeAttRange);
 	conAtt *= conAtt;
-	
-	
+
+
 	// Attenuation
 	float DistToLight = length(SpotLightPos - position);
 	float DistToLightNorm = 1.0 - saturate(DistToLight * SpotLightRangeRcp);
 	float Attn = DistToLightNorm * DistToLightNorm;
 	finalColor *= Attn * conAtt;
-	
-	
+
+	return finalColor;
+}
+
+float4 spotLightCommand(DS_OUTPUT In)
+{
+	float4 finalColor =0.f;
+	float totalAlpha = 0.f;
+	if (isTransparent == 1.f)
+	{
+		for (int i = 0; i < LAYER_SIZE; i++)
+		{
+			// Unpack the GBuffer
+			SURFACE_DATA gbd = UnpackGBuffer_Loc(In.Position.xy,
+				DepthTexture3D,
+				ColorSpecIntTexture3D,
+				NormalTexture3D,
+				SpecPowTexture3D,
+				i);
+			if (gbd.shaderTypeID != 0)
+			{
+				continue;
+			}
+			//// Convert the data into the material structure
+			Material mat;
+			MaterialFromGBuffer(gbd, mat);
+			if (mat.diffuseColor.w <= 0.f)
+			{
+				continue;
+			}
+			finalColor.xyz = lerp(finalColor,CalculateSpotLight(In, mat,gbd), mat.diffuseColor.w);
+			totalAlpha += mat.diffuseColor.w;
+		}
+		finalColor.w = saturate(totalAlpha);
+	}
+	else
+	{
+		// Unpack the GBuffer
+		SURFACE_DATA gbd = UnpackGBuffer_Loc(In.Position.xy,
+			DepthTexture,
+			ColorSpecIntTexture,
+			NormalTexture,
+			SpecPowTexture,
+			PointSampler);
+		if (gbd.shaderTypeID != 0)
+		{
+			discard;
+		}
+		//// Convert the data into the material structure
+		Material mat;
+		MaterialFromGBuffer(gbd, mat);
+		finalColor.xyz = CalculateSpotLight(In,mat, gbd);
+		totalAlpha = mat.diffuseColor.w;
+	}
+	finalColor.w = totalAlpha;
 	// Return the final color
-	return float4(finalColor, mat.diffuseColor.w);
+	return finalColor;
 }
 
 float4 PSMain(DS_OUTPUT In) : SV_TARGET

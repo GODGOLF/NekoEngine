@@ -36,6 +36,10 @@ public:
 		this->m_height = height;
 		capacity = nodeSize;
 		DontNeedSubDivide = false;
+		m_northEast = NULL;
+		m_northWest = NULL;
+		m_southEast = NULL;
+		m_southWest = NULL;
 	}
 	~QuadTree();
 	template<typename DATA>

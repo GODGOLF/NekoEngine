@@ -11,10 +11,9 @@
 #include "FrustumCullling.h"
 #include "D3D11GBufferShaderManager.h"
 
-struct GBufferInitialParameter : Parameter
+struct GBufferInitialParameter : RenderThreadInitialParameter
 {
-	int width;
-	int height;
+
 };
 struct GBufferRenderParameter : Parameter
 {
@@ -39,10 +38,10 @@ public:
 
 	void SetGBufferRenderParameter(ObjScene* pParameter, Camera* camera);
 
-	ID3D11ShaderResourceView* GetDepthView() { return m_DepthStencilSRV; }
-	ID3D11ShaderResourceView* GetColorView() { return m_ColorSpecIntensitySRV; }
-	ID3D11ShaderResourceView* GetNormalView() { return m_NormalSRV; }
-	ID3D11ShaderResourceView* GetSpecPowerView() { return m_SpecPowerSRV; }
+	virtual ID3D11ShaderResourceView* GetDepthView() { return m_DepthStencilSRV; }
+	virtual ID3D11ShaderResourceView* GetColorView() { return m_ColorSpecIntensitySRV; }
+	virtual ID3D11ShaderResourceView* GetNormalView() { return m_NormalSRV; }
+	virtual ID3D11ShaderResourceView* GetSpecPowerView() { return m_SpecPowerSRV; }
 
 	void* operator new(size_t i)
 	{
@@ -58,20 +57,12 @@ private:
 
 	virtual void RenderObj();
 
-	ID3D11Buffer * m_pGBufferUnpackCB;
-	ID3D11Buffer * m_pFrustumCB;
+	
 	// GBuffer textures
 	ID3D11Texture2D * m_DepthStencilRT;
 	ID3D11Texture2D* m_ColorSpecIntensityRT;
 	ID3D11Texture2D* m_NormalRT;
 	ID3D11Texture2D* m_SpecPowerRT;
-
-
-	// GBuffer shader resource views
-	ID3D11ShaderResourceView* m_DepthStencilSRV;
-	ID3D11ShaderResourceView* m_ColorSpecIntensitySRV;
-	ID3D11ShaderResourceView* m_NormalSRV;
-	ID3D11ShaderResourceView* m_SpecPowerSRV;
 
 	ID3D11DepthStencilState *m_DepthStencilState;
 
@@ -84,9 +75,18 @@ private:
 	ID3D11DepthStencilView* m_DepthStencilDSV;
 	ID3D11DepthStencilView* m_DepthStencilReadOnlyDSV;
 
-	D3D11MVP m_mvp;
-	//nessary variable for main thread
-	GBufferRenderParameter* m_RenderParameter;
+protected:
+
+	struct CB_FRUSTUM
+	{
+		XMFLOAT4 frustumValues[6];
+	};
+
+	// GBuffer shader resource views
+	ID3D11ShaderResourceView* m_DepthStencilSRV;
+	ID3D11ShaderResourceView* m_ColorSpecIntensitySRV;
+	ID3D11ShaderResourceView* m_NormalSRV;
+	ID3D11ShaderResourceView* m_SpecPowerSRV;
 
 	//cull 
 	ID3D11RasterizerState* m_RSCullBack;
@@ -94,10 +94,13 @@ private:
 	FrustumCulling m_culling;
 
 	D3D11GBufferShaderManager m_shaderManager;
-protected:
-	bool m_isTranparent;
+	//nessary variable for main thread
+	GBufferRenderParameter* m_RenderParameter;
 
-	std::string shaderFile;
+	ID3D11Buffer* m_pGBufferUnpackCB;
+	ID3D11Buffer* m_pFrustumCB;
+
+	D3D11MVP m_mvp;
 };
 
 

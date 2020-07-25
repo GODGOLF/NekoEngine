@@ -47,14 +47,14 @@ void CSMain(uint3 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_
 	uint3 writePos = dispatchThreadId;
 	ivec3 sourcePos = writePos * 2;
 	float4 values[8];
-	x-
+	//x-
 	FetchTexels(sourcePos, values);
 	SharedPositions[groupThreadId] = float4((
 		values[0] + values[4] * (1 - values[0].a) + 
 		values[1] + values[5] * (1 - values[1].a) +
 		values[2] + values[6] * (1 - values[2].a) +
 		values[3] + values[7] * (1 - values[3].a) * 0.25f), 1.0f);
-	x+
+	//x+
 	SharedPositions[groupThreadId] = float4((
 		values[0] + values[4] * (1 - values[0].a) + 
 		values[1] + values[5] * (1 - values[1].a) +

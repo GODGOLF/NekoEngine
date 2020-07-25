@@ -7,6 +7,12 @@ Texture2D<float3> NormalTexture					: register(t2);
 Texture2D<float4> SpecPowTexture				: register(t3);
 Texture2DArray<float> CascadeShadowMapTexture 	: register(t4);
 Texture3D<float4> VoxelTexture					: register(t5);
+//transparent texture
+Texture3D<float> DepthTexture3D					: register(t6);
+Texture3D<float4> ColorSpecIntTexture3D			: register(t7);
+Texture3D<float3> NormalTexture3D				: register(t8);
+Texture3D<float4> SpecPowTexture3D				: register(t9);
+
 SamplerState PointSampler						: register(s0);
 SamplerComparisonState PCFSampler 				: register(s1);		
 SamplerState BlockerSampler 					: register(s2);
@@ -23,6 +29,7 @@ cbuffer cbDirLight : register(b2)
 	float4 ToCascadeScale		: packoffset(c8);
 	float ShadowMapPixelSize	: packoffset(c9.x);
 	float LightSize				: packoffset(c9.y);
+	float isTransparent			: packoffset(c9.z);
 }
 
 cbuffer VoxelCB : register(b3)
@@ -153,71 +160,115 @@ float CascadedShadow(float3 vertexPoint)
 	return shadow;
 }
 
+float3 DoGammaCorrection(float3 color)
+{
+	//gamma correction
+	float3 gammarValue = 1.0 / 2.2;
+	return max(pow(color, gammarValue), 0.0f);
+}
 
 
 float4 DirectionalLightCommand(VS_OUTPUT In)
 {
-	// Unpack the GBuffer
-	SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
-		DepthTexture,
-		ColorSpecIntTexture,
-		NormalTexture,
-		SpecPowTexture,
-		PointSampler);
-	if(gbd.shaderTypeID !=0)
-	{
-		discard;
-	}
-	//// Convert the data into the material structure
-	Material mat;
-	MaterialFromGBuffer(gbd, mat);
-	
-	
-
-	// Reconstruct the world position
-	float3 position = CalcWorldPos(In.cpPos, gbd.LinearDepth);
-	
 	float3 finalColor = 0.f;
-	
-	//global illumination
-	//InDirectLightParameter input;
-	//input.voxelScale = voxelScale;
-	//input.voxelDimension = volumeDimension;
-	//input.maxTracingDistanceGlobal = maxTracingDistanceGlobal;
-	//input.position = position;
-	//input.normal = mat.normal;
-	//input.diffuseColor = mat.diffuseColor.xyz;
-	//input.samplingFactor = samplingFactor;
-	//input.boundStength = boundStength;
-	//input.worldMin = worldMinPoint;
-	//input.worldMax = worldMaxPoint;
-	//input.clampSampler = ClampSampler;
-	//input.voxelTexture = VoxelTexture;
-	//finalColor = CalInDirectLight(input).xyz;
-	
-	
-	// Calculate the directional light
-	MaterialPBR matPBR;
-	matPBR.normal = mat.normal;
-	matPBR.diffuseColor = mat.diffuseColor.xyz;
-	matPBR.metallic = mat.metallic;
-	matPBR.roughness = mat.roughness;
-	matPBR.dirLight = DirToLight;
-	matPBR.eyePosition = EyePosition;
-	matPBR.intensity = intensity;
-	matPBR.dirLightColor = DirLightColor.xyz;
-	finalColor += CalLightPBR(position, matPBR) ;
-	
-	
-	
-	//gamma correction
-	float3 gammarValue = 1.0 / 2.2;
-	finalColor = max(pow(finalColor, gammarValue),0.0f);
-	
-	float shadowAtt = clamp(CascadedShadow(position),0.2f,1.f);
-	
+	float totalAlpha = 0.f;
+	//do transparent
+	if (isTransparent == 1.f)
+	{
+		for (int i = 0; i < LAYER_SIZE; i++)
+		{
+			// Unpack the GBuffer
+			SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
+				DepthTexture3D,
+				ColorSpecIntTexture3D,
+				NormalTexture3D,
+				SpecPowTexture3D,
+				i);
+			if (gbd.shaderTypeID != 0)
+			{
+				continue;
+			}
+			//// Convert the data into the material structure
+			Material mat;
+			MaterialFromGBuffer(gbd, mat);
+			if (mat.diffuseColor.w <= 0.f)
+			{
+				continue;
+			}
+			float3 position = CalcWorldPos(In.cpPos, gbd.LinearDepth);
+			// Calculate the directional light
+			MaterialPBR matPBR;
+			matPBR.normal = mat.normal;
+			matPBR.diffuseColor = mat.diffuseColor.xyz;
+			matPBR.metallic = mat.metallic;
+			matPBR.roughness = mat.roughness;
+			matPBR.dirLight = DirToLight;
+			matPBR.eyePosition = EyePosition;
+			matPBR.intensity = intensity;
+			matPBR.dirLightColor = DirLightColor.xyz;
+			finalColor =  lerp(finalColor.xyz,CalLightPBR(position, matPBR), mat.diffuseColor.w);
+			totalAlpha += mat.diffuseColor.w;
+
+			float shadowAtt = clamp(CascadedShadow(position), 0.2f, 1.f);
+			finalColor = DoGammaCorrection(finalColor);
+			finalColor *= shadowAtt;
+		}
+		totalAlpha = saturate(totalAlpha);
+	}
+	else
+	{
+		// Unpack the GBuffer
+		SURFACE_DATA gbd = UnpackGBuffer_Loc(In.position.xy,
+			DepthTexture,
+			ColorSpecIntTexture,
+			NormalTexture,
+			SpecPowTexture,
+			PointSampler);
+		if (gbd.shaderTypeID != 0)
+		{
+			discard;
+		}
+		//// Convert the data into the material structure
+		Material mat;
+		MaterialFromGBuffer(gbd, mat);
+		// Reconstruct the world position
+		float3 position = CalcWorldPos(In.cpPos, gbd.LinearDepth);
+		//global illumination
+		//InDirectLightParameter input;
+		//input.voxelScale = voxelScale;
+		//input.voxelDimension = volumeDimension;
+		//input.maxTracingDistanceGlobal = maxTracingDistanceGlobal;
+		//input.position = position;
+		//input.normal = mat.normal;
+		//input.diffuseColor = mat.diffuseColor.xyz;
+		//input.samplingFactor = samplingFactor;
+		//input.boundStength = boundStength;
+		//input.worldMin = worldMinPoint;
+		//input.worldMax = worldMaxPoint;
+		//input.clampSampler = ClampSampler;
+		//input.voxelTexture = VoxelTexture;
+		//finalColor = CalInDirectLight(input).xyz;
+
+		// Calculate the directional light
+		MaterialPBR matPBR;
+		matPBR.normal = mat.normal;
+		matPBR.diffuseColor = mat.diffuseColor.xyz;
+		matPBR.metallic = mat.metallic;
+		matPBR.roughness = mat.roughness;
+		matPBR.dirLight = DirToLight;
+		matPBR.eyePosition = EyePosition;
+		matPBR.intensity = intensity;
+		matPBR.dirLightColor = DirLightColor.xyz;
+		finalColor = CalLightPBR(position, matPBR);
+		totalAlpha = mat.diffuseColor.w;
+
+		float shadowAtt = clamp(CascadedShadow(position), 0.2f, 1.f);
+		
+		finalColor = DoGammaCorrection(finalColor);
+		finalColor *= shadowAtt;
+	}
 	// Return the final color
-	return float4(finalColor*shadowAtt, mat.diffuseColor.w);
+	return float4(finalColor, totalAlpha);
 }
 float4 PSMain(VS_OUTPUT In) : SV_TARGET
 {

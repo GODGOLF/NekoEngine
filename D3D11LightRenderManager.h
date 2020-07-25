@@ -25,6 +25,7 @@ struct LightRenderParameter :Parameter
 	D3D11ShadowManagerThread* shadowManager = NULL;
 	ID3D11Buffer* voxelLightRenderCB = NULL;
 	ID3D11ShaderResourceView* voxelLightPassSRV = NULL;
+	bool transparent = false;
 };
 
 

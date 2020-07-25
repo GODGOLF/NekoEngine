@@ -32,9 +32,9 @@ private:
 
 	virtual void ThreadExcecute() override;
 
-	D3D11_VIEWPORT m_defaultVP;
-
 protected:
+
+	D3D11_VIEWPORT m_defaultVP;
 
 	ID3D11DeviceContext* m_deviceContext;
 

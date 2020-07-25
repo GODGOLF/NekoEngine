@@ -39,7 +39,6 @@ DirectX::XMFLOAT3 DirectXHelper::ConvertQuaternionToEulerAngle(DirectX::XMFLOAT4
 	//DirectX::XMFLOAT3 eulerAngle = DirectX::XMFLOAT3(xAxis, yAxis, zAxis);
 	DirectX::XMFLOAT3 eulerAngle;
 	float test = q.x*q.y + q.z*q.w;
-	float xAxis;
 	if (test >0.499f)
 	{
 		eulerAngle.z = DirectX::XM_PI / 2.f;
@@ -58,7 +57,7 @@ DirectX::XMFLOAT3 DirectXHelper::ConvertQuaternionToEulerAngle(DirectX::XMFLOAT4
 	float sqz = q.z*q.z;
 	eulerAngle.z = asinf(2 * test);
 	eulerAngle.y = atan2f(2 * q.y*q.w - 2 * q.x*q.z, 1 - 2 * sqy - 2 * sqz);
-	eulerAngle.x = atan2(2 * q.x*q.w - 2 * q.y*q.z, 1 - 2 * sqx - 2 * sqz);
+	eulerAngle.x = atan2f(2 * q.x*q.w - 2 * q.y*q.z, 1 - 2 * sqx - 2 * sqz);
 	
 	return eulerAngle;
 }

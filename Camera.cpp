@@ -9,6 +9,8 @@ Camera::Camera()
 	m_view = DirectX::XMMatrixIdentity();
 	m_projection = DirectX::XMMatrixIdentity();
 	m_camPos = DirectX::XMVectorSet(0, 0, 0, 0);
+	m_farValue = 0;
+	m_nearValue = 0;
 }
 Camera::~Camera()
 {
