@@ -4,13 +4,13 @@
 
 struct PointLightRenderParameter : LightParameter
 {
-	ID3D11ShaderResourceView* depthStencilDSV;
-	ID3D11ShaderResourceView* colorSRV;
-	ID3D11ShaderResourceView* normalSRV;
-	ID3D11ShaderResourceView* specPowerSRV;
-	ID3D11Buffer * GBufferUnpackCB;
-	XMFLOAT3 upperLight;
-	XMFLOAT3 LowerLight;
+	ID3D11ShaderResourceView* depthStencilDSV = nullptr;
+	ID3D11ShaderResourceView* colorSRV = nullptr;
+	ID3D11ShaderResourceView* normalSRV = nullptr;
+	ID3D11ShaderResourceView* specPowerSRV = nullptr;
+	ID3D11Buffer * GBufferUnpackCB = nullptr;
+	XMFLOAT3 upperLight = { 0.f, 0.f, 0.f };
+	XMFLOAT3 LowerLight = { 0.f, 0.f, 0.f };
 	bool transparent =false;
 };
 
