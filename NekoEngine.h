@@ -3,25 +3,24 @@
 #define _NEKO_ENGINE_H_
 #include "RenderInF.h"
 #include <vector>
-#include "ObjSceneInF.h"
-#include "Camera.h"
-#include "LightManagementInF.h"
 #include "ImGuiIRenderInF.h"
 #include "TextureCombineInF.h"
+#include "NekoInF.h"
 class DXInF;
 
 class ImGuiRenderInF;
 
-class NekoEngine
+class NekoEngine : public NekoInF
 {
 public:
 	NekoEngine();
+	~NekoEngine();
 	HRESULT OnInitial(HWND *hwnd, 
 		unsigned int width, 
 		unsigned int height,
 		ObjScene** pObjScene,
 		LightManagementInF** pLightManager);
-	void OnRender(Camera* pCamera);
+	void OnRender(Camera* pCamera) override;
 	HRESULT CreateImGUIManager(ImGuiRenderInF** pManager,HWND *hwnd,
 		unsigned int width,
 		unsigned int height);
@@ -33,7 +32,6 @@ private:
 	ObjScene* m_pObjScene;
 	//render result of drawing
 	RenderInF* m_pWindowRender;
-	
 	RenderInF* m_pLightRender;
 	RenderInF* m_pLightAlphaRender;
 	LightManagementInF* m_lightObj;

@@ -41,7 +41,7 @@ public:
 		m_southEast = NULL;
 		m_southWest = NULL;
 	}
-	~QuadTree();
+	virtual ~QuadTree();
 	template<typename DATA>
 	bool Insert(DATA data, float x, float z)
 	{
@@ -125,10 +125,10 @@ public:
 template<typename DATA>
 QuadTree<DATA>::~QuadTree()
 {
-	delete m_northWest;
-	delete m_northEast;
-	delete m_southEast;
-	delete m_southWest;
+	SAFE_DELETE(m_northWest);
+	SAFE_DELETE(m_northEast);
+	SAFE_DELETE(m_southEast);
+	SAFE_DELETE(m_southWest);
 }
 template<typename DATA>
 void QuadTree<DATA>::SubDivide()

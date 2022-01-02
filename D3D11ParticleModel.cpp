@@ -191,8 +191,10 @@ D3D11ParticleModel::Sorter::Sorter(DirectX::XMVECTOR camPos)
 }
 bool D3D11ParticleModel::Sorter::operator()(VertexParticleBuffer a, VertexParticleBuffer b)
 {
-	XMVECTOR aPoint = XMLoadFloat3(&XMFLOAT3(a.pos.x, a.pos.y, a.pos.z));
-	XMVECTOR bPoint = XMLoadFloat3(&XMFLOAT3(b.pos.x, b.pos.y, b.pos.z));
+	XMFLOAT3 PointA = XMFLOAT3(a.pos.x, a.pos.y, a.pos.z);
+	XMFLOAT3 PointB = XMFLOAT3(b.pos.x, b.pos.y, b.pos.z);
+	XMVECTOR aPoint = XMLoadFloat3(&PointA);
+	XMVECTOR bPoint = XMLoadFloat3(&PointB);
 	XMVECTOR vA = aPoint - m_camPos;
 	XMVECTOR vB = bPoint - m_camPos;
 	XMVECTOR vALength = XMVector3Length(vA);

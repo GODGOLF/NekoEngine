@@ -16,6 +16,8 @@ using namespace std;
 using namespace DirectX;
 #endif
 
-#ifndef SAFE_RELEASE
+#ifndef SAFE_RELEASE_
+#define SAFE_RELEASE_
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_DELETE(p)      { if (p) { delete (p); (p)=NULL; } }
 #endif

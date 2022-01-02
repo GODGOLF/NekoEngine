@@ -24,7 +24,7 @@
 
 #define VOXEL_DIRECTIONAL_LIGHT_MAX	50
 
-const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+const float CLEAR_RENDER_COLOR[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const UINT8 STENCIL_VALUE = 1;
 const UINT8 STENCIL_CLEAR_VALUE = 0;
 
@@ -578,10 +578,10 @@ void D3D11VoxelizationThread::GenerateVoxel()
 	//get prev View port
 	m_deviceContext->RSGetViewports(&prevViewPortNumber, &prevVp);
 	//clear all Texture
-	m_deviceContext->ClearRenderTargetView(m_dummyRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_voxelColorRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_voxelNormalRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_voxelSpecRTV, CLEAR_RENDER);
+	m_deviceContext->ClearRenderTargetView(m_dummyRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_voxelColorRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_voxelNormalRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_voxelSpecRTV, CLEAR_RENDER_COLOR);
 	m_deviceContext->ClearDepthStencilView(m_DepthStencilDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, STENCIL_CLEAR_VALUE);
 	UpdateVoxelCB();
 	m_deviceContext->GSSetConstantBuffers(CB_SLOT, 1, &m_voxelCB);
@@ -679,7 +679,7 @@ void D3D11VoxelizationThread::UpdateVoxelLightPassCB()
 void D3D11VoxelizationThread::ComputeLightInjection()
 {
 	m_LightInjection.PreRender(m_deviceContext);
-	m_deviceContext->ClearRenderTargetView(m_voxelLightPassRTV, CLEAR_RENDER);
+	m_deviceContext->ClearRenderTargetView(m_voxelLightPassRTV, CLEAR_RENDER_COLOR);
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	m_deviceContext->Map(m_voxelInjectRadianceCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
 	CBInjectRadiance* cb = (CBInjectRadiance*)MappedResource.pData;

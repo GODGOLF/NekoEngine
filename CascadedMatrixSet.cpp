@@ -65,7 +65,7 @@ void CascadedMatrixSet::Update(const XMFLOAT3 &fDir, Camera* camera)
 			XMFLOAT3 vNewCenter;
 			float fRadius =0;
 			ExtractFrustumBoundSphere(m_arrCascadeRanges[iCascadeIdx], m_arrCascadeRanges[iCascadeIdx + 1], vNewCenter, fRadius, camera);
-			m_arrCascadeBoundRadius[iCascadeIdx] = std::max(m_arrCascadeBoundRadius[iCascadeIdx], fRadius); // Expend the radius to compensate for numerical errors
+			m_arrCascadeBoundRadius[iCascadeIdx] = max(m_arrCascadeBoundRadius[iCascadeIdx], fRadius); // Expend the radius to compensate for numerical errors
 																								   // Only update the cascade bounds if it moved at least a full pixel unit																			   // This makes the transformation invariant to translation
 			XMFLOAT3 fOffset = XMFLOAT3(0,0,0);
 			if (CascadeNeedsUpdate(mShadowView, iCascadeIdx, vNewCenter, fOffset))
@@ -130,7 +130,7 @@ void CascadedMatrixSet::Update(const XMFLOAT3 &fDir, Camera* camera)
 			cascadeTrans = XMMatrixTranslation(m_vToCascadeOffsetX[iCascadeIdx], m_vToCascadeOffsetY[iCascadeIdx], 0.0f);
 
 			// Update the scale from shadow to cascade space
-			m_vToCascadeScale[iCascadeIdx] = 2.0f / std::max(fMax.x - fMin.x, fMax.y - fMin.y);
+			m_vToCascadeScale[iCascadeIdx] = 2.0f / max(fMax.x - fMin.x, fMax.y - fMin.y);
 			cascadeScale = XMMatrixScaling(m_vToCascadeScale[iCascadeIdx], m_vToCascadeScale[iCascadeIdx], 1.0f);
 
 		}

@@ -6,6 +6,7 @@
 class MenuBarEditor : public EditorInf
 {
 public:
+	void OnInitial();
 	void Render(Camera* camera) override;
 
 };

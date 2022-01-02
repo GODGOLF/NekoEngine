@@ -5,9 +5,6 @@
 #include <Windows.h>
 #include "Camera.h"
 #include "EditorInF.h"
-#include "NekoEngine.h"
-
-class NekoEngine;
 
 class ImGuiRenderInF {
 public:

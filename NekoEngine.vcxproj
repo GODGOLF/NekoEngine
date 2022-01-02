@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{A7CC2AA7-3D8C-43C5-9FBD-A3DED2F16BEB}</ProjectGuid>
     <RootNamespace>NekoEngine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -34,20 +34,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -76,6 +76,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>D:\MyGame\ExtraLib\assimp\include;C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\include;D:\MyGame\ExtraLib\DirectTex\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.18362.0\shared;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.18362.0\um;D:\MyGame\ExtraLib\PhysixSDK\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015\x86\debug;D:\MyGame\ExtraLib\DirectTex\lib\x32;C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.18362.0\um\x86;C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.18362.0\um\arm;D:\MyGame\ExtraLib\assimp\lib\x86;D:\MyGame\ExtraLib\PhysixSDK\Debug\lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)Build\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,7 +90,7 @@
       <ProgramDataBaseFileName>$(IntDir)$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;dxgi.lib;dinput8.lib;DWrite.lib;DirectXTex.lib;libfbxsdk.lib;LowLevel_static_32.lib;LowLevelAABB_static_32.lib;LowLevelDynamics_static_32.lib;PhysX_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCommon_32.lib;PhysXCooking_32.lib;PhysXFoundation_32.lib;PhysXPvdSDK_static_32.lib;PhysXTask_static_32.lib;PhysXVehicle_static_32.lib;PhysXExtensions_static_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;dxgi.lib;dinput8.lib;DWrite.lib;DirectXTex.lib;libfbxsdk.lib;LowLevel_static_32.lib;LowLevelAABB_static_32.lib;LowLevelDynamics_static_32.lib;PhysX_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCommon_32.lib;PhysXCooking_32.lib;PhysXFoundation_32.lib;PhysXPvdSDK_static_32.lib;PhysXTask_static_32.lib;PhysXVehicle_static_32.lib;PhysXExtensions_static_32.lib;d3d12.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -138,10 +139,12 @@
     <ClInclude Include="D3D11Class.h" />
     <ClInclude Include="D3D11GBufferRenderThread.h" />
     <ClInclude Include="D3D11GBufferShaderManager.h" />
+    <ClInclude Include="D3D11luminationCal.h" />
     <ClInclude Include="D3D11ImGuiRender.h" />
     <ClInclude Include="D3D11Model.h" />
     <ClInclude Include="D3D11ParticleModel.h" />
     <ClInclude Include="D3D11PointLightRender.h" />
+    <ClInclude Include="PostFX.h" />
     <ClInclude Include="D3D11Shader.h" />
     <ClInclude Include="D3D11ShadowManagerThread.h" />
     <ClInclude Include="D3D11SkyBoxModel.h" />
@@ -151,9 +154,11 @@
     <ClInclude Include="D3D11TextureCombine.h" />
     <ClInclude Include="D3D11TextureRecord.h" />
     <ClInclude Include="D3D11VoxelizationThread.h" />
+    <ClInclude Include="D3D12Class.h" />
     <ClInclude Include="D3DModelInF.h" />
     <ClInclude Include="D3DShaderInF.h" />
     <ClInclude Include="D3D11DirectionalLightRender.h" />
+    <ClInclude Include="DX12Include.h" />
     <ClInclude Include="DXInclude.h" />
     <ClInclude Include="DXInF.h" />
     <ClInclude Include="EditorCamera.h" />
@@ -183,6 +188,7 @@
     <ClInclude Include="ModelInF.h" />
     <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="MVPInF.h" />
+    <ClInclude Include="NekoInF.h" />
     <ClInclude Include="ObjManager.h" />
     <ClInclude Include="NekoEngine.h" />
     <ClInclude Include="ObjSceneInF.h" />
@@ -195,6 +201,9 @@
     <ClInclude Include="PhysicManager.h" />
     <ClInclude Include="PhysicUserCallback.h" />
     <ClInclude Include="PlaneObj.h" />
+    <ClInclude Include="PostFXInF.h" />
+    <ClInclude Include="PostFXReader.h" />
+    <ClInclude Include="PostFXRenderInF.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RenderInF.h" />
     <ClInclude Include="D3D11RenderThread.h" />
@@ -207,6 +216,7 @@
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureRecordInF.h" />
     <ClInclude Include="ThreadHandle.h" />
+    <ClInclude Include="UIManager.h" />
     <ClInclude Include="VoxelRenderVariable.h" />
     <ClInclude Include="WindowApplication.h" />
     <ClInclude Include="MainEditor.h" />
@@ -217,6 +227,9 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CascadedMatrixSet.cpp" />
     <ClCompile Include="CollisionObject.cpp" />
+    <ClCompile Include="D3D11luminationCal.cpp" />
+    <ClCompile Include="PostFX.cpp" />
+    <ClCompile Include="D3D12Class.cpp" />
     <ClCompile Include="D3D11AlphaGBufferRenderThread.cpp" />
     <ClCompile Include="D3D11AmbientLightRender.cpp" />
     <ClCompile Include="D3D11Class.cpp" />
@@ -257,6 +270,7 @@
     <ClCompile Include="ModelInF.cpp" />
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="NekoEngine.cpp" />
+    <ClCompile Include="NekoInF.cpp" />
     <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="OrthogonalCamera.cpp" />
     <ClCompile Include="ParticleObj.cpp" />
@@ -268,6 +282,7 @@
     <ClCompile Include="SaveLoadManager.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="ThreadHandle.cpp" />
+    <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="WindowApplication.cpp" />
     <ClCompile Include="MainEditor.cpp" />
     <ClCompile Include="D3D11WindowRender.cpp" />

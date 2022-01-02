@@ -13,7 +13,7 @@ struct HeightMapStruct
 	float haveTextureDiffuse;
 };
 
-D3D11TerrainModel::D3D11TerrainModel()
+D3D11TerrainModel::D3D11TerrainModel() : m_pConstantHeightMap(NULL)
 {
 	m_pSamplerState = NULL;
 }

@@ -14,7 +14,7 @@
 #include "D3D11ParticleModel.h"
 
 #define FRUSTUM_CB_INDEX	4
-const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+const float CLEAR_RENDER_COLOR[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 const UINT8 STENCIL_VALUE = 1;
 const UINT8 STENCIL_CLEAR_VALUE = 0;
 
@@ -290,9 +290,9 @@ void D3D11GBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter)
 		return;
 	}
 	D3D11RenderThread::Render(pDevice,pParameter);
-	m_deviceContext->ClearRenderTargetView(m_ColorSpecIntensityRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_NormalRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_SpecPowerRTV, CLEAR_RENDER);
+	m_deviceContext->ClearRenderTargetView(m_ColorSpecIntensityRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_NormalRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_SpecPowerRTV, CLEAR_RENDER_COLOR);
 	m_deviceContext->ClearDepthStencilView(m_DepthStencilDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, STENCIL_CLEAR_VALUE);
 	ID3D11RenderTargetView* rt[3] = { m_ColorSpecIntensityRTV, m_NormalRTV, m_SpecPowerRTV };
 	m_deviceContext->OMSetRenderTargets(3, rt, m_DepthStencilDSV);

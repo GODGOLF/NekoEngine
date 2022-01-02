@@ -1,2 +1,0 @@
-D:\MyGame\NekoEngine\Debug\NekoEngine.exe
-D:\MyGame\NekoEngine\Debug\NekoEngine.pdb

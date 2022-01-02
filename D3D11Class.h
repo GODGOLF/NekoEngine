@@ -49,7 +49,7 @@ private:
 	ID3D11RasterizerState* m_RSCullNone;
 	ID3D11RasterizerState* m_RSCullFront;
 	ID3D11ShaderResourceView* m_shaderResourceViewMap;
-	XMVECTORF32 g_backgroundColor_ = { 0.0000000f, 0.000000f, 0.000000000f, 1.000000000f };
+	XMVECTORF32 m_backgroundColor = { 0.0000000f, 0.000000f, 0.000000000f, 1.000000000f };
 	D3D11_VIEWPORT m_vp;
 
 };

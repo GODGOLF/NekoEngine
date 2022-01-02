@@ -3,25 +3,25 @@
 #include "AnimeObj.h"
 #include "OceanObj.h"
 #include "ParticleObj.h"
+#include "NekoEngine.h"
 
 
-MainEditor::MainEditor() :m_mainCamera(NULL)
+MainEditor::MainEditor() :m_mainCamera(NULL), m_engine(NULL),m_objScene(NULL),m_light(NULL),m_guiEditorManager(NULL)
 {
 	
 }
 
 HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, unsigned int height) 
 {
+	HRESULT result = E_FAIL;
+	m_engine = NekoInF::CreateEngineManager(hwnd, width, height, &m_objScene, &m_light);
 	
-	HRESULT result = m_engine.OnInitial(hwnd, width, height, &m_objScene,&m_light);
-	
-	if (FAILED(result)) 
+	if (m_engine == NULL)
 	{
 		OutputDebugString("Fail to initial Engine\n");
-		m_engine.OnDestroy();
 		return E_FAIL;
 	}
-	result = m_engine.CreateImGUIManager(&m_guiEditorManager, hwnd, width, height);
+	result = ((NekoEngine*)m_engine)->CreateImGUIManager(&m_guiEditorManager, hwnd, width, height);
 	if (FAILED(result))
 	{
 		OutputDebugString("Fail to create ImGUI editor\n");
@@ -63,13 +63,14 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 
 	ObjDesc obj3Dsc;
 	obj3Dsc.type = ObjDesc::MODEL_OBJECT;
-	obj3Dsc.modelDesc.file = "Data/Models/sphere.fbx";
+	obj3Dsc.modelDesc.file = "Data/Models/sh1.fbx";
 	m_objScene->AddObj(&m_model3.model, obj3Dsc);
-	m_model3.model->scale = DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f);
-	m_model3.model->position = DirectX::XMFLOAT3(0.0f, 30.f, 0.0f);
+	m_model3.model->scale = DirectX::XMFLOAT3(4.0f, 4.0f, 4.0f);
+	m_model3.model->position = DirectX::XMFLOAT3(10.0f, 30.f, 0.0f);
+	m_model3.model->alphaTranparent = true;
 	desc.rigidModel = RigidModel::SPHERE;
 	desc.sphereDesc.density = 3.f;
-	desc.sphereDesc.radius = 13.f;
+	desc.sphereDesc.radius = 2.f;
 	desc.sphereDesc.rigidType = RigidType::DYNAMIC;
 	m_model3.collision.InitialCollision(m_model3.model, &m_physicManager, desc);
 	m_models.push_back(m_model3);
@@ -183,6 +184,7 @@ HRESULT MainEditor::OnInit(HWND* hwnd, HINSTANCE hInstance, unsigned int width, 
 	m_guiEditorManager->AddWindow(&m_menuEditor);
 	m_guiEditorManager->AddWindow(&m_ModelHierachyEditor);
 	m_ModelHierachyEditor.Initial(&m_models, m_objScene);
+
 	return S_OK;
 }
 static long long time = 0;
@@ -228,7 +230,7 @@ void MainEditor::OnUpdate()
 }
 void MainEditor::OnRender(HWND hWnd)
 {
-	m_engine.OnRender(m_mainCamera);
+	m_engine->OnRender(m_mainCamera);
 }
 void MainEditor::OnDestroy() {
 	
@@ -236,7 +238,7 @@ void MainEditor::OnDestroy() {
 	m_model2.Destroy();
 	m_model3.Destroy();
 	m_particle.Destroy();
-	m_engine.OnDestroy();
+	
 	
 	if (m_guiEditorManager)
 	{
@@ -258,7 +260,11 @@ void MainEditor::OnDestroy() {
 		delete m_light;
 		m_light = NULL;
 	}
-	
+	if (m_engine)
+	{
+		delete m_engine;
+		m_engine = NULL;
+	}
 	m_inputManager.Shudown();
 
 	m_physicManager.Destroy();

@@ -7,9 +7,9 @@ using namespace physx;
 ControlledActorDesc::ControlledActorDesc() :
 	mType(PxControllerShapeType::eFORCE_DWORD),
 	mPosition(PxExtendedVec3(0, 0, 0)),
-	mSlopeLimit(0.0f),
-	mContactOffset(0.0f),
-	mStepOffset(0.0f),
+	mSlopeLimit(0.707f),
+	mContactOffset(0.1f),
+	mStepOffset(0.5f),
 	mInvisibleWallHeight(0.0f),
 	mMaxJumpHeight(0.0f),
 	mRadius(0.0f),
@@ -17,11 +17,12 @@ ControlledActorDesc::ControlledActorDesc() :
 	mCrouchHeight(0.0f),
 	mProxyDensity(10.0f),
 	//	mProxyScale			(0.8f)
-	mProxyScale(0.9f),
+	mProxyScale(0.8f),
 	mVolumeGrowth(1.5f),
 	mReportCallback(NULL),
 	mBehaviorCallback(NULL)
 {
+	
 }
 
 PhysicManager::PhysicManager():
@@ -345,10 +346,11 @@ physx::PxController* PhysicManager::CreateCharacterController(ControlledActorDes
 	cDesc->stepOffset = desc.mStepOffset;
 	cDesc->invisibleWallHeight = desc.mInvisibleWallHeight;
 	cDesc->maxJumpHeight = desc.mMaxJumpHeight;
-	//	cDesc->nonWalkableMode		= PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+	//cDesc->nonWalkableMode = PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
 	cDesc->reportCallback = desc.mReportCallback;
 	cDesc->behaviorCallback = desc.mBehaviorCallback;
 	cDesc->volumeGrowth = desc.mVolumeGrowth;
+
 	PxController* c = m_controllerManager->createController(*cDesc);
 	if (!c)
 	{

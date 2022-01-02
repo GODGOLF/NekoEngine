@@ -4,13 +4,14 @@
 #include <wrl.h>
 #include <shellapi.h>
 #include "ScreenInF.h"
-#include "NekoEngine.h"
+#include "NekoInF.h"
 #include "ObjSceneInF.h"
 #include "MenuBarEditor.h"
 #include "KMInputManager.h"
 #include "PhysicManager.h"
 #include "ModelProperty.h"
 #include "ModelHierachyUI.h"
+#include "ImGuiIRenderInF.h"
 
 class MainEditor : public ScreenInF
 {
@@ -30,7 +31,7 @@ public:
 	}
 	
 private:
-	NekoEngine m_engine;
+	NekoInF* m_engine;
 	ObjScene* m_objScene;
 	LightManagementInF* m_light;
 	DirectionLightObj m_DirectionLight;

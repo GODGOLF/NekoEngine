@@ -365,7 +365,7 @@ void D3D11Class::OnDestroy()
 }
 void D3D11Class::BindMainRenderTarget() {
 	Reset();
-	m_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, g_backgroundColor_);
+	m_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, m_backgroundColor);
 	m_pImmediateContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	m_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, m_depthStencilView);
 }
@@ -389,7 +389,7 @@ ID3D11DepthStencilView* D3D11Class::GetDepthStencilView()
 }
 XMVECTORF32* D3D11Class::GetDefaultColorBg() 
 {
-	return &g_backgroundColor_;
+	return &m_backgroundColor;
 }
 void D3D11Class::Reset() 
 {

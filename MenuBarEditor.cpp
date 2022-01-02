@@ -1,5 +1,6 @@
 #include "MenuBarEditor.h"
 #include "imGUI\imgui.h"
+#include "SaveLoadManager.h" 
 
 void MenuBarEditor::Render(Camera* camera)
 {
@@ -10,7 +11,7 @@ void MenuBarEditor::Render(Camera* camera)
 		if (ImGui::BeginMenu("File")) {
 			if (ImGui::MenuItem("save", "", save))
 			{
-
+				
 			}
 			if (ImGui::MenuItem("load", "", load))
 			{

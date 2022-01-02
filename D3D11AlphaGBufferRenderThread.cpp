@@ -23,7 +23,8 @@
 
 
 const UINT8 STENCIL_CLEAR_VALUE = 0;
-const float CLEAR_RENDER[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+const float CLEAR_RENDER_COLOR[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+const float CLEAR_RENDER_COLOR_DEPTH[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 struct ResSCB
 {
@@ -208,10 +209,10 @@ void D3D11AlphaGBufferRenderThread::Render(DXInF* pDevice, Parameter* pParameter
 	m_deviceContext->RSGetState(&prevState);
 	m_deviceContext->RSSetState(m_RSCullBack);
 	m_deviceContext->RSSetViewports(1, &m_defaultVP);
-	m_deviceContext->ClearRenderTargetView(m_colorLayerRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_normalLayerRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_specPowerLayerRTV, CLEAR_RENDER);
-	m_deviceContext->ClearRenderTargetView(m_depthLayerRTV, CLEAR_RENDER);
+	m_deviceContext->ClearRenderTargetView(m_colorLayerRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_normalLayerRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_specPowerLayerRTV, CLEAR_RENDER_COLOR);
+	m_deviceContext->ClearRenderTargetView(m_depthLayerRTV, CLEAR_RENDER_COLOR_DEPTH);
 	m_indexRecord = 0;
 	for (unsigned int i = 0; i < m_RenderParameter->m_modelDataList->size(); i++)
 	{

@@ -24,6 +24,10 @@ NekoEngine::NekoEngine()
 	m_textureCombine = NULL;
 	
 }
+NekoEngine::~NekoEngine()
+{
+	OnDestroy();
+}
 HRESULT NekoEngine::OnInitial(HWND *hwnd, 
 	unsigned int width, 
 	unsigned int height,
